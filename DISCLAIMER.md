@@ -9,6 +9,9 @@ A: A general purpose systems language as compact and minimal as possble. Yet cap
 Q: Why?
 A: I wanted to learn more about compiler design and language implementation. To teach myself programming 
 
+Q: Syntax highlight?
+A: I'll release the text mate vscode/windsurf extension soon.
+
 Q: Is it memory safe?
 A: It does not enforce safety but I added `defer` to help with memory management.
 

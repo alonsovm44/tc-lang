@@ -13,7 +13,8 @@
 
 ---
 
-Tight-C is a minimal systems programming language that compiles to C. It has **10 keywords**, no garbage collector, no inference, no OOP — just explicit, predictable code with C-level power.
+Tight-C is a minimal systems programming language that transpiles to C.
+**10 keywords**, no garbage collector, no inference, no OOP — just explicit, predictable code with C-level power.
 
 ## Features
 
@@ -23,7 +24,10 @@ Tight-C is a minimal systems programming language that compiles to C. It has **1
 - **Manual memory** — `alloc()` / `free()` with `defer` for cleanup
 - **Packed structs** — no padding, predictable layout
 - **C FFI** — `extern "C"` for direct interop
-- **Compiles to C11** — readable output, use any C toolchain
+- **Rust-style errors** — colored diagnostics with source lines and carets
+- **One-step compile** — `tcc source.tc -c app` transpiles and compiles in one command
+- **Inline imports** — `@use "lib.tc"` inlines another `.tc` file at compile time
+- **CLI args** — `i32 fn main: =>->i8 args { ... }` for command-line tools
 
 ## Quick Start
 
@@ -31,15 +35,16 @@ Tight-C is a minimal systems programming language that compiles to C. It has **1
 # Build the compiler
 make
 
-# Compile stdlib
+# Compile stdlib headers (only needed once)
 ./tcc stdlib/io.tc -o stdlib/io.h
 
-# Compile a program
-./tcc samples/fizzbuzz.tc -o fizzbuzz.c
-
-# Build and run
-gcc fizzbuzz.c -std=c11 -o fizzbuzz
+# One-step: transpile + compile to binary
+./tcc samples/fizzbuzz.tc -c fizzbuzz
 ./fizzbuzz
+
+# Or two-step: transpile to C, then compile yourself
+./tcc samples/fizzbuzz.tc -o fizzbuzz.c
+gcc fizzbuzz.c -std=c11 -o fizzbuzz
 ```
 
 ## Hello World
@@ -83,20 +88,31 @@ p.x = 10
 ### Pointers
 ```
 i32 x = 42
-->i32 ptr = @x       // address-of
-->ptr = 99           // dereference
+->i32 ptr = @x          // raw pointer (address-of)
+->ptr = 99              // dereference
 
-=>i32 slice = arr[1:4]  // fat pointer (slice)
-i32 len = slice.len      // built-in length
+i32[4] arr = {1,2,3,4}
+=>i32 slice = @arr       // fat pointer from array
+printi(slice.len)        // built-in length
+printi(slice.ptr[0])     // access elements
+
+=>i32 sub = arr[1:3]     // slicing
+```
+
+### Pointer Combos
+```
+->->i32 pp = @p          // pointer to pointer
+=>->i32 fps = @ptrs      // fat pointer of raw pointers
+->=>i32 pslice = @slice  // raw pointer to fat pointer
 ```
 
 ### Control Flow
 ```
 if (x > 0) { ... }
 
-loop { ... break }
+loop { ... break }          // infinite loop
 
-loop if (i < 10) { ... }
+loop if (i < 10) { ... }    // conditional loop
 ```
 
 ### Memory
@@ -105,11 +121,35 @@ loop if (i < 10) { ... }
 defer { free(arr) }
 ```
 
+### Imports
+```
+use "stdlib/io.tc"       // link to pre-compiled .h
+@use "utils.tc"          // inline .tc at compile time
+```
+
+### CLI Arguments
+```
+i32 fn main: =>->i8 args {
+    printi(args.len)         // argc
+    print(args.ptr[1])       // first user argument
+    ret 0
+}
+```
+
 ### C FFI
 ```
 extern "C" {
     i32 fn printf: ->i8 fmt, ... {}
 }
+```
+
+### Error Reporting
+```
+error: bare identifier 'w' is not a statement
+ --> samples/syntaxe.tc:7:9
+   |
+ 7 |         w
+   |         ^ bare identifier 'w' is not a statement
 ```
 
 ## Types
@@ -127,6 +167,20 @@ extern "C" {
 | `f32`   | `float`     |
 | `f64`   | `double`    |
 | `void`  | `void`      |
+
+## Compiler Usage
+
+```bash
+tcc <input.tc> [-o output.c] [-c binary]
+```
+
+| Flag | Description |
+|------|-------------|
+| `-o file.c` | Emit transpiled C to file (`.h` gets `#pragma once`) |
+| `-c binary` | Transpile + compile to binary (auto-detects gcc/clang) |
+| (none) | Print transpiled C to stdout |
+
+Combine both: `tcc app.tc -o app.c -c app` keeps the `.c` and builds the binary.
 
 ## Project Structure
 
@@ -202,7 +256,7 @@ tc-lang/
 
 ## Building the Compiler
 
-Requires `gcc` and `make`.
+Requires `gcc` (or `clang`) and `make`.
 
 ```bash
 make          # Build tcc
