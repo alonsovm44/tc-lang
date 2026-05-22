@@ -9,6 +9,9 @@ A: A general purpose systems language as compact and minimal as possble. Yet cap
 Q: Why?
 A: I wanted to learn more about compiler design and language implementation. To teach myself programming 
 
+Q: What does pin do?
+A: It is a keyword that makes a variable immutable, it is like const in C but it only enforces immutability in the current scope. When the scope ends immutability dies. The idea was to make it easier to share data between threads if it is read only, to avoid things like race conditions and mutexes/locks. 
+
 Q: Syntax highlight?
 A: I'll release the text mate vscode/windsurf extension soon.
 
