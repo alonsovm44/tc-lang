@@ -2,8 +2,9 @@ use "stdlib/io.tc"
 
 void fn main: {
     i32 x = 10
+    printi(x)
     pin x
 
-    x = 11
+    x = 11 // this should be illegal since x is pinned
     printi(x)
 }

@@ -8,5 +8,5 @@
 
 # Compiling and keeping transpiled source
 
-`tcc source.tc -c -o app`
+`tcc source.tc -c app -o app.c`
 

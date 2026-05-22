@@ -62,6 +62,15 @@ struct Node{
 As commented by procedural
 > "Also, C allows not only dereferencing raw pointers, but treat them as arrays, for example "p->x" works, but "p[0].x" also works. This is useful for accessing array elements of a foreign pointer"
 
-I will implement this for ergonomics
+Tight-C already supports treating raw pointers as arrays, you just index them directly with ptr[i]. The -> prefix is only for single-element dereference (->ptr = C's *ptr), while ptr[i] = C's ptr[i].
 
+
+# function syntax fix
+
+Someone noted on hacker news that function syntax is verbose, 
+Proposed change
+
+<pub> fn <type> <name>: <type> <arg>, ... {
+
+}
 

@@ -1,0 +1,25 @@
+use "stdlib/io.tc"
+
+struct Vec2 {
+    i32 x,
+    i32 y
+}
+
+void fn main: {
+    ->Vec2 arr = alloc(Vec2, 3)
+    defer { free(arr) }
+
+    arr[0].x = 10
+    arr[0].y = 20
+    arr[1].x = 30
+    arr[1].y = 40
+    arr[2].x = 50
+    arr[2].y = 60
+
+    i32 i = 0
+    loop if (i < 3) {
+        printi(arr[i].x)
+        printi(arr[i].y)
+        i += 1
+    }
+}
