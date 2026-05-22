@@ -1,0 +1,146 @@
+(* TightC v1.0.0 EBNF Specification *)
+
+program         = use_stmt* decl*
+
+use_stmt        = "use" string_literal
+
+decl            = [pub] var_decl 
+                | [pub] fn_decl 
+                | [pub] struct_decl
+
+(* Visibility *)
+pub             = "pub"
+
+(* Variables *)
+var_decl        = type ident ["=" expr]
+pin_stmt        = "pin" ident
+
+(* Functions *)
+fn_decl         = type "fn" ident ":" [param_list] block
+param_list      = type ident ["," type ident]*
+
+(* Structs *)
+struct_decl     = "struct" ident "{" [struct_fields] "}"
+struct_fields   = type ident ["," struct_fields]?
+struct_instance = type ident  (* e.g., "Point point" *)
+
+(* Types *)
+type            = "void"
+                | "i2" | "i4" | "i8" | "i16" | "i32" | "i64"
+                | "u2" | "u4" | "u8" | "u16" | "u32" | "u64"
+                | "f32" | "f64"
+                | raw_pointer_type
+                | fat_pointer_type
+                | array_type
+
+raw_pointer_type  = "->" type
+fat_pointer_type  = "=>" type
+array_type        = type "[" expr "]"
+
+(* Statements *)
+stmt            = var_decl
+                | pin_stmt
+                | assignment
+                | if_stmt
+                | loop_stmt
+                | loop_if_stmt
+                | defer_stmt
+                | return_stmt
+                | block
+                | expr
+
+assignment      = expr assign_op expr
+assign_op       = "=" | "+=" | "-=" | "*=" | "/=" | "%="
+
+if_stmt         = "if" "(" expr ")" block
+
+loop_stmt       = "loop" block
+
+loop_if_stmt    = "loop" "if" "(" expr ")" block
+
+defer_stmt      = "defer" block
+
+return_stmt     = "ret" [expr]
+
+(* Expressions *)
+expr            = logical_or
+
+logical_or      = logical_and {"||" logical_and}
+
+logical_and     = equality {"&&" equality}
+
+equality        = relational {("==" | "<>") relational}
+
+relational      = shift {("<" | ">" | "<=" | ">=") shift}
+
+shift           = additive {("<<" | ">>") additive}
+
+additive        = multiplicative {("+" | "-") multiplicative}
+
+multiplicative  = unary {("*" | "/" | "%") unary}
+
+unary           = unary_op unary
+                | primary
+
+unary_op        = "&"    (* bitwise AND *)
+                | "|"    (* bitwise OR *)
+                | "^"    (* bitwise XOR *)
+                | "!"    (* bitwise NOT *)
+                | "@"    (* address-of *)
+                | "-"    (* arithmetic negation *)
+                | "++"   (* increment *)
+                | "--"   (* decrement *)
+                | "->"   (* dereference *)
+
+primary         = ident
+                | integer_literal
+                | float_literal
+                | string_literal
+                | "(" expr ")"
+                | call
+                | index
+                | field_access
+                | slice
+
+call            = ident "(" [expr {"," expr}] ")"
+
+index           = primary "[" expr "]"
+
+field_access    = primary "." ident
+
+slice           = primary "[" expr ":" expr "]"
+
+(* Literals *)
+integer_literal = decimal_literal | hex_literal | binary_literal
+decimal_literal = digit {digit}
+hex_literal     = "0x" hex_digit {hex_digit}
+binary_literal  = "0b" binary_digit {binary_digit}
+
+float_literal   = digit {digit} "." digit {digit}
+
+string_literal  = '"' {character} '"'
+
+(* Identifiers *)
+ident           = letter {letter | digit | "_"}
+
+(* Character classes *)
+letter          = "A" | "B" | ... | "Z" | "a" | "b" | ... | "z"
+digit           = "0" | "1" | "2" | "3" | "4" | "5" | "6" | "7" | "8" | "9"
+hex_digit       = digit | "A" | "B" | "C" | "D" | "E" | "F" | "a" | "b" | "c" | "d" | "e" | "f"
+binary_digit    = "0" | "1"
+
+(* Blocks *)
+block           = "{" {stmt} "}"
+
+(* Built-in functions - not in grammar but reserved *)
+builtin         = "sizeof" | "lenof" | "cast" | "alloc" | "free"
+
+(* C FFI *)
+extern_block    = "extern" '"C"' "{" {fn_decl} "}"
+
+(* Comments - handled by lexer *)
+comment         = "//" {character} newline
+                | "/*" {character} "*/"
+
+(* Whitespace *)
+whitespace      = space | newline | tab

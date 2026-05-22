@@ -1,0 +1,26 @@
+
+use "stdlib/io.tc" //for print
+
+void fn fizzbuzz: i32 n {
+    i32 i
+    loop {
+        if (n % 15 == 0){
+            print("fizzbuzz")
+        }
+        if (n % 3 == 0){
+            print("fizz")
+        }
+        if (n % 5 == 0){
+            print("buzz")
+        }
+        i+=1
+        if (i == n){
+            break
+        }
+    }
+}
+
+i32 fn main: {
+    fizzbuzz(120)
+    ret 0
+}

@@ -1,0 +1,10 @@
+// test program
+
+i32 fn add: i32 a, i32 b {
+    ret a + b
+}
+
+i32 fn main: {
+    i32 result = add(1, 2)
+    ret result
+}

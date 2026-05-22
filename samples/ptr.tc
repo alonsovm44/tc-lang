@@ -1,0 +1,10 @@
+
+void fn foo: {
+    i32 x = 10
+
+    ->i32 ptr = @x
+}
+
+void fn main: {
+    foo()
+}
