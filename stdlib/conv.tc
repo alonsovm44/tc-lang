@@ -1,0 +1,31 @@
+extern "C" {
+    i64 fn strtol: ->i8 str, ->->i8 endptr, i32 base {}
+    f64 fn strtod: ->i8 str, ->->i8 endptr {}
+    i32 fn snprintf: ->i8 buf, u64 size, ->i8 fmt, ... {}
+    i32 fn atoi: ->i8 str {}
+}
+
+// string to i64
+i64 fn stoi: ->i8 s {
+    ret strtol(s, cast(0, ->->i8), 10)
+}
+
+// string to i64 with base (2, 8, 10, 16)
+i64 fn stoib: ->i8 s, i32 base {
+    ret strtol(s, cast(0, ->->i8), base)
+}
+
+// string to f64
+f64 fn stof: ->i8 s {
+    ret strtod(s, cast(0, ->->i8))
+}
+
+// i64 to string (caller provides buffer, returns bytes written)
+i32 fn itos: i64 n, ->i8 buf, u64 bufsize {
+    ret snprintf(buf, bufsize, "%lld", n)
+}
+
+// f64 to string (caller provides buffer, returns bytes written)
+i32 fn ftos: f64 n, ->i8 buf, u64 bufsize {
+    ret snprintf(buf, bufsize, "%g", n)
+}

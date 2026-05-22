@@ -1,0 +1,54 @@
+extern "C" {
+    f64 fn sqrt: f64 x {}
+    f64 fn pow: f64 base, f64 exp {}
+    f64 fn fabs: f64 x {}
+    f64 fn floor: f64 x {}
+    f64 fn ceil: f64 x {}
+    f64 fn sin: f64 x {}
+    f64 fn cos: f64 x {}
+    f64 fn tan: f64 x {}
+    f64 fn log: f64 x {}
+    f64 fn log2: f64 x {}
+    f64 fn log10: f64 x {}
+    f64 fn exp: f64 x {}
+}
+
+// absolute value (integer)
+i64 fn iabs: i64 x {
+    if (x < 0) { ret 0 - x }
+    ret x
+}
+
+// minimum of two integers
+i64 fn min: i64 a, i64 b {
+    if (a < b) { ret a }
+    ret b
+}
+
+// maximum of two integers
+i64 fn max: i64 a, i64 b {
+    if (a > b) { ret a }
+    ret b
+}
+
+// clamp value between lo and hi
+i64 fn clamp: i64 x, i64 lo, i64 hi {
+    if (x < lo) { ret lo }
+    if (x > hi) { ret hi }
+    ret x
+}
+
+// absolute value (float)
+f64 fn fabs64: f64 x {
+    ret fabs(x)
+}
+
+// square root
+f64 fn sqrt64: f64 x {
+    ret sqrt(x)
+}
+
+// power
+f64 fn pow64: f64 base, f64 exp {
+    ret pow(base, exp)
+}

@@ -1,0 +1,53 @@
+extern "C" {
+    u64 fn strlen: ->i8 s {}
+    ->i8 fn strcpy: ->i8 dest, ->i8 src {}
+    ->i8 fn strcat: ->i8 dest, ->i8 src {}
+    i32 fn strcmp: ->i8 a, ->i8 b {}
+    ->i8 fn strncpy: ->i8 dest, ->i8 src, u64 n {}
+    i32 fn strncmp: ->i8 a, ->i8 b, u64 n {}
+    ->i8 fn strchr: ->i8 s, i32 c {}
+    ->i8 fn strrchr: ->i8 s, i32 c {}
+    ->i8 fn strstr: ->i8 haystack, ->i8 needle {}
+}
+
+// string length
+u64 fn slen: ->i8 s {
+    ret strlen(s)
+}
+
+// string equality (returns 1 if equal)
+i32 fn seq: ->i8 a, ->i8 b {
+    ret strcmp(a, b) == 0
+}
+
+// copy src into dest
+void fn scpy: ->i8 dest, ->i8 src {
+    strcpy(dest, src)
+    ret
+}
+
+// append src onto end of dest
+void fn scat: ->i8 dest, ->i8 src {
+    strcat(dest, src)
+    ret
+}
+
+// compare first n bytes of two strings
+i32 fn sneq: ->i8 a, ->i8 b, u64 n {
+    ret strncmp(a, b, n) == 0
+}
+
+// find first occurrence of char c in s, returns null if not found
+->i8 fn sfind: ->i8 s, i32 c {
+    ret strchr(s, c)
+}
+
+// find last occurrence of char c in s
+->i8 fn sfindlast: ->i8 s, i32 c {
+    ret strrchr(s, c)
+}
+
+// find substring needle in haystack
+->i8 fn shas: ->i8 haystack, ->i8 needle {
+    ret strstr(haystack, needle)
+}

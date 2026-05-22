@@ -141,18 +141,64 @@ tc-lang/
   Makefile       # Build system
 ```
 
-## Stdlib (v1.0.0)
+## Stdlib
 
-**`stdlib/io.tc`** — Basic I/O wrappers around C stdio:
+**`stdlib/io.tc`** — I/O
 
-| Function   | Description                  |
-|------------|------------------------------|
-| `print(s)` | Print string + newline       |
-| `printn(s)` | Print string, no newline    |
-| `printi(n)` | Print i64 + newline         |
+| Function     | Description                |
+|--------------|----------------------------|
+| `print(s)`   | Print string + newline     |
+| `printn(s)`  | Print string, no newline   |
+| `printi(n)`  | Print i64 + newline        |
 | `printin(n)` | Print i64, no newline      |
-| `readi()`  | Read i64 from stdin          |
-| `readc()`  | Read single char from stdin  |
+| `readi()`    | Read i64 from stdin        |
+| `readc()`    | Read single char from stdin|
+
+**`stdlib/str.tc`** — Strings
+
+| Function              | Description                          |
+|-----------------------|--------------------------------------|
+| `slen(s)`             | String length                        |
+| `seq(a, b)`           | String equality (returns 1 if equal) |
+| `scpy(dest, src)`     | Copy string                          |
+| `scat(dest, src)`     | Concatenate strings                  |
+| `sneq(a, b, n)`       | Compare first n bytes                |
+| `sfind(s, c)`         | Find first char occurrence           |
+| `sfindlast(s, c)`     | Find last char occurrence            |
+| `shas(haystack, needle)` | Find substring                    |
+
+**`stdlib/math.tc`** — Math
+
+| Function             | Description                       |
+|----------------------|-----------------------------------|
+| `iabs(x)`            | Absolute value (integer)          |
+| `min(a, b)`          | Minimum of two integers           |
+| `max(a, b)`          | Maximum of two integers           |
+| `clamp(x, lo, hi)`   | Clamp value to range              |
+| `sqrt64(x)`          | Square root (f64)                 |
+| `pow64(base, exp)`   | Power (f64)                       |
+| `fabs64(x)`          | Absolute value (f64)              |
+| `sin`, `cos`, `tan`  | Trig functions (extern C)         |
+| `log`, `log2`, `log10` | Logarithms (extern C)           |
+
+**`stdlib/mem.tc`** — Memory
+
+| Function              | Description                       |
+|-----------------------|-----------------------------------|
+| `zero(ptr, n)`        | Zero out n bytes                  |
+| `copy(dest, src, n)`  | Copy n bytes (overlap safe)       |
+| `memeq(a, b, n)`      | Compare n bytes (1 if equal)      |
+| `fill(ptr, val, n)`   | Fill n bytes with value           |
+
+**`stdlib/conv.tc`** — Conversions
+
+| Function              | Description                       |
+|-----------------------|-----------------------------------|
+| `stoi(s)`             | String to i64                     |
+| `stoib(s, base)`      | String to i64 with base           |
+| `stof(s)`             | String to f64                     |
+| `itos(n, buf, size)`  | i64 to string (into buffer)       |
+| `ftos(n, buf, size)`  | f64 to string (into buffer)       |
 
 ## Building the Compiler
 

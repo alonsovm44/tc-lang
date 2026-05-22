@@ -1,0 +1,35 @@
+use "stdlib/io.tc"
+use "stdlib/str.tc"
+use "stdlib/math.tc"
+use "stdlib/mem.tc"
+use "stdlib/conv.tc"
+
+i32 fn main: {
+    // string ops
+    ->i8 hello = "hello"
+    ->i8 world = "world"
+    printi(slen(hello))
+    if (seq(hello, "hello")) { print("strings equal") }
+
+    // math ops
+    printi(iabs(0 - 42))
+    printi(min(10, 3))
+    printi(max(10, 3))
+    printi(clamp(50, 0, 20))
+
+    // conversion
+    i64 n = stoi("12345")
+    printi(n)
+
+    i8[32] buf
+    itos(n, @buf[0], 32)
+    print(@buf[0])
+
+    // memory
+    i32[4] a = {1, 2, 3, 4}
+    i32[4] b
+    copy(@b[0], @a[0], 16)
+    printi(b[2])
+
+    ret 0
+}

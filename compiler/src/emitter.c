@@ -194,7 +194,7 @@ static void scan_fat_types_in_stmts(StmtVec *body, Str *out, DeclVec *program, c
 
 char *emit_program(DeclVec program) {
     Str out = {0};
-    str_add(&out, "#include <stdint.h>\n#include <stddef.h>\n#include <stdio.h>\n#include <stdlib.h>\n#include <string.h>\n");
+    str_add(&out, "#include <stdint.h>\n#include <stddef.h>\n#include <stdio.h>\n#include <stdlib.h>\n#include <string.h>\n#include <math.h>\n");
     str_add(&out, "#define TC_ALLOC(type, count) ((type *)calloc((count), sizeof(type)))\n");
     str_add(&out, "#define TC_LENOF(x) (sizeof(x) / sizeof((x)[0]))\n");
     str_add(&out, "#define TC_FAT_LENOF(x) ((x).len)\n");
