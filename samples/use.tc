@@ -1,0 +1,9 @@
+
+use "stdlib/io.tc"
+@use "utils.tc" 
+
+
+i32 fn main: {
+    printi(add(1, 2))
+    ret 0
+}

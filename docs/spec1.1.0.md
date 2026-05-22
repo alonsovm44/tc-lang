@@ -27,3 +27,14 @@ void fn main:{
     i32 result = callback(add, 5, 3)
     print(result)
 }
+
+# Inlining .tc files at compile time
+[DONE]
+Some .tc files might not need a .h file counterpart
+
+For this we specify with @
+
+@use "lib.tc" 
+
+this inlines a .tc file declarations at compile time, no .h file needed.
+

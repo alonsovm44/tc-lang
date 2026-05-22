@@ -1,7 +1,9 @@
 #include "parser.h"
 
 #include "common.h"
+#include "io.h"
 
+#include <stdio.h>
 #include <string.h>
 
 typedef struct {
@@ -326,10 +328,59 @@ static Decl *parse_struct(Parser *p, bool public) {
     return d;
 }
 
+static void resolve_path(const char *base, const char *rel, char *out, size_t out_size) {
+    // Find last slash in base path
+    const char *last_slash = NULL;
+    for (const char *p = base; *p; p++) {
+        if (*p == '/' || *p == '\\') last_slash = p;
+    }
+    if (last_slash) {
+        size_t dir_len = (size_t)(last_slash - base + 1);
+        if (dir_len >= out_size) dir_len = out_size - 1;
+        memcpy(out, base, dir_len);
+        out[dir_len] = '\0';
+        size_t rem = out_size - dir_len;
+        size_t rlen = strlen(rel);
+        if (rlen >= rem) rlen = rem - 1;
+        memcpy(out + dir_len, rel, rlen);
+        out[dir_len + rlen] = '\0';
+    } else {
+        size_t rlen = strlen(rel);
+        if (rlen >= out_size) rlen = out_size - 1;
+        memcpy(out, rel, rlen);
+        out[rlen] = '\0';
+    }
+}
+
 DeclVec parse_program(Token *tokens) {
     Parser p = {0};
     p.tokens = tokens;
     while (cur(&p)->kind != TOK_EOF) {
+        if (at(&p, "@")) {
+            Token *at_tok = cur(&p);
+            p.pos++;
+            if (!match(&p, "use")) tc_error(at_tok->line, at_tok->col, 1, "expected 'use' after '@'");
+            if (cur(&p)->kind != TOK_STRING) tc_error(cur(&p)->line, cur(&p)->col, (int)strlen(cur(&p)->text), "'@use' expects a string path, got '%s'", cur(&p)->text);
+            char *raw = cur(&p)->text;
+            p.pos++;
+            char *rel_path = xstrndup(raw + 1, strlen(raw) - 2);
+            // Resolve relative to the current source file
+            extern const char *g_current_input;
+            char resolved[1024];
+            if (g_current_input) {
+                resolve_path(g_current_input, rel_path, resolved, sizeof(resolved));
+            } else {
+                snprintf(resolved, sizeof(resolved), "%s", rel_path);
+            }
+            char *inc_src = try_read_file(resolved);
+            if (!inc_src) tc_error(at_tok->line, at_tok->col, 4, "cannot open file '%s'", resolved);
+            TokenVec inc_tokens = lex_source(inc_src);
+            DeclVec inc_decls = parse_program(inc_tokens.items);
+            for (int j = 0; j < inc_decls.count; j++) {
+                decl_push(&p.decls, inc_decls.items[j]);
+            }
+            continue;
+        }
         if (match(&p, "use")) {
             Decl *d = new_decl(DC_USE);
             if (cur(&p)->kind != TOK_STRING) tc_error(cur(&p)->line, cur(&p)->col, (int)strlen(cur(&p)->text), "'use' expects a string path, got '%s'", cur(&p)->text);
