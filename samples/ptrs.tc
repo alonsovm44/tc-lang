@@ -1,0 +1,31 @@
+use "stdlib/io.tc"
+
+void fn main: {
+    // ->-> : pointer to pointer (double indirection)
+    i32 val = 42
+    ->i32 p = @val
+    ->->i32 pp = @p
+    print("->-> pointer to pointer:")
+    printi(->->pp)
+
+    // =>-> : fat pointer of raw pointers (slice of pointers)
+    i32 a = 10
+    i32 b = 20
+    i32 c = 30
+    ->i32[3] ptrs = {@a, @b, @c}
+    =>->i32 fp = @ptrs
+    print("=>-> fat pointer of raw pointers:")
+    printi(fp.len)
+    printi(->fp.ptr[0])
+    printi(->fp.ptr[1])
+    printi(->fp.ptr[2])
+
+    // ->=> : raw pointer to a fat pointer
+    i32[4] arr = {100, 200, 300, 400}
+    =>i32 slice = @arr
+    ->=>i32 pslice = @slice
+    print("->=> raw pointer to fat pointer:")
+    printi((->pslice).len)
+    printi((->pslice).ptr[0])
+    printi((->pslice).ptr[3])
+}

@@ -127,7 +127,17 @@ static void emit_stmt(Str *out, Stmt *s, StmtVec *scope, DeclVec *program, int i
     switch (s->kind) {
         case ST_VAR: {
             emit_type(out, s->type, s->name, program);
-            if (s->expr) { str_add(out, " = "); emit_expr(out, s->expr, program); }
+            if (s->expr) {
+                if (s->type->kind == TY_FATPTR && s->expr->kind == EX_UNARY && !strcmp(s->expr->text, "@")) {
+                    str_add(out, " = { .ptr = ");
+                    emit_expr(out, s->expr->left, program);
+                    str_add(out, ", .len = TC_LENOF(");
+                    emit_expr(out, s->expr->left, program);
+                    str_add(out, ") }");
+                } else {
+                    str_add(out, " = "); emit_expr(out, s->expr, program);
+                }
+            }
             else str_add(out, " = {0}");
             str_add(out, ";\n");
             break;
