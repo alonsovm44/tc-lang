@@ -18,13 +18,13 @@ static bool at(Parser *p, const char *text) { return strcmp(cur(p)->text, text) 
 static bool match(Parser *p, const char *text) { if (at(p, text)) { p->pos++; return true; } return false; }
 
 static void expect(Parser *p, const char *text) {
-    if (!match(p, text)) die("expected '%s' at %d:%d, got '%s'", text, cur(p)->line, cur(p)->col, cur(p)->text);
+    if (!match(p, text)) tc_error(cur(p)->line, cur(p)->col, (int)strlen(cur(p)->text), "expected '%s', got '%s'", text, cur(p)->text);
 }
 
 static char *expect_ident(Parser *p) {
     Token *t = cur(p);
-    if (t->kind != TOK_IDENT && t->kind != TOK_KEYWORD) die("expected identifier at %d:%d", t->line, t->col);
-    if (t->kind == TOK_KEYWORD && !is_type_name(t->text)) die("expected identifier at %d:%d", t->line, t->col);
+    if (t->kind != TOK_IDENT && t->kind != TOK_KEYWORD) tc_error(t->line, t->col, (int)strlen(t->text), "expected identifier, got '%s'", t->text);
+    if (t->kind == TOK_KEYWORD && !is_type_name(t->text)) tc_error(t->line, t->col, (int)strlen(t->text), "'%s' is a keyword, not a valid identifier", t->text);
     p->pos++;
     return t->text;
 }
@@ -127,7 +127,7 @@ static Expr *parse_primary(Parser *p) {
         expect(p, ")");
         return e;
     }
-    die("expected expression at %d:%d, got '%s'", t->line, t->col, t->text);
+    tc_error(t->line, t->col, (int)strlen(t->text), "expected expression, got '%s'", t->text);
     return NULL;
 }
 
@@ -274,6 +274,16 @@ static Stmt *parse_stmt(Parser *p) {
     p->pos = mark;
     Stmt *s = new_stmt(ST_EXPR);
     s->expr = parse_expr(p);
+    if (s->expr->kind == EX_NAME) {
+        Token *t = &p->tokens[mark];
+        tc_error(t->line, t->col, (int)strlen(t->text),
+            "bare identifier '%s' is not a statement", t->text);
+    }
+    if (s->expr->kind == EX_LITERAL) {
+        Token *t = &p->tokens[mark];
+        tc_error(t->line, t->col, (int)strlen(t->text),
+            "bare literal '%s' is not a statement", t->text);
+    }
     return s;
 }
 
@@ -322,7 +332,7 @@ DeclVec parse_program(Token *tokens) {
     while (cur(&p)->kind != TOK_EOF) {
         if (match(&p, "use")) {
             Decl *d = new_decl(DC_USE);
-            if (cur(&p)->kind != TOK_STRING) die("use expects a string literal at %d:%d", cur(&p)->line, cur(&p)->col);
+            if (cur(&p)->kind != TOK_STRING) tc_error(cur(&p)->line, cur(&p)->col, (int)strlen(cur(&p)->text), "'use' expects a string path, got '%s'", cur(&p)->text);
             d->path = cur(&p)->text;
             p.pos++;
             decl_push(&p.decls, d);
@@ -330,7 +340,7 @@ DeclVec parse_program(Token *tokens) {
         }
         bool public = match(&p, "pub");
         if (match(&p, "extern")) {
-            if (cur(&p)->kind != TOK_STRING || strcmp(cur(&p)->text, "\"C\"")) die("extern expects \"C\"");
+            if (cur(&p)->kind != TOK_STRING || strcmp(cur(&p)->text, "\"C\"")) tc_error(cur(&p)->line, cur(&p)->col, (int)strlen(cur(&p)->text), "extern expects \"C\", got '%s'", cur(&p)->text);
             p.pos++;
             expect(&p, "{");
             while (!match(&p, "}")) {

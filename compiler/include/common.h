@@ -11,6 +11,15 @@ typedef struct {
 } Str;
 
 void die(const char *fmt, ...);
+
+typedef struct {
+    const char *filename;
+    const char *source;
+} SrcContext;
+
+void tc_set_source(const char *filename, const char *source);
+void tc_error(int line, int col, int len, const char *fmt, ...);
+
 void *xmalloc(size_t size);
 void *xrealloc(void *ptr, size_t size);
 char *xstrndup(const char *s, size_t n);

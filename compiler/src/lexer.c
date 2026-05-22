@@ -40,7 +40,7 @@ TokenVec lex_source(const char *src) {
             while (src[i] && !(src[i] == '*' && src[i + 1] == '/')) {
                 if (src[i] == '\n') { line++; col = 1; i++; } else { i++; col++; }
             }
-            if (!src[i]) die("unterminated block comment");
+            if (!src[i]) tc_error(line, col, 2, "unterminated block comment");
             i += 2; col += 2;
             continue;
         }
@@ -65,10 +65,10 @@ TokenVec lex_source(const char *src) {
             col++;
             while (src[i] && src[i] != '"') {
                 if (src[i] == '\\' && src[i + 1]) { i++; col++; }
-                if (src[i] == '\n') die("unterminated string at %d:%d", start_line, start_col);
+                if (src[i] == '\n') tc_error(start_line, start_col, 1, "unterminated string literal");
                 i++; col++;
             }
-            if (!src[i]) die("unterminated string at %d:%d", start_line, start_col);
+            if (!src[i]) tc_error(start_line, start_col, 1, "unterminated string literal");
             i++; col++;
             token_push(&out, (Token){TOK_STRING, xstrndup(src + start, (size_t)(i - start)), start_line, start_col});
             continue;
@@ -86,7 +86,7 @@ TokenVec lex_source(const char *src) {
             token_push(&out, (Token){is_keyword(text) ? TOK_KEYWORD : TOK_IDENT, text, start_line, start_col});
             continue;
         }
-        die("unexpected character '%c' at %d:%d", src[i], line, col);
+        tc_error(line, col, 1, "unexpected character '%c'", src[i]);
     }
     token_push(&out, (Token){TOK_EOF, xstrdup(""), line, col});
     return out;

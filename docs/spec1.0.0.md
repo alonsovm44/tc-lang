@@ -6,12 +6,12 @@ The goal is to create a language that is as simple as possible while still being
 
 Rules:
     - No GC
-    - No safety, but defer included
+    - No complex safety, but defer included
     - No inference, everything is explicit
     - No shadowing, pick names well
     - No OOP, imperative procedural instead
     - No indentation, braces only
-    - No & C++ style aliasings to avoid bugs
+    - No & C++ style references to avoid bugs
     - No string type, C like strings
     - Math built in
     and: &, or: |, xor: ^, not: !, shl: <<, shr: >>

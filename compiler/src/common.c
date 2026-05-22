@@ -14,6 +14,73 @@ void die(const char *fmt, ...) {
     exit(1);
 }
 
+static SrcContext g_src = {0};
+
+void tc_set_source(const char *filename, const char *source) {
+    g_src.filename = filename;
+    g_src.source = source;
+}
+
+static const char *get_line_start(const char *src, int target_line) {
+    int line = 1;
+    const char *p = src;
+    while (*p && line < target_line) {
+        if (*p == '\n') line++;
+        p++;
+    }
+    return p;
+}
+
+static int get_line_len(const char *line_start) {
+    int len = 0;
+    while (line_start[len] && line_start[len] != '\n') len++;
+    return len;
+}
+
+void tc_error(int line, int col, int span, const char *fmt, ...) {
+    const char *RED    = "\033[1;31m";
+    const char *BLUE   = "\033[1;34m";
+    const char *BOLD   = "\033[1m";
+    const char *RESET  = "\033[0m";
+
+    va_list ap;
+    va_start(ap, fmt);
+    fprintf(stderr, "%s%serror%s%s: ", RED, BOLD, RESET, BOLD);
+    vfprintf(stderr, fmt, ap);
+    va_end(ap);
+    fprintf(stderr, "%s\n", RESET);
+
+    if (g_src.filename) {
+        fprintf(stderr, " %s-->%s %s:%d:%d\n", BLUE, RESET, g_src.filename, line, col);
+    }
+
+    if (g_src.source && line > 0) {
+        const char *ls = get_line_start(g_src.source, line);
+        int ll = get_line_len(ls);
+        char line_num[16];
+        int nw = snprintf(line_num, sizeof(line_num), "%d", line);
+
+        fprintf(stderr, " %*s %s|%s\n", nw, "", BLUE, RESET);
+        fprintf(stderr, " %s%d%s %s|%s %.*s\n", BLUE, line, RESET, BLUE, RESET, ll, ls);
+        fprintf(stderr, " %*s %s|%s ", nw, "", BLUE, RESET);
+
+        if (span < 1) span = 1;
+        for (int i = 1; i < col; i++) fputc(' ', stderr);
+        fprintf(stderr, "%s", RED);
+        for (int i = 0; i < span; i++) fputc('^', stderr);
+        fprintf(stderr, "%s", RESET);
+
+        va_list ap2;
+        va_start(ap2, fmt);
+        fprintf(stderr, " %s", RED);
+        vfprintf(stderr, fmt, ap2);
+        va_end(ap2);
+        fprintf(stderr, "%s\n", RESET);
+    }
+
+    exit(1);
+}
+
 void *xmalloc(size_t size) {
     void *ptr = malloc(size ? size : 1);
     if (!ptr) die("out of memory");

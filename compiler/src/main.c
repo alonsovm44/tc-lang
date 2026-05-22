@@ -20,6 +20,7 @@ int main(int argc, char **argv) {
     }
     if (!input) die("usage: tightc <input.tc> [-o output.c]");
     char *source = read_file(input);
+    tc_set_source(input, source);
     TokenVec tokens = lex_source(source);
     DeclVec program = parse_program(tokens.items);
     char *c = emit_program(program);
