@@ -1,0 +1,43 @@
+extern "C" {
+    i32 fn printf: ->i8 fmt, ... {}
+    i32 fn scanf: ->i8 fmt, ... {}
+    i32 fn putchar: i32 c {}
+    i32 fn getchar: {}
+}
+
+// print a string with newline
+void fn print: ->i8 s {
+    printf(s)
+    putchar(10)
+    ret
+}
+
+// print a string without newline
+void fn printn: ->i8 s {
+    printf(s)
+    ret
+}
+
+// print an integer with newline
+void fn printi: i64 n {
+    printf("%lld\n", n)
+    ret
+}
+
+// print an integer without newline
+void fn printin: i64 n {
+    printf("%lld", n)
+    ret
+}
+
+// read an integer from stdin
+i64 fn readi: {
+    i64 n
+    scanf("%lld", @n)
+    ret n
+}
+
+// read a single character from stdin
+i32 fn readc: {
+    ret getchar()
+}

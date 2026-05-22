@@ -35,7 +35,8 @@ static void emit_type(Str *out, Type *t, const char *name, DeclVec *program) {
     }
     const char *base = t->name;
     if (!strcmp(base, "void")) base = "void";
-    else if (!strcmp(base, "i2") || !strcmp(base, "i4") || !strcmp(base, "i8")) base = "int8_t";
+    else if (!strcmp(base, "i2") || !strcmp(base, "i4")) base = "int8_t";
+    else if (!strcmp(base, "i8")) base = "char";
     else if (!strcmp(base, "i16")) base = "int16_t";
     else if (!strcmp(base, "i32")) base = "int32_t";
     else if (!strcmp(base, "i64")) base = "int64_t";
@@ -137,11 +138,16 @@ static void emit_stmt_vec(Str *out, StmtVec *body, DeclVec *program, int indent)
 
 char *emit_program(DeclVec program) {
     Str out = {0};
-    str_add(&out, "#include <stdint.h>\n#include <stddef.h>\n#include <stdlib.h>\n#define TC_ALLOC(type, count) ((type *)calloc((count), sizeof(type)))\n#define lenof(x) (sizeof(x) / sizeof((x)[0]))\n\n");
+    str_add(&out, "#include <stdint.h>\n#include <stddef.h>\n#include <stdio.h>\n#include <stdlib.h>\n#define TC_ALLOC(type, count) ((type *)calloc((count), sizeof(type)))\n#define lenof(x) (sizeof(x) / sizeof((x)[0]))\n\n");
     for (int i = 0; i < program.count; i++) {
         Decl *d = program.items[i];
         if (d->kind == DC_USE) {
             char *path = xstrndup(d->path + 1, strlen(d->path) - 2);
+            size_t plen = strlen(path);
+            if (plen > 3 && strcmp(path + plen - 3, ".tc") == 0) {
+                path[plen - 2] = 'h';
+                path[plen - 1] = '\0';
+            }
             str_printf(&out, "#include \"%s\"\n", path);
         }
     }
@@ -157,7 +163,7 @@ char *emit_program(DeclVec program) {
     }
     for (int i = 0; i < program.count; i++) {
         Decl *d = program.items[i];
-        if (d->kind == DC_FN || d->kind == DC_EXTERN_FN) {
+        if (d->kind == DC_FN) {
             emit_type(&out, d->type, d->name, &program); str_add(&out, "(");
             if (!d->params.count && !d->varargs) str_add(&out, "void");
             for (int j = 0; j < d->params.count; j++) { if (j) str_add(&out, ", "); emit_type(&out, d->params.items[j].type, d->params.items[j].name, &program); }

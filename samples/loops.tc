@@ -1,0 +1,13 @@
+use "stdlib/io.tc"
+
+void fn loops: {
+    i32 i = 10
+    loop if(i > 0){
+        i -= 1
+        printi(i)
+    }
+}
+
+void fn main: {
+    loops()
+}

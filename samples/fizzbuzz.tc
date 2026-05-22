@@ -13,10 +13,13 @@ void fn fizzbuzz: i32 n {
         if (n % 5 == 0){
             print("buzz")
         }
-        i+=1
+        if (n % 15 <> 0 && n % 3 <> 0 && n % 5 <> 0) {
+            printi(i)
+        }
         if (i == n){
             break
         }
+        i+=1
     }
 }
 
