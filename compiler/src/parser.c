@@ -23,13 +23,13 @@ static bool at(Parser *p, const char *text) { return strcmp(cur(p)->text, text) 
 static bool match(Parser *p, const char *text) { if (at(p, text)) { p->pos++; return true; } return false; }
 
 static void expect(Parser *p, const char *text) {
-    if (!match(p, text)) tc_error(cur(p)->line, cur(p)->col, (int)strlen(cur(p)->text), "expected '%s', got '%s'", text, cur(p)->text);
+    if (!match(p, text)) tc_error("E001", cur(p)->line, cur(p)->col, (int)strlen(cur(p)->text), "expected '%s', got '%s'", text, cur(p)->text);
 }
 
 static char *expect_ident(Parser *p) {
     Token *t = cur(p);
-    if (t->kind != TOK_IDENT && t->kind != TOK_KEYWORD) tc_error(t->line, t->col, (int)strlen(t->text), "expected identifier, got '%s'", t->text);
-    if (t->kind == TOK_KEYWORD && !is_type_name(t->text)) tc_error(t->line, t->col, (int)strlen(t->text), "'%s' is a keyword, not a valid identifier", t->text);
+    if (t->kind != TOK_IDENT && t->kind != TOK_KEYWORD) tc_error("E002", t->line, t->col, (int)strlen(t->text), "expected identifier, got '%s'", t->text);
+    if (t->kind == TOK_KEYWORD && !is_type_name(t->text)) tc_error("E003", t->line, t->col, (int)strlen(t->text), "'%s' is a keyword, not a valid identifier", t->text);
     p->pos++;
     return t->text;
 }
@@ -132,7 +132,7 @@ static Expr *parse_primary(Parser *p) {
         expect(p, ")");
         return e;
     }
-    tc_error(t->line, t->col, (int)strlen(t->text), "expected expression, got '%s'", t->text);
+    tc_error("E004", t->line, t->col, (int)strlen(t->text), "expected expression, got '%s'", t->text);
     return NULL;
 }
 
@@ -291,7 +291,7 @@ static Stmt *parse_stmt(Parser *p) {
             for (int pi = 0; pi < p->pin_count; pi++) {
                 if (!strcmp(p->pinned[pi], target)) {
                     Token *t = &p->tokens[mark];
-                    tc_error(t->line, t->col, (int)strlen(target),
+                    tc_error("E000", t->line, t->col, (int)strlen(target),
                         "cannot assign to pinned variable '%s'", target);
                 }
             }
@@ -299,12 +299,12 @@ static Stmt *parse_stmt(Parser *p) {
     }
     if (s->expr->kind == EX_NAME) {
         Token *t = &p->tokens[mark];
-        tc_error(t->line, t->col, (int)strlen(t->text),
+        tc_error("E005", t->line, t->col, (int)strlen(t->text),
             "bare identifier '%s' is not a statement", t->text);
     }
     if (s->expr->kind == EX_LITERAL) {
         Token *t = &p->tokens[mark];
-        tc_error(t->line, t->col, (int)strlen(t->text),
+        tc_error("E006", t->line, t->col, (int)strlen(t->text),
             "bare literal '%s' is not a statement", t->text);
     }
     return s;
@@ -381,8 +381,8 @@ DeclVec parse_program(Token *tokens) {
         if (at(&p, "@")) {
             Token *at_tok = cur(&p);
             p.pos++;
-            if (!match(&p, "use")) tc_error(at_tok->line, at_tok->col, 1, "expected 'use' after '@'");
-            if (cur(&p)->kind != TOK_STRING) tc_error(cur(&p)->line, cur(&p)->col, (int)strlen(cur(&p)->text), "'@use' expects a string path, got '%s'", cur(&p)->text);
+            if (!match(&p, "use")) tc_error("E007", at_tok->line, at_tok->col, 1, "expected 'use' after '@'");
+            if (cur(&p)->kind != TOK_STRING) tc_error("E008", cur(&p)->line, cur(&p)->col, (int)strlen(cur(&p)->text), "'@use' expects a string path, got '%s'", cur(&p)->text);
             char *raw = cur(&p)->text;
             p.pos++;
             char *rel_path = xstrndup(raw + 1, strlen(raw) - 2);
@@ -395,7 +395,7 @@ DeclVec parse_program(Token *tokens) {
                 snprintf(resolved, sizeof(resolved), "%s", rel_path);
             }
             char *inc_src = try_read_file(resolved);
-            if (!inc_src) tc_error(at_tok->line, at_tok->col, 4, "cannot open file '%s'", resolved);
+            if (!inc_src) tc_error("E009", at_tok->line, at_tok->col, 4, "cannot open file '%s'", resolved);
             TokenVec inc_tokens = lex_source(inc_src);
             DeclVec inc_decls = parse_program(inc_tokens.items);
             for (int j = 0; j < inc_decls.count; j++) {
@@ -405,7 +405,7 @@ DeclVec parse_program(Token *tokens) {
         }
         if (match(&p, "use")) {
             Decl *d = new_decl(DC_USE);
-            if (cur(&p)->kind != TOK_STRING) tc_error(cur(&p)->line, cur(&p)->col, (int)strlen(cur(&p)->text), "'use' expects a string path, got '%s'", cur(&p)->text);
+            if (cur(&p)->kind != TOK_STRING) tc_error("E010", cur(&p)->line, cur(&p)->col, (int)strlen(cur(&p)->text), "'use' expects a string path, got '%s'", cur(&p)->text);
             d->path = cur(&p)->text;
             p.pos++;
             decl_push(&p.decls, d);
@@ -413,7 +413,7 @@ DeclVec parse_program(Token *tokens) {
         }
         bool public = match(&p, "pub");
         if (match(&p, "extern")) {
-            if (cur(&p)->kind != TOK_STRING || strcmp(cur(&p)->text, "\"C\"")) tc_error(cur(&p)->line, cur(&p)->col, (int)strlen(cur(&p)->text), "extern expects \"C\", got '%s'", cur(&p)->text);
+            if (cur(&p)->kind != TOK_STRING || strcmp(cur(&p)->text, "\"C\"")) tc_error("E011", cur(&p)->line, cur(&p)->col, (int)strlen(cur(&p)->text), "extern expects \"C\", got '%s'", cur(&p)->text);
             p.pos++;
             expect(&p, "{");
             while (!match(&p, "}")) {

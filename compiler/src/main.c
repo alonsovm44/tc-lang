@@ -112,6 +112,21 @@ static const ErrorInfo error_table[] = {
      "\n"
      "Fix:\n"
      "    extern \"C\" { }\n"},
+    {"E012", "Unterminated literal",
+     "A block comment `/* ... */` or string literal `\"...\"` was opened\n"
+     "but never closed before end of file or newline.\n"
+     "\n"
+     "Bad:\n"
+     "    /* this comment never ends\n"
+     "    i32 x = \"hello\n"
+     "\n"
+     "Fix: close the comment with `*/` or terminate the string with `\"`.\n"},
+    {"E013", "Unexpected character",
+     "The lexer encountered a character that is not part of the Tight-C\n"
+     "grammar. Only ASCII letters, digits, common operators, and\n"
+     "punctuation are allowed.\n"
+     "\n"
+     "Fix: remove the unexpected character from your source file.\n"},
     {"E100", "Missing input file",
      "`tcc` requires a source file as its first argument.\n"
      "\n"

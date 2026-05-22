@@ -37,15 +37,17 @@ static int get_line_len(const char *line_start) {
     return len;
 }
 
-void tc_error(int line, int col, int span, const char *fmt, ...) {
+void tc_error(const char *ecode, int line, int col, int span, const char *fmt, ...) {
     const char *RED    = "\033[1;31m";
     const char *BLUE   = "\033[1;34m";
+    const char *CYAN   = "\033[1;36m";
     const char *BOLD   = "\033[1m";
+    const char *DIM    = "\033[2m";
     const char *RESET  = "\033[0m";
 
     va_list ap;
     va_start(ap, fmt);
-    fprintf(stderr, "%s%serror%s%s: ", RED, BOLD, RESET, BOLD);
+    fprintf(stderr, "%s%serror[%s]%s%s: ", RED, BOLD, ecode, RESET, BOLD);
     vfprintf(stderr, fmt, ap);
     va_end(ap);
     fprintf(stderr, "%s\n", RESET);
@@ -77,6 +79,9 @@ void tc_error(int line, int col, int span, const char *fmt, ...) {
         va_end(ap2);
         fprintf(stderr, "%s\n", RESET);
     }
+
+    fprintf(stderr, "\n%s%s%s\n", CYAN, ecode, RESET);
+    fprintf(stderr, "%sType \"tcc --error %s\" for help%s\n", DIM, ecode, RESET);
 
     exit(1);
 }

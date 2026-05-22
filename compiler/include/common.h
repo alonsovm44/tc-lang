@@ -18,7 +18,7 @@ typedef struct {
 } SrcContext;
 
 void tc_set_source(const char *filename, const char *source);
-void tc_error(int line, int col, int len, const char *fmt, ...);
+void tc_error(const char *ecode, int line, int col, int len, const char *fmt, ...);
 
 void *xmalloc(size_t size);
 void *xrealloc(void *ptr, size_t size);

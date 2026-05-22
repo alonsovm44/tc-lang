@@ -76,6 +76,19 @@ Raised when `extern` is not followed by `"C"`.
 extern "Rust" { }   // E011: extern expects "C", got '"Rust"'
 ```
 
+### E012 — Unterminated literal
+Raised when a block comment or string literal is opened but never closed.
+```tc
+/* this comment never ends
+i32 x = "hello      // E012: unterminated string literal
+```
+
+### E013 — Unexpected character
+Raised when the lexer encounters a character not part of the Tight-C grammar.
+```tc
+i32 x = 5 ¿        // E013: unexpected character '¿'
+```
+
 ## CLI errors
 
 ### E100 — Missing input file

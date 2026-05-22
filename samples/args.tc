@@ -1,5 +1,5 @@
 use "stdlib/io.tc"
-use "stdlib/str.tc"
+use "stdlib/conv.tc"
 /*
 =>-> just means char*[], a slice of pointers to u8
 */
@@ -14,9 +14,20 @@ i8 fn main: =>->u8 args {
     //simple calculator
 
     if(args[1] == "sum"){
-        ->u8 arg2 = args[2]
-        ->u8 arg3 = args[3]
+        if(args.len < 4) {
+            print("usage: args sum <num1> <num2>")
+            return 1
+        }
+        ->i8 arg2 = args[2]
+        ->i8 arg3 = args[3]
 
+        i64 x = stoi(arg2)
+        i64 y = stoi(arg3)
 
+        i64 sum = x + y
+
+        ->i8 result = itos(sum)
+        print(result)
+        
     }
 }
