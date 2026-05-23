@@ -47,6 +47,60 @@ make
 gcc fizzbuzz.c -std=c11 -o fizzbuzz
 ```
 
+## How It Works
+
+Tight-C is a **source-to-source compiler** (transpiler) written in ~1500 lines of C. It reads `.tc` files and outputs portable C11.
+
+```
+source.tc → [Lexer] → [Parser] → [AST] → [Emitter] → output.c → gcc/clang → binary
+```
+
+### Pipeline
+
+1. **Lexer** (`lexer.c`) — Tokenizes source into identifiers, literals, keywords, and symbols. Tracks line/col for error reporting.
+2. **Parser** (`parser.c`) — Builds an AST from tokens. Handles operator precedence, scope-level `pin` enforcement, and `@use` file inlining (recursive parse + splice).
+3. **Emitter** (`emitter.c`) — Walks the AST and outputs C11. Most constructs are 1:1 with targeted transforms:
+
+| Tight-C | Emitted C |
+|---------|-----------|
+| `=>i32 s` | `tc_fat_i32 s` (struct with `.ptr` + `.len`) |
+| `defer { free(p) }` | Scope-exit statements emitted in reverse order before `}` and `return` |
+| `pin x` | Nothing emitted — enforced at parse time (compile error on reassignment) |
+| `@use "lib.tc"` | Declarations inlined directly into AST (no `#include`) |
+| `alloc(T, n)` | `TC_ALLOC(T, n)` → `calloc(n, sizeof(T))` |
+| `=>->i8 args` in main | `main(int argc, char **argv)` + local fat pointer wrapping them |
+
+### What it is *not*
+
+There is no optimizer, no IR, no type inference pass, and no code generation beyond string concatenation of C. The output is always **readable, debuggable C** that you can inspect with `tcc source.tc -o source.c`.
+
+## Design Goals
+
+| Goal | How |
+|------|-----|
+| **Predictability** | Every line maps to obvious C. No hidden allocations, no implicit copies, no vtables. |
+| **Simplicity** | 10 keywords. The entire compiler is a single-pass parser + tree-walk emitter. |
+| **Portability** | Output is C11 with no platform-specific extensions. Compiles with gcc, clang, or any conforming C compiler. |
+| **Safety without runtime cost** | Fat pointers carry length at zero overhead (struct field). `pin` catches mutation bugs at compile time. `defer` prevents resource leaks. |
+| **Interop** | `extern "C"` blocks let you call any C library directly. `use` includes `.h` files. The generated code is linkable from C. |
+
+### What Tight-C is good for
+
+- **CLI tools** — parse args, process files, call system APIs
+- **Embedded / bare-metal** — no runtime, no allocator required, predictable memory layout (packed structs)
+- **Game engine internals** — manual memory, no GC pauses, direct pointer control
+- **Learning compilers** — small enough to read in an afternoon, real enough to produce working binaries
+- **C codebases that want better ergonomics** — fat pointers, defer, slicing, without leaving the C ecosystem
+
+### What is intentionally skipped
+
+- **Generics / templates** — explicitness over abstraction
+- **OOP / inheritance** — composition via structs
+- **Garbage collection** — manual memory is the point
+- **Type inference** — all types are visible at declaration
+- **Exceptions** — return error codes, check them
+- **Runtime reflection** — if you need it, you're in the wrong language
+
 ## Hello World
 
 ```
@@ -110,7 +164,7 @@ printi(slice.ptr[0])     // access elements
 ```
 if (x > 0) { ... }
 
-loop { ... break }          // infinite loop
+loop { ... break }          // infinite loop unless break
 
 loop if (i < 10) { ... }    // conditional loop
 ```
@@ -283,7 +337,9 @@ make clean    # Remove build artifacts
 
 > Everything that can be built in the stdlib has to.
 
-Tight-C bets that C's power doesn't require C's complexity. Strip away the historical baggage and you get a language a single person can implement, understand fully, and still write real systems code in.
+Tight-C bets that C's power doesn't require C's complexity. Strip away the historical baggage — header files, preprocessor macros, implicit conversions, undefined behavior traps — and you get a language a single person can implement, understand fully, and still write real systems code in.
+
+The compiler is the spec. If you can read ~1500 lines of C, you know exactly what Tight-C does.
 
 ---
 
