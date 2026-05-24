@@ -121,7 +121,7 @@ There is no optimizer, no IR, no type inference pass, and no code generation bey
 ```
 use "stdlib/io.tc"
 
-void fn main: {
+fn void main: {
     print("hello, world")
 }
 ```
