@@ -13,14 +13,7 @@
 
 ---
 
-Tight-C is a minimalistic systems programming language. Designed to work with C
-
-## Philosophy
-I just wanted to find out if I could make a systems language with less keywords than Go, without GC and heavy runtime overhead.
-
-### Core principle:
-> Everything that can be built with libraries has to be built with libraries. The core language is small.
-
+Tight-C is a minimalistic systems programming language.
 
 ## Features
 
@@ -34,6 +27,22 @@ I just wanted to find out if I could make a systems language with less keywords 
 - **One-step compile** — `tcc source.tc -c app` transpiles and compiles in one command
 - **Inline imports** — `@use "lib.tc"` inlines another `.tc` file at compile time
 - **CLI args** — `i32 fn main: =>->i8 args { ... }` for command-line tools
+
+
+## Philosophy
+
+**Why it was made**: I wanted a simple systems language with less keywords than Go, without GC and without heavy runtime overhead.
+**Backend**: For now it is C11 
+**Concurrency and Safety?**: I've been toying around 
+
+### Inspiration
+- Pony
+- Go
+- C
+- Rust
+
+### Core principle:
+> Everything that can be built with libraries has to be built with libraries. The core language is small.
 
 ## Quick Start
 
@@ -98,7 +107,7 @@ There is no optimizer, no IR, no type inference pass, and no code generation bey
 - **Learning compilers** — small enough to read in an afternoon, real enough to produce working binaries
 - **C codebases that want better ergonomics** — fat pointers, defer, slicing, without leaving the C ecosystem
 
-### What is intentionally skipped
+### What is intentionally skipped (for now)
 
 - **Generics / templates** — explicitness over abstraction
 - **OOP / inheritance** — composition via structs
@@ -129,7 +138,7 @@ Uninitialized variables default to `0`.
 
 ### Functions
 ```
-i32 fn add: i32 a, i32 b {
+fn i32 add: i32 a, i32 b {
     ret a + b
 }
 ```
