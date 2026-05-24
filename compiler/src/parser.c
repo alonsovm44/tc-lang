@@ -427,16 +427,46 @@ DeclVec parse_program(Token *tokens) {
             decl_push(&p.decls, parse_struct(&p, public));
             continue;
         }
-        Type *type = parse_type(&p);
         if (match(&p, "fn")) {
-            decl_push(&p.decls, parse_fn(&p, DC_FN, public, type));
-        } else {
-            Decl *d = new_decl(DC_VAR);
+            // New syntax: fn name: type arg1, type arg2 -> ret_type
+            Decl *d = new_decl(DC_FN);
             d->public = public;
-            d->type = type;
             d->name = expect_ident(&p);
-            if (match(&p, "=")) d->init = parse_initializer(&p);
+            expect(&p, ":");
+            
+            // Parse parameters
+            while (!at(&p, "{") && !at(&p, "->")) {
+                if (match(&p, "...")) { d->varargs = true; break; }
+                Type *pt = parse_type(&p);
+                char *pn = expect_ident(&p);
+                param_push(&d->params, pt, pn);
+                if (!match(&p, ",")) break;
+            }
+            
+            // Parse return type
+            if (match(&p, "->")) {
+                d->type = parse_type(&p);
+            } else {
+                // Default to void if no return type specified
+                d->type = new_type(TY_VOID);
+            }
+            
+            p.pin_count = 0;
+            d->body = parse_block(&p);
             decl_push(&p.decls, d);
+        } else {
+            // Old syntax: type fn name: ... or variable declaration
+            Type *type = parse_type(&p);
+            if (match(&p, "fn")) {
+                decl_push(&p.decls, parse_fn(&p, DC_FN, public, type));
+            } else {
+                Decl *d = new_decl(DC_VAR);
+                d->public = public;
+                d->type = type;
+                d->name = expect_ident(&p);
+                if (match(&p, "=")) d->init = parse_initializer(&p);
+                decl_push(&p.decls, d);
+            }
         }
     }
     return p.decls;

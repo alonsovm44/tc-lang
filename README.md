@@ -13,8 +13,14 @@
 
 ---
 
-Tight-C is a minimal systems programming language that transpiles to C.
-**10 keywords**, no garbage collector, no inference, no OOP — just explicit, predictable code with C-level power.
+Tight-C is a minimalistic systems programming language. Designed to work with C
+
+## Philosophy
+I just wanted to find out if I could make a systems language with less keywords than Go, without GC and heavy runtime overhead.
+
+### Core principle:
+> Everything that can be built with libraries has to be built with libraries. The core language is small.
+
 
 ## Features
 
@@ -332,14 +338,6 @@ Requires `gcc` (or `clang`) and `make`.
 make          # Build tcc
 make clean    # Remove build artifacts
 ```
-
-## Philosophy
-
-> Everything that can be built in the stdlib has to.
-
-Tight-C bets that C's power doesn't require C's complexity. Strip away the historical baggage — header files, preprocessor macros, implicit conversions, undefined behavior traps — and you get a language a single person can implement, understand fully, and still write real systems code in.
-
-The compiler is the spec. If you can read ~1500 lines of C, you know exactly what Tight-C does.
 
 ---
 

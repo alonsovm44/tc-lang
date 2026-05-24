@@ -68,12 +68,41 @@ Tight-C already supports treating raw pointers as arrays, you just index them di
 # function syntax fix
 
 Someone noted on hacker news that function syntax is verbose, 
-Proposed change
 
+Proposed for 1.1
 <pub> fn <type> <name>: <type> <arg>, ... {
 
 }
 
+Example:
+
+fn void main: {
+    // code
+}
+
+pub fn i32 add: i32 a, i32 b {
+    ret a + b
+}
+
+fn ->Point foo:  ->foo bar {
+    // code
+}
+
 # Better error reporting
+[DONE]
 For version 1.0.0 we had rust like error reporting in the CLI, for version 1.1 we are adding version clalssification spec file
 and built in explainations in the compiler. Rust styled.
+
+# functions can return tuples
+
+Useful for error reporting and very Go-like
+    
+fn (typea, typeb) foo: {
+
+}
+
+example
+fn (i32, ->i8) foo: {
+    (i32, ->i8) x = (12, "shazam!")
+    ret x
+}
