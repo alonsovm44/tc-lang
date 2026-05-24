@@ -1,0 +1,37 @@
+use "stdlib/io.tc"
+
+// New syntax: fn <type> <name>: <type> arg1, <type> arg2, ...
+fn void main: {
+    print("Testing new function syntax")
+    
+    i32 result = add(5, 3)
+    printi(result)
+    
+    greet("world")
+}
+
+pub fn i32 add: i32 a, i32 b {
+    ret a + b
+}
+
+fn void greet: ->i8 msg {
+    print("hello, ")
+    print(msg)
+}
+
+// Test pointer return type
+fn -> i32 make_counter: i32 start {
+    -> i32 ptr = alloc(i32, 1)
+    ptr = start
+    ret ptr
+}
+
+// it coexists with the old syntax
+
+void fn foo: {
+    print("foo")
+}
+
+fn void bar:{
+    print("bar")
+}

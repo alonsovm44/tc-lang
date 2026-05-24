@@ -59,6 +59,7 @@ struct Node{
 }
 
 # Pointers as arrays
+[DONE] date: 25 may 2026
 As commented by procedural
 > "Also, C allows not only dereferencing raw pointers, but treat them as arrays, for example "p->x" works, but "p[0].x" also works. This is useful for accessing array elements of a foreign pointer"
 
@@ -66,7 +67,7 @@ Tight-C already supports treating raw pointers as arrays, you just index them di
 
 
 # function syntax fix
-
+[DONE] date today: May 24 2026
 Someone noted on hacker news that function syntax is verbose, 
 
 Proposed for 1.1
@@ -96,7 +97,7 @@ and built in explainations in the compiler. Rust styled.
 # functions can return tuples
 
 Useful for error reporting and very Go-like
-    
+
 fn (typea, typeb) foo: {
 
 }

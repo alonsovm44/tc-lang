@@ -427,28 +427,23 @@ DeclVec parse_program(Token *tokens) {
             decl_push(&p.decls, parse_struct(&p, public));
             continue;
         }
+        // Check for new fn syntax first
         if (match(&p, "fn")) {
-            // New syntax: fn name: type arg1, type arg2 -> ret_type
+            // New syntax: fn <type> <name>: <type> arg1, <type> arg2, ...
+            Type *ret_type = parse_type(&p);
             Decl *d = new_decl(DC_FN);
             d->public = public;
+            d->type = ret_type;
             d->name = expect_ident(&p);
             expect(&p, ":");
             
             // Parse parameters
-            while (!at(&p, "{") && !at(&p, "->")) {
+            while (!at(&p, "{")) {
                 if (match(&p, "...")) { d->varargs = true; break; }
                 Type *pt = parse_type(&p);
                 char *pn = expect_ident(&p);
                 param_push(&d->params, pt, pn);
                 if (!match(&p, ",")) break;
-            }
-            
-            // Parse return type
-            if (match(&p, "->")) {
-                d->type = parse_type(&p);
-            } else {
-                // Default to void if no return type specified
-                d->type = new_type(TY_VOID);
             }
             
             p.pin_count = 0;
