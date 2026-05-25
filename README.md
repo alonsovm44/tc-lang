@@ -143,7 +143,7 @@ fn i32 add: i32 a, i32 b {
 }
 ```
 
-### Strunions (Struct + Union Hybrid)
+### Strunions (Layout polymorphism)
 Both a struct and a union, this way we dont need two keywords for structs and unions
 Now we have a spectrum.
 
