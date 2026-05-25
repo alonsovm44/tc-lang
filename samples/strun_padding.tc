@@ -1,0 +1,44 @@
+use "stdlib/io.tc"
+
+// Test anonymous padding in struns
+strun Data {
+    &i32 x,
+    &i32 y,
+    i32,     // Anonymous padding: separates first union block by 4 bytes
+    &f32 z,
+    &f64 a,
+    u8,      // Anonymous padding: separates second union block by 1 byte
+    &->i8 c,
+    &i32 d
+}
+
+fn void main: {
+    Data d
+    
+    // First union block (x and y share same address)
+    d.x = 100
+    printi(d.x)
+    printi(d.y)  // Should show same value as x
+    
+    d.y = 200
+    printi(d.x)  // Should show new value
+    printi(d.y)
+    
+    // Second union block (z and a share same address, offset by 4 bytes)
+    d.z = 3.14
+    printi(d.z)  // Will show float bits as int
+    printi(d.a)  // Should show same bits
+    
+    // Third union block (c and d share same address, offset by 4+1=5 bytes)
+    i8 ch = 65  // ASCII 'A'
+    d.c = @ch
+    printi(d.c[0])  // Access first element of pointer
+    
+    d.d = 999
+    printi(d.d)
+    
+    // Verify padding by checking addresses (conceptually)
+    print("x and y should be at same address")
+    print("z and a should be at same address (4 bytes after x)")
+    print("c and d should be at same address (5 bytes after z)")
+}

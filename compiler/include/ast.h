@@ -19,6 +19,7 @@ typedef struct {
     Type *type;
     char *name;
     bool is_union_field;  // For strun: fields prefixed with &
+    bool is_anonymous;    // For strun: anonymous padding fields (no name)
 } Param;
 
 typedef struct {
@@ -119,7 +120,7 @@ struct Decl {
 void expr_push(ExprVec *v, Expr *x);
 void stmt_push(StmtVec *v, Stmt *x);
 void decl_push(DeclVec *v, Decl *x);
-void param_push(ParamVec *v, Type *type, char *name, bool is_union_field);
+void param_push(ParamVec *v, Type *type, char *name, bool is_union_field, bool is_anonymous);
 Type *new_type(TypeKind kind);
 Expr *new_expr(ExprKind kind);
 Stmt *new_stmt(StmtKind kind);

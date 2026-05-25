@@ -327,7 +327,7 @@ static Decl *parse_fn(Parser *p, DeclKind kind, bool public, Type *ret) {
         if (match(p, "...")) { d->varargs = true; break; }
         Type *pt = parse_type(p);
         char *pn = expect_ident(p);
-        param_push(&d->params, pt, pn, false);
+        param_push(&d->params, pt, pn, false, false);
         if (!match(p, ",")) break;
     }
     p->pin_count = 0;
@@ -348,8 +348,16 @@ static Decl *parse_struct(Parser *p, bool public) {
             is_union_field = true;
         }
         Type *ft = parse_type(p);
-        char *fn = expect_ident(p);
-        param_push(&d->params, ft, fn, is_union_field);
+        char *fn = NULL;
+        bool is_anonymous = false;
+        // Check if this is an anonymous field (no name)
+        if (at(p, ";") || at(p, ",")) {
+            fn = xstrdup("");  // Empty string for anonymous field
+            is_anonymous = true;
+        } else {
+            fn = expect_ident(p);
+        }
+        param_push(&d->params, ft, fn, is_union_field, is_anonymous);
         match(p, ",");
     }
     return d;
@@ -447,7 +455,7 @@ DeclVec parse_program(Token *tokens) {
                 if (match(&p, "...")) { d->varargs = true; break; }
                 Type *pt = parse_type(&p);
                 char *pn = expect_ident(&p);
-                param_push(&d->params, pt, pn, false);
+                param_push(&d->params, pt, pn, false, false);
                 if (!match(&p, ",")) break;
             }
             

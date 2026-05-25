@@ -26,12 +26,12 @@ void decl_push(DeclVec *v, Decl *x) {
     v->items[v->count++] = x;
 }
 
-void param_push(ParamVec *v, Type *type, char *name, bool is_union_field) {
+void param_push(ParamVec *v, Type *type, char *name, bool is_union_field, bool is_anonymous) {
     if (v->count == v->cap) {
         v->cap = v->cap ? v->cap * 2 : 8;
         v->items = xrealloc(v->items, sizeof(Param) * (size_t)v->cap);
     }
-    v->items[v->count++] = (Param){type, name, is_union_field};
+    v->items[v->count++] = (Param){type, name, is_union_field, is_anonymous};
 }
 
 Type *new_type(TypeKind kind) {

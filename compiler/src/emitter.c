@@ -4,6 +4,7 @@
 
 #include <stdlib.h>
 #include <string.h>
+#include <stdio.h>
 
 static bool struct_exists(DeclVec *program, const char *name) {
     for (int i = 0; i < program->count; i++) if (program->items[i]->kind == DC_STRUCT && strcmp(program->items[i]->name, name) == 0) return true;
@@ -233,38 +234,49 @@ char *emit_program(DeclVec program) {
     for (int i = 0; i < program.count; i++) {
         Decl *d = program.items[i];
         if (d->kind == DC_STRUCT) {
-            // Check if this struct has any union fields (strun)
-            bool has_union_fields = false;
+            str_printf(&out, "struct __attribute__((packed)) %s {\n", d->name);
+            
+            // Track if we're in a union block
+            bool in_union_block = false;
+            int padding_count = 0;
+            
             for (int j = 0; j < d->params.count; j++) {
-                if (d->params.items[j].is_union_field) {
-                    has_union_fields = true;
-                    break;
+                Param *field = &d->params.items[j];
+                
+                // Anonymous padding field - close any open union block
+                if (field->is_anonymous) {
+                    if (in_union_block) {
+                        str_add(&out, "    };\n");
+                        in_union_block = false;
+                    }
+                    // Emit anonymous padding field with unique name
+                    char padding_name[32];
+                    sprintf(padding_name, "_padding%d", padding_count++);
+                    str_printf(&out, "    "); emit_type(&out, field->type, padding_name, &program); str_add(&out, ";\n");
+                    continue;
+                }
+                
+                // Regular field (not union)
+                if (!field->is_union_field) {
+                    if (in_union_block) {
+                        str_add(&out, "    };\n");
+                        in_union_block = false;
+                    }
+                    str_add(&out, "    "); emit_type(&out, field->type, field->name, &program); str_add(&out, ";\n");
+                } 
+                // Union field
+                else {
+                    if (!in_union_block) {
+                        str_add(&out, "    union {\n");
+                        in_union_block = true;
+                    }
+                    str_add(&out, "        "); emit_type(&out, field->type, field->name, &program); str_add(&out, ";\n");
                 }
             }
             
-            str_printf(&out, "struct __attribute__((packed)) %s {\n", d->name);
-            
-            if (has_union_fields) {
-                // Emit regular fields first
-                for (int j = 0; j < d->params.count; j++) {
-                    if (!d->params.items[j].is_union_field) {
-                        str_add(&out, "    "); emit_type(&out, d->params.items[j].type, d->params.items[j].name, &program); str_add(&out, ";\n");
-                    }
-                }
-                
-                // Emit union fields in an anonymous union
-                str_add(&out, "    union {\n");
-                for (int j = 0; j < d->params.count; j++) {
-                    if (d->params.items[j].is_union_field) {
-                        str_add(&out, "        "); emit_type(&out, d->params.items[j].type, d->params.items[j].name, &program); str_add(&out, ";\n");
-                    }
-                }
+            // Close any open union block
+            if (in_union_block) {
                 str_add(&out, "    };\n");
-            } else {
-                // Regular struct, no union fields
-                for (int j = 0; j < d->params.count; j++) {
-                    str_add(&out, "    "); emit_type(&out, d->params.items[j].type, d->params.items[j].name, &program); str_add(&out, ";\n");
-                }
             }
             
             str_add(&out, "};\n\n");
