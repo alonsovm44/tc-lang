@@ -173,6 +173,7 @@ printi(slice.ptr[0])     // access elements
 ->->i32 pp = @p          // pointer to pointer
 =>->i32 fps = @ptrs      // fat pointer of raw pointers
 ->=>i32 pslice = @slice  // raw pointer to fat pointer
+=>=> sslice = @slice     // fat pointer to fat pointer
 ```
 
 ### Control Flow

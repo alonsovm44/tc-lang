@@ -17,3 +17,7 @@ i32 fn main: {
     printi(slice.len)
     ret 0
 }
+
+fn i32 foo: {
+    
+}

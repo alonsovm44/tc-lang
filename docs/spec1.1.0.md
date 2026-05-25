@@ -14,12 +14,12 @@ i32 fn add(i32 a, i32 b) {
 }
 
 void fn main: {
-    ->(i32 fn(i32, i32)) fptr = @add
+    ->(i32(i32, i32)) fptr = @add
 }
 
 ## Passing it to a function
 
-i32 fn callback: ->(i32 fn(i32, i32)) fptr, i32 a, i32 b {
+i32 fn callback: ->(i32(i32, i32)) fptr, i32 a, i32 b {
     return fptr(a, b)
 }
 
@@ -107,3 +107,60 @@ fn (i32, ->i8) foo: {
     (i32, ->i8) x = (12, "shazam!")
     ret x
 }
+
+# strunions
+Both a struct and a union this way we dont need two keywords for structs and unions
+Now we have a spectrum
+
+[struct]—[strun]—[union]
+
+strun MyStrun{
+
+    i32 field1
+    i32 field2
+    // field1 and field2 are 4 bytes and 4 bytes each
+    &i32 field3
+    &f32 field4
+    // field 3 and field 4 share the same adress
+}
+
+A normal struct is just a strun without &'s
+A union is a strun with all &'s
+
+Example struct
+
+strun Point{
+    
+    i32 x
+    i32 y
+}
+
+Example strun
+
+strun hybrid{
+    i32 x
+    i32 y
+    &i32 z
+    &f32 w
+}
+
+Example union
+
+strun Data{
+    &i32 data
+    &str ip
+}   
+
+# Keywords
+
+1. if 
+2. loop
+3. break
+4. defer
+5. ret
+6. strun
+7. fn
+8. use
+9. pub 
+10. pin
+11. match
