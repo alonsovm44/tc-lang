@@ -1,6 +1,7 @@
 ## v1.1.0 2026-05-22
 
 Added:
+- added anonymous padding to struns
 - added struns and strun examples to samples
 - added new function syntax 'fn <type> <name>: type arg, ... {}' and it now coexists with old syntax for retro compatibility
 - added rust like error help in CLI

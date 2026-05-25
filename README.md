@@ -175,6 +175,19 @@ strun hybrid{
 }
 ```
 `z` and `w` share the same memory location.
+- Anonymous padding
+You can padd memory inside struns with anonymous types
+Example:
+```
+strun hybrid{
+  &i32 x
+  &i32 y
+  i32 // anonymous padding
+  &i32 z
+  &f32 w
+}
+```
+This groups `x` and `y` together, and `z` and `w` together.
 
 ### Pointers
 ```
