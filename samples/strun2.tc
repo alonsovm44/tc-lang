@@ -1,0 +1,17 @@
+
+strun MyStrun{
+    i32 x,
+    i32 y,
+    &i32 z
+}
+
+fn void foo: {
+    MyStrun s
+    s.x = 1
+    s.y = 2
+    s.z = 3
+    
+    printi(s.x)
+    printi(s.y)
+    printi(s.z)
+}
