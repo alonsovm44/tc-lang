@@ -174,6 +174,7 @@ strun hybrid{
   &f32 w
 }
 ```
+`z` and `w` share the same memory location.
 
 ### Pointers
 ```
