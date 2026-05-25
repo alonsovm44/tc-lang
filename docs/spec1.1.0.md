@@ -152,7 +152,46 @@ strun Data{
     &str ip
 }   
 
-# Keywords
+# memory grouping in struns
+Currently 1.1.0 struns group memory in the same adress unless spacing is found
+
+Currently
+strun Data{
+    &i32 x
+    &i32 y
+    i32 w
+    ...
+    &f32 z
+    &f64 a
+    ...
+}
+
+x and y live in the same adress, then w appears and adds 4 bytes, then z share the same adress. 
+In order to save memory we can do this
+
+strun Data{
+    &i32 x
+    &i32 y
+    i32 // anonymous memory, it separates the first adress by 4 bytes
+    &f32 z
+    &f64 a
+    u8 // anonymous memory, it separates the second block by 1 byte
+    &str c
+    &i8 d
+}
+
+# non packed structs, and new rules
+As of 1.0.0 and 1.1.0, struns are packed by default. Which i implemented for no known reason. I think we could replacea this, not by adding a `packed` keyword but a symbol
+
+New rule:
+    - Struns are not packed by default
+    - to pack a strun use @
+    
+@strun Data{
+    // packed data
+}
+
+# Keywords in 1.1
 
 1. if 
 2. loop
