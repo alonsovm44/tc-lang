@@ -1,0 +1,48 @@
+use "stdlib/io.tc"
+
+// Regular struct (no & fields)
+strun Point {
+    i32 x
+    i32 y
+}
+
+// Hybrid strun (mix of regular and union fields)
+strun Hybrid {
+    i32 x
+    i32 y
+    &i32 z
+    &f32 w
+}
+
+// Pure union (all & fields)
+strun Data {
+    &i32 num
+    &f32 flt
+    ->i8 ptr
+}
+
+fn void main: {
+    Point p
+    p.x = 10
+    p.y = 20
+    printi(p.x)
+    printi(p.y)
+    
+    Hybrid h
+    h.x = 1
+    h.y = 2
+    h.z = 100
+    printi(h.x)
+    printi(h.y)
+    printi(h.z)
+    
+    // Union fields share the same memory
+    h.w = 3.14
+    printi(h.z)  // This will show the float bits as int
+    
+    Data d
+    d.num = 42
+    printi(d.num)
+    d.flt = 2.71
+    printi(d.num)  // Will show float bits as int
+}

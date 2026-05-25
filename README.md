@@ -17,7 +17,7 @@ Tight-C is a minimalistic systems programming language.
 
 ## Features
 
-- **10 keywords** — `if`, `loop`, `break`, `defer`, `ret`, `struct`, `fn`, `use`, `pub`, `pin`
+- **10 keywords** — `if`, `loop`, `break`, `defer`, `ret`, `strun`, `fn`, `use`, `pub`, `pin`
 - **No hidden magic** — no GC, no type inference, no shadowing, no aliasing
 - **Raw pointers** (`->`) and **fat pointers** (`=>`) with built-in slicing
 - **Manual memory** — `alloc()` / `free()` with `defer` for cleanup
@@ -143,15 +143,36 @@ fn i32 add: i32 a, i32 b {
 }
 ```
 
-### Structs
-```
-struct Point {
-    i32 x,
-    i32 y
-}
+### Strunions (Struct + Union Hybrid)
+Both a struct and a union, this way we dont need two keywords for structs and unions
+Now we have a spectrum.
 
-Point p
-p.x = 10
+[struct]—[strun]—[union]
+
+Use `&` to create a union element inside the strun. 
+
+For a normal struct:
+```
+strun Point{
+  i32 x,
+  i32 y
+}
+```
+For a Union:
+```
+strun Data{
+  &i32 data
+  &str ip
+}
+```
+For a strun:
+```
+strun hybrid{
+  i32 x
+  i32 y
+  &i32 z
+  &f32 w
+}
 ```
 
 ### Pointers

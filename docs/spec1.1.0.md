@@ -109,6 +109,7 @@ fn (i32, ->i8) foo: {
 }
 
 # strunions
+[DONE]
 Both a struct and a union this way we dont need two keywords for structs and unions
 Now we have a spectrum
 

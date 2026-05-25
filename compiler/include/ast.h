@@ -18,6 +18,7 @@ typedef enum {
 typedef struct {
     Type *type;
     char *name;
+    bool is_union_field;  // For strun: fields prefixed with &
 } Param;
 
 typedef struct {
@@ -118,7 +119,7 @@ struct Decl {
 void expr_push(ExprVec *v, Expr *x);
 void stmt_push(StmtVec *v, Stmt *x);
 void decl_push(DeclVec *v, Decl *x);
-void param_push(ParamVec *v, Type *type, char *name);
+void param_push(ParamVec *v, Type *type, char *name, bool is_union_field);
 Type *new_type(TypeKind kind);
 Expr *new_expr(ExprKind kind);
 Stmt *new_stmt(StmtKind kind);

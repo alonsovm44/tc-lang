@@ -327,7 +327,7 @@ static Decl *parse_fn(Parser *p, DeclKind kind, bool public, Type *ret) {
         if (match(p, "...")) { d->varargs = true; break; }
         Type *pt = parse_type(p);
         char *pn = expect_ident(p);
-        param_push(&d->params, pt, pn);
+        param_push(&d->params, pt, pn, false);
         if (!match(p, ",")) break;
     }
     p->pin_count = 0;
@@ -342,9 +342,14 @@ static Decl *parse_struct(Parser *p, bool public) {
     add_struct(p, d->name);
     expect(p, "{");
     while (!match(p, "}")) {
+        bool is_union_field = false;
+        // Check for & prefix (union field in strun)
+        if (match(p, "&")) {
+            is_union_field = true;
+        }
         Type *ft = parse_type(p);
         char *fn = expect_ident(p);
-        param_push(&d->params, ft, fn);
+        param_push(&d->params, ft, fn, is_union_field);
         match(p, ",");
     }
     return d;
@@ -423,7 +428,7 @@ DeclVec parse_program(Token *tokens) {
             }
             continue;
         }
-        if (match(&p, "struct")) {
+        if (match(&p, "struct") || match(&p, "strun")) {
             decl_push(&p.decls, parse_struct(&p, public));
             continue;
         }
@@ -442,7 +447,7 @@ DeclVec parse_program(Token *tokens) {
                 if (match(&p, "...")) { d->varargs = true; break; }
                 Type *pt = parse_type(&p);
                 char *pn = expect_ident(&p);
-                param_push(&d->params, pt, pn);
+                param_push(&d->params, pt, pn, false);
                 if (!match(&p, ",")) break;
             }
             

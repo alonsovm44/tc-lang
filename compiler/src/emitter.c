@@ -233,10 +233,40 @@ char *emit_program(DeclVec program) {
     for (int i = 0; i < program.count; i++) {
         Decl *d = program.items[i];
         if (d->kind == DC_STRUCT) {
-            str_printf(&out, "struct __attribute__((packed)) %s {\n", d->name);
+            // Check if this struct has any union fields (strun)
+            bool has_union_fields = false;
             for (int j = 0; j < d->params.count; j++) {
-                str_add(&out, "    "); emit_type(&out, d->params.items[j].type, d->params.items[j].name, &program); str_add(&out, ";\n");
+                if (d->params.items[j].is_union_field) {
+                    has_union_fields = true;
+                    break;
+                }
             }
+            
+            str_printf(&out, "struct __attribute__((packed)) %s {\n", d->name);
+            
+            if (has_union_fields) {
+                // Emit regular fields first
+                for (int j = 0; j < d->params.count; j++) {
+                    if (!d->params.items[j].is_union_field) {
+                        str_add(&out, "    "); emit_type(&out, d->params.items[j].type, d->params.items[j].name, &program); str_add(&out, ";\n");
+                    }
+                }
+                
+                // Emit union fields in an anonymous union
+                str_add(&out, "    union {\n");
+                for (int j = 0; j < d->params.count; j++) {
+                    if (d->params.items[j].is_union_field) {
+                        str_add(&out, "        "); emit_type(&out, d->params.items[j].type, d->params.items[j].name, &program); str_add(&out, ";\n");
+                    }
+                }
+                str_add(&out, "    };\n");
+            } else {
+                // Regular struct, no union fields
+                for (int j = 0; j < d->params.count; j++) {
+                    str_add(&out, "    "); emit_type(&out, d->params.items[j].type, d->params.items[j].name, &program); str_add(&out, ";\n");
+                }
+            }
+            
             str_add(&out, "};\n\n");
         }
     }
