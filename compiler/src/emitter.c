@@ -159,6 +159,22 @@ static void emit_stmt(Str *out, Stmt *s, StmtVec *scope, DeclVec *program, int i
         case ST_PIN: break;
         case ST_EXPR: emit_expr(out, s->expr, program); str_add(out, ";\n"); break;
         case ST_DEFER: break;
+        case ST_MATCH: {
+            str_add(out, "switch ("); emit_expr(out, s->expr, program); str_add(out, ") {\n");
+            for (int i = 0; i < s->arms.count; i++) {
+                MatchArm *arm = &s->arms.items[i];
+                emit_indent(out, indent + 1);
+                if (arm->pattern == NULL) {
+                    str_add(out, "default:\n");
+                } else {
+                    str_add(out, "case "); emit_expr(out, arm->pattern, program); str_add(out, ":\n");
+                }
+                emit_stmt_vec(out, &arm->body, program, indent + 2);
+                emit_indent(out, indent + 2); str_add(out, "break;\n");
+            }
+            emit_indent(out, indent); str_add(out, "}\n");
+            break;
+        }
     }
 }
 
@@ -234,7 +250,11 @@ char *emit_program(DeclVec program) {
     for (int i = 0; i < program.count; i++) {
         Decl *d = program.items[i];
         if (d->kind == DC_STRUCT) {
-            str_printf(&out, "struct __attribute__((packed)) %s {\n", d->name);
+            if (d->packed) {
+                str_printf(&out, "struct __attribute__((packed)) %s {\n", d->name);
+            } else {
+                str_printf(&out, "struct %s {\n", d->name);
+            }
             
             // Track if we're in a union block
             bool in_union_block = false;

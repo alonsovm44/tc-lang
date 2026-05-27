@@ -76,6 +76,17 @@ struct Expr {
     ExprVec args;
 };
 
+typedef struct {
+    Expr *pattern;  // NULL means wildcard '_'
+    StmtVec body;
+} MatchArm;
+
+typedef struct {
+    MatchArm *items;
+    int count;
+    int cap;
+} MatchArmVec;
+
 typedef enum {
     ST_VAR,
     ST_BLOCK,
@@ -85,7 +96,8 @@ typedef enum {
     ST_RET,
     ST_BREAK,
     ST_PIN,
-    ST_EXPR
+    ST_EXPR,
+    ST_MATCH
 } StmtKind;
 
 struct Stmt {
@@ -95,6 +107,7 @@ struct Stmt {
     Expr *expr;
     Expr *expr2;
     StmtVec body;
+    MatchArmVec arms;  // For ST_MATCH
 };
 
 typedef enum {
@@ -115,12 +128,14 @@ struct Decl {
     ParamVec params;
     StmtVec body;
     bool varargs;
+    bool packed;
 };
 
 void expr_push(ExprVec *v, Expr *x);
 void stmt_push(StmtVec *v, Stmt *x);
 void decl_push(DeclVec *v, Decl *x);
 void param_push(ParamVec *v, Type *type, char *name, bool is_union_field, bool is_anonymous);
+void match_arm_push(MatchArmVec *v, Expr *pattern, StmtVec body);
 Type *new_type(TypeKind kind);
 Expr *new_expr(ExprKind kind);
 Stmt *new_stmt(StmtKind kind);

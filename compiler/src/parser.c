@@ -243,6 +243,23 @@ static Stmt *parse_stmt(Parser *p) {
         s->body = parse_block(p);
         return s;
     }
+    if (match(p, "match")) {
+        Stmt *s = new_stmt(ST_MATCH);
+        expect(p, "("); s->expr = parse_expr(p); expect(p, ")");
+        expect(p, "{");
+        while (!match(p, "}")) {
+            Expr *pattern = NULL;
+            if (match(p, "_")) {
+                pattern = NULL;  // wildcard
+            } else {
+                pattern = parse_unary(p);  // parse only a single value, not a full expression
+            }
+            expect(p, "=");
+            StmtVec arm_body = parse_block(p);
+            match_arm_push(&s->arms, pattern, arm_body);
+        }
+        return s;
+    }
     if (match(p, "defer")) {
         Stmt *s = new_stmt(ST_DEFER);
         s->body = parse_block(p);
@@ -335,9 +352,10 @@ static Decl *parse_fn(Parser *p, DeclKind kind, bool public, Type *ret) {
     return d;
 }
 
-static Decl *parse_struct(Parser *p, bool public) {
+static Decl *parse_struct(Parser *p, bool public, bool packed) {
     Decl *d = new_decl(DC_STRUCT);
     d->public = public;
+    d->packed = packed;
     d->name = expect_ident(p);
     add_struct(p, d->name);
     expect(p, "{");
@@ -391,10 +409,17 @@ DeclVec parse_program(Token *tokens) {
     Parser p = {0};
     p.tokens = tokens;
     while (cur(&p)->kind != TOK_EOF) {
+        if (at(&p, "@") && (strcmp((p.tokens + p.pos + 1)->text, "strun") == 0)) {
+            p.pos++;  // skip '@'
+            match(&p, "strun");
+            bool pub = false;
+            decl_push(&p.decls, parse_struct(&p, pub, true));
+            continue;
+        }
         if (at(&p, "@")) {
             Token *at_tok = cur(&p);
             p.pos++;
-            if (!match(&p, "use")) tc_error("E007", at_tok->line, at_tok->col, 1, "expected 'use' after '@'");
+            if (!match(&p, "use")) tc_error("E007", at_tok->line, at_tok->col, 1, "expected 'use' or 'strun' after '@'");
             if (cur(&p)->kind != TOK_STRING) tc_error("E008", cur(&p)->line, cur(&p)->col, (int)strlen(cur(&p)->text), "'@use' expects a string path, got '%s'", cur(&p)->text);
             char *raw = cur(&p)->text;
             p.pos++;
@@ -437,7 +462,7 @@ DeclVec parse_program(Token *tokens) {
             continue;
         }
         if (match(&p, "struct") || match(&p, "strun")) {
-            decl_push(&p.decls, parse_struct(&p, public));
+            decl_push(&p.decls, parse_struct(&p, public, false));
             continue;
         }
         // Check for new fn syntax first

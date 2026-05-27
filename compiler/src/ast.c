@@ -34,6 +34,14 @@ void param_push(ParamVec *v, Type *type, char *name, bool is_union_field, bool i
     v->items[v->count++] = (Param){type, name, is_union_field, is_anonymous};
 }
 
+void match_arm_push(MatchArmVec *v, Expr *pattern, StmtVec body) {
+    if (v->count == v->cap) {
+        v->cap = v->cap ? v->cap * 2 : 4;
+        v->items = xrealloc(v->items, sizeof(MatchArm) * (size_t)v->cap);
+    }
+    v->items[v->count++] = (MatchArm){pattern, body};
+}
+
 Type *new_type(TypeKind kind) {
     Type *t = xmalloc(sizeof(Type));
     memset(t, 0, sizeof(Type));

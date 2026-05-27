@@ -1,0 +1,9 @@
+@strun Packed {
+    i32 x,
+    i32 y
+}
+
+strun Normal {
+    i32 x,
+    i32 y
+}

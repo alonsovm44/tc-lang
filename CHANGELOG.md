@@ -1,6 +1,7 @@
 ## v1.1.0 2026-05-22
 
 Added:
+- added pattern matching 'match' keyword for modern ergonomics' 
 - added anonymous padding to struns
 - added struns and strun examples to samples
 - added new function syntax 'fn <type> <name>: type arg, ... {}' and it now coexists with old syntax for retro compatibility
@@ -15,6 +16,7 @@ Removed:
 
 Improved/Fixed:
 
+- fixed struns being packed by default, now they can be packed with @
 ## v1.0.0 2026-05-22
 
 Added:
