@@ -15,6 +15,10 @@
 
 Tight-C is a minimalistic systems programming language.
 
+## Project Goals
+> Make the first mainstream systems langauge from Mexico.
+> Explore the bare minimum of what a systems language must have to be usable, modern and ergonomic
+
 ## Features
 
 - **10 keywords** — `if`, `loop`, `break`, `defer`, `ret`, `strun`, `fn`, `use`, `pub`, `pin`
