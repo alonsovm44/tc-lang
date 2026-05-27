@@ -1,7 +1,7 @@
 use "stdlib/io.tc" //for print
 
 void fn main: {
-    =>u8 str = "hello"   // fat pointer to bytes
+    =>u8 str = "hello"   // fat pointer to bytes / array of bytes
     u8 c = str[0]        // 'h'
     u32 len = lenof(str) // 5
     print(str) 
