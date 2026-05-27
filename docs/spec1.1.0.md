@@ -15,12 +15,17 @@ i32 fn add(i32 a, i32 b) {
 }
 
 void fn main: {
-    ->(i32(i32, i32)) fptr = @add
+    fn(i32, i32)i32 fptr = @add
 }
 
 ## Passing it to a function
 
-i32 fn callback: ->(i32(i32, i32)) fptr, i32 a, i32 b {
+i32 fn add(i32 a, i32 b) {
+    return a + b
+}
+
+
+fn i32 callback: fn(i32, i32)i32 fptr, i32 a, i32 b {
     return fptr(a, b)
 }
 
@@ -40,7 +45,7 @@ For this we specify with @
 this inlines a .tc file declarations at compile time, no .h file needed.
 
 # match statement
-
+[DONE] May 26
 match(value){
     0 = {
         print("zero")
@@ -154,6 +159,7 @@ strun Data{
 }   
 
 # memory grouping in struns
+[DONE] May 25
 Currently 1.1.0 struns group memory in the same adress unless spacing is found
 
 Currently
@@ -182,6 +188,7 @@ strun Data{
 }
 
 # non packed structs, and new rules
+[DONE]
 As of 1.0.0 and 1.1.0, struns are packed by default. Which i implemented for no known reason. I think we could replacea this, not by adding a `packed` keyword but a symbol
 
 New rule:
