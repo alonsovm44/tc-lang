@@ -1,3 +1,5 @@
 tightc/
 *.exe
 *.o
+*.htxt
+*.ctxt

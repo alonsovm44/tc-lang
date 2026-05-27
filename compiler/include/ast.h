@@ -12,7 +12,8 @@ typedef enum {
     TY_NAME,
     TY_RAWPTR,
     TY_FATPTR,
-    TY_ARRAY
+    TY_ARRAY,
+    TY_FNPTR
 } TypeKind;
 
 typedef struct {
@@ -49,8 +50,9 @@ typedef struct {
 struct Type {
     TypeKind kind;
     char *name;
-    Type *inner;
+    Type *inner;    // return type for TY_FNPTR, pointee for TY_RAWPTR/TY_FATPTR
     Expr *size;
+    ParamVec params; // param types for TY_FNPTR
 };
 
 typedef enum {

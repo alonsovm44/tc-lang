@@ -31,6 +31,26 @@ static void emit_type(Str *out, Type *t, const char *name, DeclVec *program) {
         if (name && name[0]) str_printf(out, " %s", name);
         return;
     }
+    if (t->kind == TY_FNPTR) {
+        // Emit: rettype (*name)(param, param, ...)
+        Str decl = {0};
+        // Build (*name)(params) part
+        if (name && name[0]) str_printf(&decl, "(*%s)", name);
+        else str_add(&decl, "(*)");
+        str_add(&decl, "(");
+        for (int i = 0; i < t->params.count; i++) {
+            if (i) str_add(&decl, ", ");
+            Str param_str = {0};
+            emit_type(&param_str, t->params.items[i].type, "", program);
+            str_add(&decl, param_str.data);
+            free(param_str.data);
+        }
+        str_add(&decl, ")");
+        // Emit return type with the full declarator as the name
+        emit_type(out, t->inner, decl.data, program);
+        free(decl.data);
+        return;
+    }
     if (t->kind == TY_ARRAY) {
         Str arr = {0};
         str_printf(&arr, "%s[", name ? name : "");
@@ -200,6 +220,10 @@ static void collect_fat_types(Type *t, Str *out, DeclVec *program, char **seen, 
         collect_fat_types(t->inner, out, program, seen, seen_count);
     } else if (t->kind == TY_RAWPTR || t->kind == TY_ARRAY) {
         collect_fat_types(t->inner, out, program, seen, seen_count);
+    } else if (t->kind == TY_FNPTR) {
+        collect_fat_types(t->inner, out, program, seen, seen_count);
+        for (int i = 0; i < t->params.count; i++)
+            collect_fat_types(t->params.items[i].type, out, program, seen, seen_count);
     }
 }
 
@@ -209,6 +233,9 @@ static void scan_fat_types_in_type(Type *t, Str *out, DeclVec *program, char **s
     if (!t) return;
     collect_fat_types(t, out, program, seen, seen_count);
     if (t->inner) scan_fat_types_in_type(t->inner, out, program, seen, seen_count);
+    if (t->kind == TY_FNPTR)
+        for (int i = 0; i < t->params.count; i++)
+            scan_fat_types_in_type(t->params.items[i].type, out, program, seen, seen_count);
 }
 
 static void scan_fat_types_in_stmts(StmtVec *body, Str *out, DeclVec *program, char **seen, int *seen_count) {

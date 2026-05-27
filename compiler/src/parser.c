@@ -57,6 +57,17 @@ static Type *parse_type(Parser *p) {
     } else if (match(p, "=>")) {
         t = new_type(TY_FATPTR);
         t->inner = parse_type(p);
+    } else if (match(p, "fn")) {
+        // Function pointer type: fn(type, type, ...)rettype
+        t = new_type(TY_FNPTR);
+        expect(p, "(");
+        while (!at(p, ")")) {
+            Type *pt = parse_type(p);
+            param_push(&t->params, pt, xstrdup(""), false, false);
+            if (!match(p, ",")) break;
+        }
+        expect(p, ")");
+        t->inner = parse_type(p);  // return type
     } else {
         char *name = expect_ident(p);
         t = new_type(TY_NAME);
@@ -287,17 +298,20 @@ static Stmt *parse_stmt(Parser *p) {
         return s;
     }
     int mark = p->pos;
-    bool type_start = is_type_name(cur(p)->text) || at(p, "->") || at(p, "=>") || is_struct(p, cur(p)->text);
+    bool is_fn_type = at(p, "fn");
+    bool type_start = is_type_name(cur(p)->text) || at(p, "->") || at(p, "=>") || is_fn_type || is_struct(p, cur(p)->text);
     if (type_start) {
         Type *type = parse_type(p);
-        if (cur(p)->kind == TOK_IDENT || cur(p)->kind == TOK_KEYWORD) {
+        if (cur(p)->kind == TOK_IDENT) {
             Stmt *s = new_stmt(ST_VAR);
             s->type = type;
             s->name = expect_ident(p);
             if (match(p, "=")) s->expr = parse_initializer(p);
             return s;
         }
+        if (!is_fn_type) p->pos = mark;
     }
+    if (is_fn_type) { Token *t = &p->tokens[mark]; tc_error("E002", t->line, t->col, 2, "expected variable name after function pointer type"); }
     p->pos = mark;
     Stmt *s = new_stmt(ST_EXPR);
     s->expr = parse_expr(p);
