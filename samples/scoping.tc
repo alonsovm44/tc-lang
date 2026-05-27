@@ -10,7 +10,9 @@ i32 fn bar: i32 x {
 void fn main: {
     foo()
     {
-        i32 x 
+    i32 x
     }
+    {
     bar(x) // error, x is not defined in this scope
+    }
 }

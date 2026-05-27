@@ -76,6 +76,8 @@ struct Expr {
     Expr *right;
     Expr *third;
     ExprVec args;
+    int line;
+    int col;
 };
 
 typedef struct {

@@ -17,6 +17,7 @@ Removed:
 
 Improved/Fixed:
 
+- fixed scoping errors not showing in compile time by tcc
 - fixed struns being packed by default, now they can be packed with @
 ## v1.0.0 2026-05-22
 

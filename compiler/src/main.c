@@ -1,4 +1,5 @@
 #include "common.h"
+#include "checker.h"
 #include "emitter.h"
 #include "io.h"
 #include "lexer.h"
@@ -121,6 +122,18 @@ static const ErrorInfo error_table[] = {
      "    i32 x = \"hello\n"
      "\n"
      "Fix: close the comment with `*/` or terminate the string with `\"`.\n"},
+    {"E014", "Undefined variable",
+     "A variable was used that has not been declared in the current scope\n"
+     "or any enclosing scope. Variables declared inside a block `{ }` are\n"
+     "not accessible outside of it.\n"
+     "\n"
+     "Bad:\n"
+     "    {\n"
+     "        i32 x = 5\n"
+     "    }\n"
+     "    printi(x)   // error: x is out of scope\n"
+     "\n"
+     "Fix: declare the variable in the outer scope before the block.\n"},
     {"E013", "Unexpected character",
      "The lexer encountered a character that is not part of the Tight-C\n"
      "grammar. Only ASCII letters, digits, common operators, and\n"
@@ -244,6 +257,7 @@ int main(int argc, char **argv) {
     g_current_input = input;
     TokenVec tokens = lex_source(source);
     DeclVec program = parse_program(tokens.items);
+    check_program(&program);
     char *c_code = emit_program(program);
 
     if (compile_out) {

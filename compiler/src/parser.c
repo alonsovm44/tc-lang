@@ -113,6 +113,7 @@ static Expr *parse_primary(Parser *p) {
         if (at(p, "(") && cur(p)->line == t->line && match(p, "(")) {
             Expr *e = new_expr(EX_CALL);
             e->text = t->text;
+            e->line = t->line; e->col = t->col;
             bool is_builtin = !strcmp(t->text, "cast") || !strcmp(t->text, "alloc") || !strcmp(t->text, "sizeof");
             int argn = 0;
             while (!match(p, ")")) {
@@ -136,6 +137,7 @@ static Expr *parse_primary(Parser *p) {
         }
         Expr *e = new_expr(EX_NAME);
         e->text = t->text;
+        e->line = t->line; e->col = t->col;
         return e;
     }
     if (match(p, "(")) {
