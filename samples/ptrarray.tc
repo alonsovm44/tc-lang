@@ -1,5 +1,6 @@
 use "stdlib/io.tc"
 
+// STRUCT DEPRECATED IN 1.1.0 AND REPLACED WITH STRUN
 struct Vec2 {
     i32 x,
     i32 y
