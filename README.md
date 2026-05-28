@@ -68,7 +68,7 @@ gcc fizzbuzz.c -std=c11 -o fizzbuzz
 
 ## How It Works
 
-Tight-C is a **source-to-source compiler** (transpiler) written in ~1500 lines of C. It reads `.tc` files and outputs portable C11.
+Tight-C is a **source-to-source compiler** (transpiler) written in ~1800 lines of C. It reads `.tc` files and outputs portable C11.
 
 ```
 source.tc → [Lexer] → [Parser] → [AST] → [Emitter] → output.c → gcc/clang → binary
@@ -275,6 +275,37 @@ Bad:
     x = 11       // error: cannot assign to pinned variable
 
 Fix: remove the `pin` or avoid reassigning the variable.
+```
+### Else if stmts
+```
+if(condition){
+  // code
+}
+_if(condition){ 
+  // code
+}
+_ { // "_" is the tC wildcard for otherwise/else
+  // code
+}
+
+```
+### Match stmts
+```
+match (n) {
+        1 = {
+            print("one")
+        }
+        2 = {
+            print("two")
+        }
+        3 = {
+            print("three")
+        }
+        _ = {
+            print("other")
+        }
+    }
+
 ```
 
 ## Types
