@@ -1,6 +1,7 @@
 ## v1.1.0 2026-05-22
 
 Added:
+- added else and if else stmts
 - added function pointers for callbacks
 - added pattern matching 'match' keyword for modern ergonomics' 
 - added anonymous padding to struns
