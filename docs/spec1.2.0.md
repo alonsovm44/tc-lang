@@ -133,10 +133,10 @@ text
 7
 7
 7
-13      <- Changed without restart!
-13
-13
-13
+17      <- Changed without restart!
+17
+17
+17
 ...
 The executable never stopped. The program state (x, y, loop position) never reset.
 
@@ -148,3 +148,18 @@ This should be enough for a POC for version 1.2
 2. Networked hot reload (update remote systems)
 3. Hot reload visualization tool (show which functions changed)
 4. Rollback support (revert to previous version if new code crashes)
+
+## keywords for 1.2.0
+
+1. if 
+2. loop
+3. break
+4. defer
+5. ret
+6. strun
+7. fn
+8. use
+9. pub 
+10. pin
+11. match
+12. hot

@@ -199,6 +199,64 @@ New rule:
     // packed data
 }
 
+# implicit else
+To add else and else if, for ergonomics without adding the keywords
+
+Options
+Option A:
+if (){
+
+}{
+    // next curly bace block is treated as else
+}
+
+So it is
+
+if{}{}
+
+Option B
+if (){
+
+}
+_ {
+ // use the lower dash character as else
+}
+
+## Idea 2
+
+Implicit else if
+if(){
+
+}
+if{
+
+}
+if{
+
+}
+...
+_if{
+
+}
+
+chained ifs automatically chain as an if-else if chain, this might not need implementationa at all since if stmts are in series, one being false arleady fallsthrough for the next stmt 
+at the end _if or _{}
+
+## idea 3
+
+if(condition){
+
+}
+_if(condition){
+
+}
+_if(condition){
+
+}
+_ { // else
+
+}
+
 # Keywords in 1.1
 
 1. if 
@@ -211,4 +269,6 @@ New rule:
 8. use
 9. pub 
 10. pin
-11. match
+11. match (new)
+
+11. match (new)

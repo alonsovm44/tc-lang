@@ -3,7 +3,7 @@ use "stdlib/io.tc"
 void fn main: {
     {
         print("hello")
-        // intentional error 
+
     }
     loop if(1==1){/*infinite loop*/}
 }
