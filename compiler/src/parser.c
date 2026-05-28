@@ -248,6 +248,21 @@ static Stmt *parse_stmt(Parser *p) {
         Stmt *s = new_stmt(ST_IF);
         expect(p, "("); s->expr = parse_expr(p); expect(p, ")");
         s->body = parse_block(p);
+        // Parse _if(...){} chains and final _{}
+        while (at(p, "_if")) {
+            p->pos++;  // consume '_if'
+            expect(p, "("); Expr *cond = parse_expr(p); expect(p, ")");
+            StmtVec arm_body = parse_block(p);
+            elseif_push(&s->elseifs, cond, arm_body);
+        }
+        if (at(p, "_")) {
+            // Check next token is '{' (pure else, not '_if' or wildcard)
+            Token *next = &p->tokens[p->pos + 1];
+            if (next->kind == TOK_SYMBOL && strcmp(next->text, "{") == 0) {
+                p->pos++;  // consume '_'
+                s->else_body = parse_block(p);
+            }
+        }
         return s;
     }
     if (match(p, "loop")) {

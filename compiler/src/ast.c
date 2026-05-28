@@ -42,6 +42,14 @@ void match_arm_push(MatchArmVec *v, Expr *pattern, StmtVec body) {
     v->items[v->count++] = (MatchArm){pattern, body};
 }
 
+void elseif_push(ElseIfVec *v, Expr *cond, StmtVec body) {
+    if (v->count == v->cap) {
+        v->cap = v->cap ? v->cap * 2 : 4;
+        v->items = xrealloc(v->items, sizeof(ElseIfArm) * (size_t)v->cap);
+    }
+    v->items[v->count++] = (ElseIfArm){cond, body};
+}
+
 Type *new_type(TypeKind kind) {
     Type *t = xmalloc(sizeof(Type));
     memset(t, 0, sizeof(Type));

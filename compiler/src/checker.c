@@ -122,9 +122,14 @@ static void check_stmts(StmtVec *body, ScopeStack *s) {
                 break;
             case ST_IF:
                 check_expr(st->expr, s);
-                push_scope(s);
-                check_stmts(&st->body, s);
-                pop_scope(s);
+                push_scope(s); check_stmts(&st->body, s); pop_scope(s);
+                for (int j = 0; j < st->elseifs.count; j++) {
+                    check_expr(st->elseifs.items[j].cond, s);
+                    push_scope(s); check_stmts(&st->elseifs.items[j].body, s); pop_scope(s);
+                }
+                if (st->else_body.count) {
+                    push_scope(s); check_stmts(&st->else_body, s); pop_scope(s);
+                }
                 break;
             case ST_LOOP:
                 if (st->expr) check_expr(st->expr, s);

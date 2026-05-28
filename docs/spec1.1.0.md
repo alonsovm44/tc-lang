@@ -243,7 +243,7 @@ chained ifs automatically chain as an if-else if chain, this might not need impl
 at the end _if or _{}
 
 ## idea 3
-
+[SELECTED]
 if(condition){
 
 }
@@ -256,6 +256,7 @@ _if(condition){
 _ { // else
 
 }
+This fits tC semantics best
 
 # Keywords in 1.1
 

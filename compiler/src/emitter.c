@@ -164,7 +164,20 @@ static void emit_stmt(Str *out, Stmt *s, StmtVec *scope, DeclVec *program, int i
             break;
         }
         case ST_IF:
-            str_add(out, "if ("); emit_expr(out, s->expr, program); str_add(out, ") {\n"); emit_stmt_vec(out, &s->body, program, indent + 1); emit_indent(out, indent); str_add(out, "}\n");
+            str_add(out, "if ("); emit_expr(out, s->expr, program); str_add(out, ") {\n");
+            emit_stmt_vec(out, &s->body, program, indent + 1);
+            emit_indent(out, indent); str_add(out, "}");
+            for (int i = 0; i < s->elseifs.count; i++) {
+                str_add(out, " else if ("); emit_expr(out, s->elseifs.items[i].cond, program); str_add(out, ") {\n");
+                emit_stmt_vec(out, &s->elseifs.items[i].body, program, indent + 1);
+                emit_indent(out, indent); str_add(out, "}");
+            }
+            if (s->else_body.count) {
+                str_add(out, " else {\n");
+                emit_stmt_vec(out, &s->else_body, program, indent + 1);
+                emit_indent(out, indent); str_add(out, "}");
+            }
+            str_add(out, "\n");
             break;
         case ST_LOOP:
             str_add(out, "while ("); if (s->expr) emit_expr(out, s->expr, program); else str_add(out, "1"); str_add(out, ") {\n"); emit_stmt_vec(out, &s->body, program, indent + 1); emit_indent(out, indent); str_add(out, "}\n");

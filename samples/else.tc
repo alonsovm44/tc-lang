@@ -1,0 +1,23 @@
+use "stdlib/io.tc"
+
+fn void classify: i32 n {
+    if (n < 0) {
+        print("negative")
+    }
+    _if (n == 0) {
+        print("zero")
+    }
+    _if (n < 10) {
+        print("small")
+    }
+    _ {
+        print("large")
+    }
+}
+
+fn void main: {
+    classify(-5)
+    classify(0)
+    classify(7)
+    classify(42)
+}

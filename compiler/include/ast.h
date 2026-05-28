@@ -91,6 +91,17 @@ typedef struct {
     int cap;
 } MatchArmVec;
 
+typedef struct {
+    Expr *cond;
+    StmtVec body;
+} ElseIfArm;
+
+typedef struct {
+    ElseIfArm *items;
+    int count;
+    int cap;
+} ElseIfVec;
+
 typedef enum {
     ST_VAR,
     ST_BLOCK,
@@ -111,7 +122,9 @@ struct Stmt {
     Expr *expr;
     Expr *expr2;
     StmtVec body;
-    MatchArmVec arms;  // For ST_MATCH
+    MatchArmVec arms;    // For ST_MATCH
+    ElseIfVec elseifs;   // For ST_IF: _if(...){} arms
+    StmtVec else_body;   // For ST_IF: _{} final else
 };
 
 typedef enum {
@@ -140,6 +153,7 @@ void stmt_push(StmtVec *v, Stmt *x);
 void decl_push(DeclVec *v, Decl *x);
 void param_push(ParamVec *v, Type *type, char *name, bool is_union_field, bool is_anonymous);
 void match_arm_push(MatchArmVec *v, Expr *pattern, StmtVec body);
+void elseif_push(ElseIfVec *v, Expr *cond, StmtVec body);
 Type *new_type(TypeKind kind);
 Expr *new_expr(ExprKind kind);
 Stmt *new_stmt(StmtKind kind);
