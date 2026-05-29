@@ -21,7 +21,7 @@ Tight-C is a minimalistic systems programming language.
 
 ## Features
 
-- **11 keywords** — `if`, `loop`, `break`, `defer`, `ret`, `strun`, `fn`, `use`, `pub`, `pin`, `match`
+- **11 keywords** — `if`, `loop`, `break`, `defer`, `ret`, `strun`, `fn`, `use`, `pub`, `pin`, `match`, `hot`
 - **No hidden magic** — no GC, no type inference, no shadowing, no aliasing
 - **Raw pointers** (`->`) and **fat pointers** (`=>`) with built-in slicing
 - **Manual memory** — `alloc()` / `free()` with `defer` for cleanup
@@ -337,6 +337,72 @@ tcc <input.tc> [-o output.c] [-c binary]
 | (none) | Print transpiled C to stdout |
 
 Combine both: `tcc app.tc -o app.c -c app` keeps the `.c` and builds the binary.
+
+## Hot Reloading
+
+Tight-C supports hot reloading of functions marked with the `hot` keyword. This allows you to modify code and recompile shared libraries without restarting the main executable.
+
+### Basic Usage
+
+```bash
+# Initial compile with hot reload enabled
+tcc hot.tc -H hotlib -c hotfn
+
+# Run the application
+./hotfn
+
+# While running, modify hot.tc and rebuild only the hot library
+tcc hot.tc -H hotlib --hot-rebuild
+```
+
+The running application will automatically detect the change and reload the library on the next hot function call.
+
+### How It Works
+
+Hot reload uses versioned shared libraries to avoid file locking issues on Windows:
+
+- Functions marked with `hot` are compiled into a separate shared library
+- Each rebuild creates a new version (e.g., `hotlib_1.dll`, `hotlib_2.dll`)
+- A version file tracks the current version number
+- The host executable monitors the version file and dynamically loads new versions
+
+### Example
+
+```tightc
+use "stdlib/io.tc"
+
+extern "C" {
+    i32 fn Sleep: u32 ms {}
+}
+
+hot fn i32 add: i32 x, i32 y {
+    ret x + y + 10
+}
+
+fn void main: {
+    loop {
+        i32 result = add(3, 4)
+        printi(result)
+        Sleep(2000)
+    }
+}
+```
+
+Running this prints `17` every 2 seconds. If you change `ret x + y + 10` to `ret x + y + 20` and rebuild with `--hot-rebuild`, the output will change to `24` without restarting the application.
+
+### Additional Flags
+
+| Flag | Description |
+|------|-------------|
+| `-H <libname>` | Enable hot reload mode, specify the library name |
+| `--hot-rebuild` | Rebuild only the hot library (for running applications) |
+| `-t, --temp` | Keep temporary .c files for debugging |
+
+### Proof of Concept
+
+See the `HOTSWAPPING/` folder for a complete working example with documentation, including the demo output showing hot reload in action.
+
+This feature demonstrates Tight-C's capability for advanced systems programming patterns, using the industry-standard approach to hot reload on Windows (versioned libraries).
 
 ## Project Structure
 
