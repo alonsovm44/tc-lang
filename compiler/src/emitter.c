@@ -538,6 +538,22 @@ char *emit_hot_split(DeclVec program, const char *hot_lib __attribute__((unused)
         }
         str_add(&host, "}\n\n");
         str_add(&host, "static void reload_hot_if_changed(void) {\n");
+        str_add(&host, "    // Check for reload signal file and unload if present\n");
+        str_printf(&host, "    FILE *sig = fopen(\"%s.reload\", \"r\");\n", hot_lib);
+        str_add(&host, "    if (sig) {\n");
+        str_add(&host, "        fclose(sig);\n");
+        str_add(&host, "        if (hot_lib_handle) {\n");
+#ifdef _WIN32
+        str_add(&host, "            FreeLibrary(hot_lib_handle);\n");
+        str_add(&host, "            hot_lib_handle = NULL;\n");
+#else
+        str_add(&host, "            dlclose(hot_lib_handle);\n");
+        str_add(&host, "            hot_lib_handle = NULL;\n");
+#endif
+        str_add(&host, "        }\n");
+        str_printf(&host, "        remove(\"%s.reload\");\n", hot_lib);
+        str_add(&host, "        return;\n");
+        str_add(&host, "    }\n");
 #ifdef _WIN32
         str_add(&host, "    WIN32_FILE_ATTRIBUTE_DATA attr1, attr2;\n");
         str_printf(&host, "    if (!GetFileAttributesExA(\"%s.dll\", GetFileExInfoStandard, &attr1)) return;\n", hot_lib);

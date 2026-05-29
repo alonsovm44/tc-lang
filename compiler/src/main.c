@@ -290,6 +290,20 @@ int main(int argc, char **argv) {
             const char *cc = find_cc();
             if (!cc) die("error: no C compiler found (tried gcc, clang, cc)");
 
+            // Create signal file to tell running app to unload the library
+            char signal_file[256];
+            snprintf(signal_file, sizeof(signal_file), "%s.reload", hot_lib);
+            FILE *sig = fopen(signal_file, "w");
+            if (sig) fclose(sig);
+            printf("  created signal file: %s\n", signal_file);
+            
+            // Wait a moment for the app to process the signal
+#ifdef _WIN32
+            Sleep(500);
+#else
+            usleep(500000);
+#endif
+
             char hot_cmd[1024];
             char temp_dll[256];
             char target_dll[256];
@@ -304,7 +318,10 @@ int main(int argc, char **argv) {
 #endif
             printf("  %s\n", hot_cmd);
             int hot_ret = system(hot_cmd);
-            if (hot_ret != 0) die("error: hot library compilation failed (exit %d)", hot_ret);
+            if (hot_ret != 0) {
+                remove(signal_file);
+                die("error: hot library compilation failed (exit %d)", hot_ret);
+            }
 
 #ifdef _WIN32
             // On Windows, rename the temp DLL to the actual name (works even if file is loaded)
@@ -314,6 +331,7 @@ int main(int argc, char **argv) {
                 fprintf(stderr, "  temp_dll: %s\n", temp_dll);
                 fprintf(stderr, "  target_dll: %s\n", target_dll);
                 remove(temp_dll);
+                remove(signal_file);
                 die("error: failed to replace hot library (close the running app)");
             }
             printf("  replaced %s with %s\n", target_dll, temp_dll);
@@ -321,9 +339,13 @@ int main(int argc, char **argv) {
             // On Unix, just rename
             if (rename(temp_dll, target_dll) != 0) {
                 remove(temp_dll);
+                remove(signal_file);
                 die("error: failed to replace hot library");
             }
 #endif
+            
+            // Clean up signal file
+            remove(signal_file);
 
             if (!keep_temp) remove(hot_c_path);
             printf("  hot library rebuilt: %s\n", hot_lib);
