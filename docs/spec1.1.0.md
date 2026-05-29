@@ -1,6 +1,7 @@
 # Spec list for version 1.1.0
 
 # function pointers
+[done]
 Useful for callbacks
 
 Normal pointers
