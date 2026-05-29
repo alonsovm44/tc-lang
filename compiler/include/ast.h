@@ -138,6 +138,7 @@ typedef enum {
 struct Decl {
     DeclKind kind;
     bool public;
+    bool is_hot;  // For hot reload: function is in shared library
     char *name;
     char *path;
     Type *type;

@@ -213,15 +213,21 @@ int main(int argc, char **argv) {
     const char *input = NULL;
     const char *output = NULL;
     const char *compile_out = NULL;
+    const char *hot_lib = NULL;
+    bool hot_rebuild = false;
+    bool keep_temp = false;
     for (int i = 1; i < argc; i++) {
         if (!strcmp(argv[i], "--help") || !strcmp(argv[i], "-h")) {
-            puts("Tight-C compiler v1.1.0\n"
+            puts("Tight-C compiler v1.2.0\n"
                  "\n"
                  "Usage: tcc <input.tc> [options]\n"
                  "\n"
                  "Options:\n"
                  "  -o, --output <file>    Write transpiled C to file (.h gets #pragma once)\n"
                  "  -c, --compile <name>   Compile to binary (auto-detects gcc/clang)\n"
+                 "  -H, --hot <lib>        Enable hot reload, emit shared library to <lib>\n"
+                 "  --hot-rebuild          Rebuild only hot library (for running program)\n"
+                 "  -t, --temp             Keep temporary .c files for debugging\n"
                  "  -h, --help             Show this help message\n"
                  "  -v, --version          Show version\n"
                  "  --error <code>         Explain an error code (e.g. --error E000)\n"
@@ -231,10 +237,11 @@ int main(int argc, char **argv) {
                  "  tcc main.tc -o main.c           Transpile to C\n"
                  "  tcc main.tc -c app               Transpile + compile to binary\n"
                  "  tcc main.tc -o main.c -c app     Keep .c and compile\n"
-                 "  tcc lib.tc -o lib.h               Emit as header\n");
+                 "  tcc lib.tc -o lib.h               Emit as header\n"
+                 "  tcc main.tc -H hot.so -c app     Hot reload: emit lib + host\n");
             return 0;
         } else if (!strcmp(argv[i], "--version") || !strcmp(argv[i], "-v")) {
-            puts("tcc 1.1.0");
+            puts("tcc 1.2.0");
             return 0;
         } else if (!strcmp(argv[i], "--error") || !strcmp(argv[i], "--explain")) {
             if (++i >= argc) die("missing error code after --error");
@@ -247,6 +254,13 @@ int main(int argc, char **argv) {
         } else if (!strcmp(argv[i], "-o") || !strcmp(argv[i], "--output")) {
             if (++i >= argc) die("missing output path after -o");
             output = argv[i];
+        } else if (!strcmp(argv[i], "-H") || !strcmp(argv[i], "--hot")) {
+            if (++i >= argc) die("missing library name after -H");
+            hot_lib = argv[i];
+        } else if (!strcmp(argv[i], "--hot-rebuild")) {
+            hot_rebuild = true;
+        } else if (!strcmp(argv[i], "-t") || !strcmp(argv[i], "--temp")) {
+            keep_temp = true;
         } else {
             input = argv[i];
         }
@@ -258,33 +272,77 @@ int main(int argc, char **argv) {
     TokenVec tokens = lex_source(source);
     DeclVec program = parse_program(tokens.items);
     check_program(&program);
-    char *c_code = emit_program(program);
+
+    char *c_code = NULL;
+    char *hot_c = NULL;
+    if (hot_lib) {
+        c_code = emit_hot_split(program, hot_lib, &hot_c);
+    } else {
+        c_code = emit_program(program);
+    }
 
     if (compile_out) {
-        // Write to temp .c file, compile with C compiler, then remove temp
-        const char *tmp_c = output ? output : "__tcc_tmp.c";
-        size_t tlen = strlen(tmp_c);
-        bool tmp_is_header = (tlen > 2 && !strcmp(tmp_c + tlen - 2, ".h"));
-        if (tmp_is_header) {
-            Str wrapped = {0};
-            str_add(&wrapped, "#pragma once\n");
-            str_add(&wrapped, c_code);
-            write_file(tmp_c, wrapped.data);
-        } else {
-            write_file(tmp_c, c_code);
-        }
-
         const char *cc = find_cc();
         if (!cc) die("error: no C compiler found (tried gcc, clang, cc)");
 
-        char cmd[1024];
-        snprintf(cmd, sizeof(cmd), "%s \"%s\" -std=c11 -lm -o \"%s\"", cc, tmp_c, compile_out);
-        printf("  %s\n", cmd);
-        int ret = system(cmd);
+        if (hot_lib) {
+            // Hot reload mode: write host and hot library
+            const char *host_c = output ? output : "__tcc_host.c";
+            char hot_c_path[256];
+            snprintf(hot_c_path, sizeof(hot_c_path), "%s.c", hot_lib);
+            write_file(host_c, c_code);
+            write_file(hot_c_path, hot_c);
 
-        if (!output) remove(tmp_c);
-        if (ret != 0) die("error: C compilation failed (exit %d)", ret);
-        printf("  compiled: %s\n", compile_out);
+            // Compile hot library as shared library
+            char hot_cmd[1024];
+#ifdef _WIN32
+            snprintf(hot_cmd, sizeof(hot_cmd), "%s \"%s\" -std=c11 -shared -o \"%s.dll\"", cc, hot_c_path, hot_lib);
+#else
+            snprintf(hot_cmd, sizeof(hot_cmd), "%s \"%s\" -std=c11 -shared -fPIC -o \"%s\"", cc, hot_c_path, hot_lib);
+#endif
+            printf("  %s\n", hot_cmd);
+            int hot_ret = system(hot_cmd);
+            if (hot_ret != 0) die("error: hot library compilation failed (exit %d)", hot_ret);
+
+            // Compile host executable
+            char host_cmd[1024];
+#ifdef _WIN32
+            snprintf(host_cmd, sizeof(host_cmd), "%s \"%s\" -std=c11 -lm -L. -l%s -o \"%s\"", cc, host_c, hot_lib, compile_out);
+#else
+            snprintf(host_cmd, sizeof(host_cmd), "%s \"%s\" -std=c11 -lm -L. -l%s -o \"%s\"", cc, host_c, hot_lib, compile_out);
+#endif
+            printf("  %s\n", host_cmd);
+            int host_ret = system(host_cmd);
+            if (host_ret != 0) die("error: host compilation failed (exit %d)", host_ret);
+
+            if (!output && !keep_temp) {
+                remove(host_c);
+                remove(hot_c_path);
+            }
+            printf("  compiled: %s (with hot reload)\n", compile_out);
+        } else {
+            // Normal mode
+            const char *tmp_c = output ? output : "__tcc_tmp.c";
+            size_t tlen = strlen(tmp_c);
+            bool tmp_is_header = (tlen > 2 && !strcmp(tmp_c + tlen - 2, ".h"));
+            if (tmp_is_header) {
+                Str wrapped = {0};
+                str_add(&wrapped, "#pragma once\n");
+                str_add(&wrapped, c_code);
+                write_file(tmp_c, wrapped.data);
+            } else {
+                write_file(tmp_c, c_code);
+            }
+
+            char cmd[1024];
+            snprintf(cmd, sizeof(cmd), "%s \"%s\" -std=c11 -lm -o \"%s\"", cc, tmp_c, compile_out);
+            printf("  %s\n", cmd);
+            int ret = system(cmd);
+
+            if (!output && !keep_temp) remove(tmp_c);
+            if (ret != 0) die("error: C compilation failed (exit %d)", ret);
+            printf("  compiled: %s\n", compile_out);
+        }
     } else if (output) {
         size_t olen = strlen(output);
         bool is_header = (olen > 2 && !strcmp(output + olen - 2, ".h"));

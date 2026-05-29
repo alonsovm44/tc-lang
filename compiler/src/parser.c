@@ -496,16 +496,19 @@ DeclVec parse_program(Token *tokens) {
             decl_push(&p.decls, parse_struct(&p, public, false));
             continue;
         }
+        // Check for hot fn syntax
+        bool is_hot = match(&p, "hot");
         // Check for new fn syntax first
         if (match(&p, "fn")) {
             // New syntax: fn <type> <name>: <type> arg1, <type> arg2, ...
             Type *ret_type = parse_type(&p);
             Decl *d = new_decl(DC_FN);
             d->public = public;
+            d->is_hot = is_hot;
             d->type = ret_type;
             d->name = expect_ident(&p);
             expect(&p, ":");
-            
+
             // Parse parameters
             while (!at(&p, "{")) {
                 if (match(&p, "...")) { d->varargs = true; break; }
@@ -514,7 +517,7 @@ DeclVec parse_program(Token *tokens) {
                 param_push(&d->params, pt, pn, false, false);
                 if (!match(&p, ",")) break;
             }
-            
+
             p.pin_count = 0;
             d->body = parse_block(&p);
             decl_push(&p.decls, d);

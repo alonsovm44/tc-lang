@@ -388,3 +388,235 @@ char *emit_program(DeclVec program) {
     }
     return out.data;
 }
+
+char *emit_hot_split(DeclVec program, const char *hot_lib __attribute__((unused)), char **hot_c_out) {
+    Str host = {0};
+    Str hot = {0};
+
+    // Emit common headers for both
+    str_add(&host, "#include <stdint.h>\n#include <stddef.h>\n#include <stdio.h>\n#include <stdlib.h>\n#include <string.h>\n#include <math.h>\n");
+    str_add(&hot, "#include <stdint.h>\n#include <stddef.h>\n#include <stdio.h>\n#include <stdlib.h>\n#include <string.h>\n#include <math.h>\n");
+
+    str_add(&host, "#define TC_ALLOC(type, count) ((type *)calloc((count), sizeof(type)))\n");
+    str_add(&host, "#define TC_LENOF(x) (sizeof(x) / sizeof((x)[0]))\n");
+    str_add(&host, "#define TC_FAT_LENOF(x) ((x).len)\n\n");
+    str_add(&hot, "#define TC_ALLOC(type, count) ((type *)calloc((count), sizeof(type)))\n");
+    str_add(&hot, "#define TC_LENOF(x) (sizeof(x) / sizeof((x)[0]))\n");
+    str_add(&hot, "#define TC_FAT_LENOF(x) ((x).len)\n\n");
+
+    // Emit includes from @use statements
+    for (int i = 0; i < program.count; i++) {
+        Decl *d = program.items[i];
+        if (d->kind == DC_USE) {
+            char *raw = d->path;
+            // Strip surrounding quotes if present
+            if (raw[0] == '"') raw++;
+            size_t plen = strlen(raw);
+            if (plen > 0 && raw[plen - 1] == '"') plen--;
+            char *path = xstrndup(raw, plen);
+            // Convert .tc to .h
+            if (plen > 3 && strcmp(path + plen - 3, ".tc") == 0) {
+                path[plen - 2] = 'h';
+                path[plen - 1] = '\0';
+            }
+            str_printf(&host, "#include \"%s\"\n", path);
+            str_printf(&hot, "#include \"%s\"\n", path);
+        }
+    }
+    str_add(&host, "\n");
+    str_add(&hot, "\n");
+
+    // Emit fat pointer types (both need them)
+    char *seen_host[64] = {0};
+    int seen_count_host = 0;
+    char *seen_hot[64] = {0};
+    int seen_count_hot = 0;
+    for (int i = 0; i < program.count; i++) {
+        Decl *d = program.items[i];
+        if (d->type) {
+            scan_fat_types_in_type(d->type, &host, &program, seen_host, &seen_count_host);
+            scan_fat_types_in_type(d->type, &hot, &program, seen_hot, &seen_count_hot);
+        }
+        for (int j = 0; j < d->params.count; j++) {
+            scan_fat_types_in_type(d->params.items[j].type, &host, &program, seen_host, &seen_count_host);
+            scan_fat_types_in_type(d->params.items[j].type, &hot, &program, seen_hot, &seen_count_hot);
+        }
+        if (d->body.count) {
+            scan_fat_types_in_stmts(&d->body, &host, &program, seen_host, &seen_count_host);
+            scan_fat_types_in_stmts(&d->body, &hot, &program, seen_hot, &seen_count_hot);
+        }
+    }
+    str_add(&host, "\n");
+    str_add(&hot, "\n");
+
+    // Emit struct definitions (both need them)
+    for (int i = 0; i < program.count; i++) {
+        Decl *d = program.items[i];
+        if (d->kind == DC_STRUCT) {
+            Str struct_def = {0};
+            str_add(&struct_def, "typedef struct {\n");
+            bool in_union_block = false;
+            for (int j = 0; j < d->params.count; j++) {
+                Param *field = &d->params.items[j];
+                if (field->is_union_field) {
+                    if (!in_union_block) {
+                        str_add(&struct_def, "    union {\n");
+                        in_union_block = true;
+                    }
+                    str_add(&struct_def, "        "); emit_type(&struct_def, field->type, field->name, &program); str_add(&struct_def, ";\n");
+                } else {
+                    if (in_union_block) {
+                        str_add(&struct_def, "    };\n");
+                        in_union_block = false;
+                    }
+                    str_add(&struct_def, "    "); emit_type(&struct_def, field->type, field->name, &program); str_add(&struct_def, ";\n");
+                }
+            }
+            if (in_union_block) str_add(&struct_def, "    };\n");
+            str_add(&struct_def, "} ");
+            if (d->packed) str_add(&struct_def, "__attribute__((packed)) ");
+            str_printf(&struct_def, "%s;\n\n", d->name);
+            str_add(&host, struct_def.data);
+            str_add(&hot, struct_def.data);
+            free(struct_def.data);
+        }
+    }
+
+    // Count hot functions
+    int hot_count = 0;
+    for (int i = 0; i < program.count; i++) {
+        if (program.items[i]->kind == DC_FN && program.items[i]->is_hot) hot_count++;
+    }
+
+    // Host: emit function pointer dispatch table
+    if (hot_count > 0) {
+        str_add(&host, "// Hot function dispatch table\n");
+        for (int i = 0; i < program.count; i++) {
+            Decl *d = program.items[i];
+            if (d->kind == DC_FN && d->is_hot) {
+                emit_type(&host, d->type, "", &program);
+                str_printf(&host, "(*hot_%s)(", d->name);
+                if (!d->params.count) str_add(&host, "void");
+                for (int j = 0; j < d->params.count; j++) {
+                    if (j) str_add(&host, ", ");
+                    emit_type(&host, d->params.items[j].type, "", &program);
+                }
+                str_add(&host, ");\n");
+            }
+        }
+        str_add(&host, "\n");
+
+        // Emit library loading code
+#ifdef _WIN32
+        str_add(&host, "#include <windows.h>\n");
+        str_add(&host, "static HMODULE hot_lib_handle = NULL;\n");
+#else
+        str_add(&host, "#include <dlfcn.h>\n");
+        str_add(&host, "static void *hot_lib_handle = NULL;\n");
+#endif
+        str_add(&host, "\nstatic void load_hot_functions(void) {\n");
+#ifdef _WIN32
+        str_printf(&host, "    hot_lib_handle = LoadLibraryA(\"%s.dll\");\n", hot_lib);
+        str_printf(&host, "    if (!hot_lib_handle) { fprintf(stderr, \"Failed to load %s.dll\\n\"); return; }\n", hot_lib);
+#else
+        str_printf(&host, "    hot_lib_handle = dlopen(\"./%s.so\", RTLD_LAZY);\n", hot_lib);
+        str_printf(&host, "    if (!hot_lib_handle) { fprintf(stderr, \"Failed to load %s.so\\n\"); return; }\n", hot_lib);
+#endif
+        for (int i = 0; i < program.count; i++) {
+            Decl *d = program.items[i];
+            if (d->kind == DC_FN && d->is_hot) {
+#ifdef _WIN32
+                str_printf(&host, "    hot_%s = (void*)GetProcAddress(hot_lib_handle, \"%s\");\n", d->name, d->name);
+                str_printf(&host, "    if (!hot_%s) fprintf(stderr, \"Failed to load function %s\\n\");\n", d->name, d->name);
+#else
+                str_printf(&host, "    hot_%s = dlsym(hot_lib_handle, \"%s\");\n", d->name, d->name);
+                str_printf(&host, "    if (!hot_%s) fprintf(stderr, \"Failed to load function %s\\n\");\n", d->name, d->name);
+#endif
+            }
+        }
+        str_add(&host, "}\n\n");
+    }
+
+    // Host: emit forward declarations for non-hot functions
+    for (int i = 0; i < program.count; i++) {
+        Decl *d = program.items[i];
+        if (d->kind == DC_FN && !d->is_hot) {
+            bool is_main_args = (strcmp(d->name, "main") == 0 && d->params.count == 1 && d->params.items[0].type->kind == TY_FATPTR);
+            if (is_main_args) {
+                str_add(&host, "int32_t main(int argc, char **argv);\n");
+            } else {
+                emit_type(&host, d->type, d->name, &program); str_add(&host, "(");
+                if (!d->params.count) str_add(&host, "void");
+                for (int j = 0; j < d->params.count; j++) { if (j) str_add(&host, ", "); emit_type(&host, d->params.items[j].type, d->params.items[j].name, &program); }
+                str_add(&host, ");\n");
+            }
+        }
+    }
+    str_add(&host, "\n");
+
+    // Hot: emit forward declarations for hot functions
+    for (int i = 0; i < program.count; i++) {
+        Decl *d = program.items[i];
+        if (d->kind == DC_FN && d->is_hot) {
+            emit_type(&hot, d->type, d->name, &program); str_add(&hot, "(");
+            if (!d->params.count) str_add(&hot, "void");
+            for (int j = 0; j < d->params.count; j++) { if (j) str_add(&hot, ", "); emit_type(&hot, d->params.items[j].type, d->params.items[j].name, &program); }
+            str_add(&hot, ");\n");
+        }
+    }
+    str_add(&hot, "\n");
+
+    // Host: emit stubs for hot functions (call through dispatch table)
+    for (int i = 0; i < program.count; i++) {
+        Decl *d = program.items[i];
+        if (d->kind == DC_FN && d->is_hot) {
+            emit_type(&host, d->type, d->name, &program); str_add(&host, "(");
+            if (!d->params.count) str_add(&host, "void");
+            for (int j = 0; j < d->params.count; j++) { if (j) str_add(&host, ", "); emit_type(&host, d->params.items[j].type, d->params.items[j].name, &program); }
+            str_add(&host, ") {\n");
+            str_add(&host, "    return hot_");
+            str_add(&host, d->name);
+            str_add(&host, "(");
+            for (int j = 0; j < d->params.count; j++) { if (j) str_add(&host, ", "); str_add(&host, d->params.items[j].name); }
+            str_add(&host, ");\n}\n\n");
+        }
+    }
+
+    // Host: emit non-hot function bodies
+    for (int i = 0; i < program.count; i++) {
+        Decl *d = program.items[i];
+        if (d->kind == DC_FN && !d->is_hot) {
+            bool is_main_args = (strcmp(d->name, "main") == 0 && d->params.count == 1 && d->params.items[0].type->kind == TY_FATPTR);
+            bool is_main = (strcmp(d->name, "main") == 0);
+            if (is_main_args) {
+                str_add(&host, "\nint32_t main(int argc, char **argv) {\n");
+                str_printf(&host, "    tc_fat_ptr %s = { .ptr = argv, .len = (size_t)argc };\n", d->params.items[0].name);
+                if (hot_count > 0) str_add(&host, "    load_hot_functions();\n");
+            } else {
+                str_add(&host, "\n"); emit_type(&host, d->type, d->name, &program); str_add(&host, "(");
+                if (!d->params.count) str_add(&host, "void");
+                for (int j = 0; j < d->params.count; j++) { if (j) str_add(&host, ", "); emit_type(&host, d->params.items[j].type, d->params.items[j].name, &program); }
+                str_add(&host, ") {\n");
+                if (is_main && hot_count > 0) str_add(&host, "    load_hot_functions();\n");
+            }
+            emit_stmt_vec_with_defers(&host, &d->body, &program, 1);
+            str_add(&host, "}\n");
+        }
+    }
+
+    // Hot: emit hot function bodies
+    for (int i = 0; i < program.count; i++) {
+        Decl *d = program.items[i];
+        if (d->kind == DC_FN && d->is_hot) {
+            str_add(&hot, "\n"); emit_type(&hot, d->type, d->name, &program); str_add(&hot, "(");
+            if (!d->params.count) str_add(&hot, "void");
+            for (int j = 0; j < d->params.count; j++) { if (j) str_add(&hot, ", "); emit_type(&hot, d->params.items[j].type, d->params.items[j].name, &program); }
+            str_add(&hot, ") {\n");
+            emit_stmt_vec_with_defers(&hot, &d->body, &program, 1);
+            str_add(&hot, "}\n");
+        }
+    }
+
+    *hot_c_out = hot.data;
+    return host.data;
+}
