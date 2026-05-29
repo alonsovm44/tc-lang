@@ -1,0 +1,16 @@
+use "stdlib/io.tc"
+use "stdlib/rand.tc"
+use "stdlib/time.tc"
+use "stdlib/assert.tc"
+
+fn void main: {
+    srand(42)
+    i32 r = rand_range(1, 100)
+    printi(r)
+
+    i64 t = now()
+    printi(t)
+
+    assert(1 > 0, "math works")
+    print("all good")
+}

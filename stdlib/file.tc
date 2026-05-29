@@ -1,0 +1,63 @@
+extern "C" {
+    ->void fn fopen: ->i8 path, ->i8 mode {}
+    i32 fn fclose: ->void file {}
+    u64 fn fread: ->void ptr, u64 size, u64 count, ->void file {}
+    u64 fn fwrite: ->void ptr, u64 size, u64 count, ->void file {}
+    i32 fn fseek: ->void file, i64 offset, i32 whence {}
+    i64 fn ftell: ->void file {}
+    i32 fn feof: ->void file {}
+    i32 fn ferror: ->void file {}
+}
+
+// file handle type
+->void fn FILE {}
+
+// open file for reading
+->void fn fopen_read: ->i8 path {
+    ret fopen(path, "r")
+}
+
+// open file for writing
+->void fn fopen_write: ->i8 path {
+    ret fopen(path, "w")
+}
+
+// open file for appending
+->void fn fopen_append: ->i8 path {
+    ret fopen(path, "a")
+}
+
+// close file
+i32 fn fclose: ->void file {
+    ret fclose(file)
+}
+
+// read from file into buffer
+u64 fn fread: ->void ptr, u64 size, u64 count, ->void file {
+    ret fread(ptr, size, count, file)
+}
+
+// write to file from buffer
+u64 fn fwrite: ->void ptr, u64 size, u64 count, ->void file {
+    ret fwrite(ptr, size, count, file)
+}
+
+// seek to position (whence: 0=SEEK_SET, 1=SEEK_CUR, 2=SEEK_END)
+i32 fn fseek: ->void file, i64 offset, i32 whence {
+    ret fseek(file, offset, whence)
+}
+
+// get current position
+i64 fn ftell: ->void file {
+    ret ftell(file)
+}
+
+// check end of file
+i32 fn feof: ->void file {
+    ret feof(file)
+}
+
+// check error
+i32 fn ferror: ->void file {
+    ret ferror(file)
+}
