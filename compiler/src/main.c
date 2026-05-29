@@ -8,6 +8,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#ifdef _WIN32
+#include <windows.h>
+#endif
 
 const char *g_current_input = NULL;
 
@@ -288,14 +291,31 @@ int main(int argc, char **argv) {
             if (!cc) die("error: no C compiler found (tried gcc, clang, cc)");
 
             char hot_cmd[1024];
+            char temp_dll[256];
 #ifdef _WIN32
-            snprintf(hot_cmd, sizeof(hot_cmd), "%s \"%s\" -std=c11 -shared -o \"%s.dll\"", cc, hot_c_path, hot_lib);
+            snprintf(temp_dll, sizeof(temp_dll), "%s_new.dll", hot_lib);
+            snprintf(hot_cmd, sizeof(hot_cmd), "%s \"%s\" -std=c11 -shared -o \"%s\"", cc, hot_c_path, temp_dll);
 #else
-            snprintf(hot_cmd, sizeof(hot_cmd), "%s \"%s\" -std=c11 -shared -fPIC -o \"%s\"", cc, hot_c_path, hot_lib);
+            snprintf(temp_dll, sizeof(temp_dll), "%s_new.so", hot_lib);
+            snprintf(hot_cmd, sizeof(hot_cmd), "%s \"%s\" -std=c11 -shared -fPIC -o \"%s\"", cc, hot_c_path, temp_dll);
 #endif
             printf("  %s\n", hot_cmd);
             int hot_ret = system(hot_cmd);
             if (hot_ret != 0) die("error: hot library compilation failed (exit %d)", hot_ret);
+
+#ifdef _WIN32
+            // On Windows, rename the temp DLL to the actual name (works even if file is loaded)
+            if (!MoveFileExA(temp_dll, hot_lib, MOVEFILE_REPLACE_EXISTING | MOVEFILE_WRITE_THROUGH)) {
+                remove(temp_dll);
+                die("error: failed to replace hot library (close the running app)");
+            }
+#else
+            // On Unix, just rename
+            if (rename(temp_dll, hot_lib) != 0) {
+                remove(temp_dll);
+                die("error: failed to replace hot library");
+            }
+#endif
 
             if (!keep_temp) remove(hot_c_path);
             printf("  hot library rebuilt: %s\n", hot_lib);

@@ -552,6 +552,15 @@ char *emit_hot_split(DeclVec program, const char *hot_lib __attribute__((unused)
         str_add(&host, "    if (st.st_mtime == last_mtime) return;\n");
         str_add(&host, "    last_mtime = st.st_mtime;\n");
 #endif
+        str_add(&host, "    if (hot_lib_handle) {\n");
+#ifdef _WIN32
+        str_add(&host, "        FreeLibrary(hot_lib_handle);\n");
+        str_add(&host, "        hot_lib_handle = NULL;\n");
+#else
+        str_add(&host, "        dlclose(hot_lib_handle);\n");
+        str_add(&host, "        hot_lib_handle = NULL;\n");
+#endif
+        str_add(&host, "    }\n");
         str_add(&host, "    load_hot_functions();\n");
         str_add(&host, "}\n\n");
     }
