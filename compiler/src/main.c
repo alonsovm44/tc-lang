@@ -290,62 +290,37 @@ int main(int argc, char **argv) {
             const char *cc = find_cc();
             if (!cc) die("error: no C compiler found (tried gcc, clang, cc)");
 
-            // Create signal file to tell running app to unload the library
-            char signal_file[256];
-            snprintf(signal_file, sizeof(signal_file), "%s.reload", hot_lib);
-            FILE *sig = fopen(signal_file, "w");
-            if (sig) fclose(sig);
-            printf("  created signal file: %s\n", signal_file);
+            // Read current version from file, or start at 1
+            int version = 1;
+            char version_file[256];
+            snprintf(version_file, sizeof(version_file), "%s.version", hot_lib);
+            FILE *vf = fopen(version_file, "r");
+            if (vf) {
+                fscanf(vf, "%d", &version);
+                fclose(vf);
+                version++;
+            }
             
-            // Wait a moment for the app to process the signal
-#ifdef _WIN32
-            Sleep(500);
-#else
-            usleep(500000);
-#endif
+            // Write new version
+            vf = fopen(version_file, "w");
+            if (vf) {
+                fprintf(vf, "%d", version);
+                fclose(vf);
+            }
+            printf("  hot library version: %d\n", version);
 
             char hot_cmd[1024];
-            char temp_dll[256];
-            char target_dll[256];
+            char versioned_dll[256];
 #ifdef _WIN32
-            snprintf(temp_dll, sizeof(temp_dll), "%s_new.dll", hot_lib);
-            snprintf(target_dll, sizeof(target_dll), "%s.dll", hot_lib);
-            snprintf(hot_cmd, sizeof(hot_cmd), "%s \"%s\" -std=c11 -shared -o \"%s\"", cc, hot_c_path, temp_dll);
+            snprintf(versioned_dll, sizeof(versioned_dll), "%s_%d.dll", hot_lib, version);
+            snprintf(hot_cmd, sizeof(hot_cmd), "%s \"%s\" -std=c11 -shared -o \"%s\"", cc, hot_c_path, versioned_dll);
 #else
-            snprintf(temp_dll, sizeof(temp_dll), "%s_new.so", hot_lib);
-            snprintf(target_dll, sizeof(target_dll), "%s.so", hot_lib);
-            snprintf(hot_cmd, sizeof(hot_cmd), "%s \"%s\" -std=c11 -shared -fPIC -o \"%s\"", cc, hot_c_path, temp_dll);
+            snprintf(versioned_dll, sizeof(versioned_dll), "%s_%d.so", hot_lib, version);
+            snprintf(hot_cmd, sizeof(hot_cmd), "%s \"%s\" -std=c11 -shared -fPIC -o \"%s\"", cc, hot_c_path, versioned_dll);
 #endif
             printf("  %s\n", hot_cmd);
             int hot_ret = system(hot_cmd);
-            if (hot_ret != 0) {
-                remove(signal_file);
-                die("error: hot library compilation failed (exit %d)", hot_ret);
-            }
-
-#ifdef _WIN32
-            // On Windows, rename the temp DLL to the actual name (works even if file is loaded)
-            if (!MoveFileExA(temp_dll, target_dll, MOVEFILE_REPLACE_EXISTING | MOVEFILE_WRITE_THROUGH)) {
-                DWORD err = GetLastError();
-                fprintf(stderr, "MoveFileExA failed with error %lu\n", err);
-                fprintf(stderr, "  temp_dll: %s\n", temp_dll);
-                fprintf(stderr, "  target_dll: %s\n", target_dll);
-                remove(temp_dll);
-                remove(signal_file);
-                die("error: failed to replace hot library (close the running app)");
-            }
-            printf("  replaced %s with %s\n", target_dll, temp_dll);
-#else
-            // On Unix, just rename
-            if (rename(temp_dll, target_dll) != 0) {
-                remove(temp_dll);
-                remove(signal_file);
-                die("error: failed to replace hot library");
-            }
-#endif
-            
-            // Clean up signal file
-            remove(signal_file);
+            if (hot_ret != 0) die("error: hot library compilation failed (exit %d)", hot_ret);
 
             if (!keep_temp) remove(hot_c_path);
             printf("  hot library rebuilt: %s\n", hot_lib);
@@ -368,12 +343,21 @@ int main(int argc, char **argv) {
             write_file(host_c, c_code);
             write_file(hot_c_path, hot_c);
 
-            // Compile hot library as shared library
+            // Initialize version file
+            char version_file[256];
+            snprintf(version_file, sizeof(version_file), "%s.version", hot_lib);
+            FILE *vf = fopen(version_file, "w");
+            if (vf) {
+                fprintf(vf, "1");
+                fclose(vf);
+            }
+
+            // Compile hot library as shared library (version 1)
             char hot_cmd[1024];
 #ifdef _WIN32
-            snprintf(hot_cmd, sizeof(hot_cmd), "%s \"%s\" -std=c11 -shared -o \"%s.dll\"", cc, hot_c_path, hot_lib);
+            snprintf(hot_cmd, sizeof(hot_cmd), "%s \"%s\" -std=c11 -shared -o \"%s_1.dll\"", cc, hot_c_path, hot_lib);
 #else
-            snprintf(hot_cmd, sizeof(hot_cmd), "%s \"%s\" -std=c11 -shared -fPIC -o \"%s\"", cc, hot_c_path, hot_lib);
+            snprintf(hot_cmd, sizeof(hot_cmd), "%s \"%s\" -std=c11 -shared -fPIC -o \"%s_1.so\"", cc, hot_c_path, hot_lib);
 #endif
             printf("  %s\n", hot_cmd);
             int hot_ret = system(hot_cmd);
@@ -382,9 +366,9 @@ int main(int argc, char **argv) {
             // Compile host executable
             char host_cmd[1024];
 #ifdef _WIN32
-            snprintf(host_cmd, sizeof(host_cmd), "%s \"%s\" -std=c11 -lm -L. -l%s -o \"%s\"", cc, host_c, hot_lib, compile_out);
+            snprintf(host_cmd, sizeof(host_cmd), "%s \"%s\" -std=c11 -lm -L. -l%s_1 -o \"%s\"", cc, host_c, hot_lib, compile_out);
 #else
-            snprintf(host_cmd, sizeof(host_cmd), "%s \"%s\" -std=c11 -lm -L. -l%s -o \"%s\"", cc, host_c, hot_lib, compile_out);
+            snprintf(host_cmd, sizeof(host_cmd), "%s \"%s\" -std=c11 -lm -L. -l%s_1 -o \"%s\"", cc, host_c, hot_lib, compile_out);
 #endif
             printf("  %s\n", host_cmd);
             int host_ret = system(host_cmd);

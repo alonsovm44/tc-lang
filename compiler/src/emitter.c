@@ -515,14 +515,28 @@ char *emit_hot_split(DeclVec program, const char *hot_lib __attribute__((unused)
         str_add(&host, "static void *hot_lib_handle = NULL;\n");
 #endif
         str_add(&host, "\nstatic void load_hot_functions(void) {\n");
+        str_add(&host, "    // Read current version\n");
+        str_add(&host, "    int version = 1;\n");
+        str_printf(&host, "    FILE *vf = fopen(\"%s.version\", \"r\");\n", hot_lib);
+        str_add(&host, "    if (vf) {\n");
+        str_add(&host, "        fscanf(vf, \"%d\", &version);\n");
+        str_add(&host, "        fclose(vf);\n");
+        str_add(&host, "    }\n");
+        str_add(&host, "    static int loaded_version = 0;\n");
+        str_add(&host, "    if (version == loaded_version) return;\n");
+        str_add(&host, "    loaded_version = version;\n");
 #ifdef _WIN32
         str_add(&host, "    if (hot_lib_handle) FreeLibrary(hot_lib_handle);\n");
-        str_printf(&host, "    hot_lib_handle = LoadLibraryA(\"%s.dll\");\n", hot_lib);
-        str_printf(&host, "    if (!hot_lib_handle) { fprintf(stderr, \"Failed to load %s.dll\\n\"); return; }\n", hot_lib);
+        str_printf(&host, "    char dll_path[256];\n");
+        str_printf(&host, "    snprintf(dll_path, sizeof(dll_path), \"%s_%%d.dll\", version);\n", hot_lib);
+        str_add(&host, "    hot_lib_handle = LoadLibraryA(dll_path);\n");
+        str_printf(&host, "    if (!hot_lib_handle) { fprintf(stderr, \"Failed to load %s_%%d.dll\\n\", version); return; }\n", hot_lib);
 #else
         str_add(&host, "    if (hot_lib_handle) dlclose(hot_lib_handle);\n");
-        str_printf(&host, "    hot_lib_handle = dlopen(\"./%s.so\", RTLD_LAZY);\n", hot_lib);
-        str_printf(&host, "    if (!hot_lib_handle) { fprintf(stderr, \"Failed to load %s.so\\n\"); return; }\n", hot_lib);
+        str_printf(&host, "    char so_path[256];\n");
+        str_printf(&host, "    snprintf(so_path, sizeof(so_path), \"./%s_%%d.so\", version);\n", hot_lib);
+        str_add(&host, "    hot_lib_handle = dlopen(so_path, RTLD_LAZY);\n");
+        str_printf(&host, "    if (!hot_lib_handle) { fprintf(stderr, \"Failed to load %s_%%d.so\\n\", version); return; }\n", hot_lib);
 #endif
         for (int i = 0; i < program.count; i++) {
             Decl *d = program.items[i];
@@ -538,45 +552,6 @@ char *emit_hot_split(DeclVec program, const char *hot_lib __attribute__((unused)
         }
         str_add(&host, "}\n\n");
         str_add(&host, "static void reload_hot_if_changed(void) {\n");
-        str_add(&host, "    // Check for reload signal file and unload if present\n");
-        str_printf(&host, "    FILE *sig = fopen(\"%s.reload\", \"r\");\n", hot_lib);
-        str_add(&host, "    if (sig) {\n");
-        str_add(&host, "        fclose(sig);\n");
-        str_add(&host, "        if (hot_lib_handle) {\n");
-#ifdef _WIN32
-        str_add(&host, "            FreeLibrary(hot_lib_handle);\n");
-        str_add(&host, "            hot_lib_handle = NULL;\n");
-#else
-        str_add(&host, "            dlclose(hot_lib_handle);\n");
-        str_add(&host, "            hot_lib_handle = NULL;\n");
-#endif
-        str_add(&host, "        }\n");
-        str_printf(&host, "        remove(\"%s.reload\");\n", hot_lib);
-        str_add(&host, "        return;\n");
-        str_add(&host, "    }\n");
-#ifdef _WIN32
-        str_add(&host, "    WIN32_FILE_ATTRIBUTE_DATA attr1, attr2;\n");
-        str_printf(&host, "    if (!GetFileAttributesExA(\"%s.dll\", GetFileExInfoStandard, &attr1)) return;\n", hot_lib);
-        str_add(&host, "    static ULONGLONG last_write = 0;\n");
-        str_add(&host, "    if (attr1.ftLastWriteTime.dwLowDateTime == (DWORD)last_write &&\n");
-        str_add(&host, "        attr1.ftLastWriteTime.dwHighDateTime == (DWORD)(last_write >> 32)) return;\n");
-        str_add(&host, "    last_write = ((ULONGLONG)attr1.ftLastWriteTime.dwHighDateTime << 32) | attr1.ftLastWriteTime.dwLowDateTime;\n");
-#else
-        str_add(&host, "    struct stat st;\n");
-        str_printf(&host, "    if (stat(\"./%s.so\", &st) != 0) return;\n", hot_lib);
-        str_add(&host, "    static time_t last_mtime = 0;\n");
-        str_add(&host, "    if (st.st_mtime == last_mtime) return;\n");
-        str_add(&host, "    last_mtime = st.st_mtime;\n");
-#endif
-        str_add(&host, "    if (hot_lib_handle) {\n");
-#ifdef _WIN32
-        str_add(&host, "        FreeLibrary(hot_lib_handle);\n");
-        str_add(&host, "        hot_lib_handle = NULL;\n");
-#else
-        str_add(&host, "        dlclose(hot_lib_handle);\n");
-        str_add(&host, "        hot_lib_handle = NULL;\n");
-#endif
-        str_add(&host, "    }\n");
         str_add(&host, "    load_hot_functions();\n");
         str_add(&host, "}\n\n");
     }
