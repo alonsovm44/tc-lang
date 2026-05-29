@@ -1,16 +1,17 @@
 use "stdlib/io.tc"
 
 extern "C" {
-    i32 fn sleep: u32 ms {}
+    i32 fn Sleep: u32 ms {}
 }
 
 hot fn i32 add: i32 x, i32 y {
-    ret x + y
+    ret x + y 
 }
 
 fn void main: {
-    loop:
+    loop {
         i32 result = add(3, 4)
         printi(result)
-        sleep(2000)
+        Sleep(2000)
+    }
 }

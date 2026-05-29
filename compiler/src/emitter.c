@@ -516,9 +516,11 @@ char *emit_hot_split(DeclVec program, const char *hot_lib __attribute__((unused)
 #endif
         str_add(&host, "\nstatic void load_hot_functions(void) {\n");
 #ifdef _WIN32
+        str_add(&host, "    if (hot_lib_handle) FreeLibrary(hot_lib_handle);\n");
         str_printf(&host, "    hot_lib_handle = LoadLibraryA(\"%s.dll\");\n", hot_lib);
         str_printf(&host, "    if (!hot_lib_handle) { fprintf(stderr, \"Failed to load %s.dll\\n\"); return; }\n", hot_lib);
 #else
+        str_add(&host, "    if (hot_lib_handle) dlclose(hot_lib_handle);\n");
         str_printf(&host, "    hot_lib_handle = dlopen(\"./%s.so\", RTLD_LAZY);\n", hot_lib);
         str_printf(&host, "    if (!hot_lib_handle) { fprintf(stderr, \"Failed to load %s.so\\n\"); return; }\n", hot_lib);
 #endif
@@ -534,6 +536,23 @@ char *emit_hot_split(DeclVec program, const char *hot_lib __attribute__((unused)
 #endif
             }
         }
+        str_add(&host, "}\n\n");
+        str_add(&host, "static void reload_hot_if_changed(void) {\n");
+#ifdef _WIN32
+        str_add(&host, "    WIN32_FILE_ATTRIBUTE_DATA attr1, attr2;\n");
+        str_printf(&host, "    if (!GetFileAttributesExA(\"%s.dll\", GetFileExInfoStandard, &attr1)) return;\n", hot_lib);
+        str_add(&host, "    static ULONGLONG last_write = 0;\n");
+        str_add(&host, "    if (attr1.ftLastWriteTime.dwLowDateTime == (DWORD)last_write &&\n");
+        str_add(&host, "        attr1.ftLastWriteTime.dwHighDateTime == (DWORD)(last_write >> 32)) return;\n");
+        str_add(&host, "    last_write = ((ULONGLONG)attr1.ftLastWriteTime.dwHighDateTime << 32) | attr1.ftLastWriteTime.dwLowDateTime;\n");
+#else
+        str_add(&host, "    struct stat st;\n");
+        str_printf(&host, "    if (stat(\"./%s.so\", &st) != 0) return;\n", hot_lib);
+        str_add(&host, "    static time_t last_mtime = 0;\n");
+        str_add(&host, "    if (st.st_mtime == last_mtime) return;\n");
+        str_add(&host, "    last_mtime = st.st_mtime;\n");
+#endif
+        str_add(&host, "    load_hot_functions();\n");
         str_add(&host, "}\n\n");
     }
 
@@ -574,6 +593,7 @@ char *emit_hot_split(DeclVec program, const char *hot_lib __attribute__((unused)
             if (!d->params.count) str_add(&host, "void");
             for (int j = 0; j < d->params.count; j++) { if (j) str_add(&host, ", "); emit_type(&host, d->params.items[j].type, d->params.items[j].name, &program); }
             str_add(&host, ") {\n");
+            str_add(&host, "    reload_hot_if_changed();\n");
             str_add(&host, "    return hot_");
             str_add(&host, d->name);
             str_add(&host, "(");

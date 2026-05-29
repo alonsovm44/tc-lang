@@ -276,6 +276,31 @@ int main(int argc, char **argv) {
     char *c_code = NULL;
     char *hot_c = NULL;
     if (hot_lib) {
+        if (hot_rebuild) {
+            // Rebuild only hot library
+            char *hot_c_only = NULL;
+            emit_hot_split(program, hot_lib, &hot_c_only);
+            char hot_c_path[256];
+            snprintf(hot_c_path, sizeof(hot_c_path), "%s.c", hot_lib);
+            write_file(hot_c_path, hot_c_only);
+
+            const char *cc = find_cc();
+            if (!cc) die("error: no C compiler found (tried gcc, clang, cc)");
+
+            char hot_cmd[1024];
+#ifdef _WIN32
+            snprintf(hot_cmd, sizeof(hot_cmd), "%s \"%s\" -std=c11 -shared -o \"%s.dll\"", cc, hot_c_path, hot_lib);
+#else
+            snprintf(hot_cmd, sizeof(hot_cmd), "%s \"%s\" -std=c11 -shared -fPIC -o \"%s\"", cc, hot_c_path, hot_lib);
+#endif
+            printf("  %s\n", hot_cmd);
+            int hot_ret = system(hot_cmd);
+            if (hot_ret != 0) die("error: hot library compilation failed (exit %d)", hot_ret);
+
+            if (!keep_temp) remove(hot_c_path);
+            printf("  hot library rebuilt: %s\n", hot_lib);
+            return 0;
+        }
         c_code = emit_hot_split(program, hot_lib, &hot_c);
     } else {
         c_code = emit_program(program);
