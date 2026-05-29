@@ -292,11 +292,14 @@ int main(int argc, char **argv) {
 
             char hot_cmd[1024];
             char temp_dll[256];
+            char target_dll[256];
 #ifdef _WIN32
             snprintf(temp_dll, sizeof(temp_dll), "%s_new.dll", hot_lib);
+            snprintf(target_dll, sizeof(target_dll), "%s.dll", hot_lib);
             snprintf(hot_cmd, sizeof(hot_cmd), "%s \"%s\" -std=c11 -shared -o \"%s\"", cc, hot_c_path, temp_dll);
 #else
             snprintf(temp_dll, sizeof(temp_dll), "%s_new.so", hot_lib);
+            snprintf(target_dll, sizeof(target_dll), "%s.so", hot_lib);
             snprintf(hot_cmd, sizeof(hot_cmd), "%s \"%s\" -std=c11 -shared -fPIC -o \"%s\"", cc, hot_c_path, temp_dll);
 #endif
             printf("  %s\n", hot_cmd);
@@ -305,13 +308,18 @@ int main(int argc, char **argv) {
 
 #ifdef _WIN32
             // On Windows, rename the temp DLL to the actual name (works even if file is loaded)
-            if (!MoveFileExA(temp_dll, hot_lib, MOVEFILE_REPLACE_EXISTING | MOVEFILE_WRITE_THROUGH)) {
+            if (!MoveFileExA(temp_dll, target_dll, MOVEFILE_REPLACE_EXISTING | MOVEFILE_WRITE_THROUGH)) {
+                DWORD err = GetLastError();
+                fprintf(stderr, "MoveFileExA failed with error %lu\n", err);
+                fprintf(stderr, "  temp_dll: %s\n", temp_dll);
+                fprintf(stderr, "  target_dll: %s\n", target_dll);
                 remove(temp_dll);
                 die("error: failed to replace hot library (close the running app)");
             }
+            printf("  replaced %s with %s\n", target_dll, temp_dll);
 #else
             // On Unix, just rename
-            if (rename(temp_dll, hot_lib) != 0) {
+            if (rename(temp_dll, target_dll) != 0) {
                 remove(temp_dll);
                 die("error: failed to replace hot library");
             }

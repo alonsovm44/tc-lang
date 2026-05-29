@@ -162,4 +162,4 @@ This should be enough for a POC for version 1.2
 9. pub 
 10. pin
 11. match
-12. hot
+12. hot (new)

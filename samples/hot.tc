@@ -5,7 +5,7 @@ extern "C" {
 }
 
 hot fn i32 add: i32 x, i32 y {
-    ret x + y + 10
+    ret x + y 
 }
 
 fn void main: {
