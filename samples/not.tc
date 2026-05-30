@@ -1,0 +1,12 @@
+use "stdlib/io.tc"
+
+fn void main: {
+    i32 x = 5
+
+    if(!x){
+        print("x is false")
+    }
+    _ {
+        print("x is true")
+    }
+}

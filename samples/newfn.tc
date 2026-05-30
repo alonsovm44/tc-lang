@@ -20,7 +20,7 @@ fn void greet: ->i8 msg {
 }
 
 // Test pointer return type
-fn -> i32 make_counter: i32 start {
+fn ->i32 make_counter: i32 start {
     -> i32 ptr = alloc(i32, 1)
     ptr = start
     ret ptr

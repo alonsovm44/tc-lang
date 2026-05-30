@@ -1,5 +1,16 @@
 use "stdlib/io.tc"
 
 void fn main: {
+ ->FILE file = fopen("test.txt", "r")
+
+ if (!file){
+    print("Error, could not open file")
+    ret
+ }
+
+ loop if(!eof(file)) {
+
+ }
+ 
 
 }

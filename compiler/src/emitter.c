@@ -115,7 +115,11 @@ static void emit_expr(Str *out, Expr *e, DeclVec *program) {
                 break;
             }
             str_printf(out, "%s(", e->text);
-            for (int i = 0; i < e->args.count; i++) { if (i) str_add(out, ", "); emit_expr(out, e->args.items[i], program); }
+            for (int i = 0; i < e->args.count; i++) {
+                if (e->args.items[i]->kind == EX_VARARGS) continue;  // Skip varargs marker in calls
+                if (i) str_add(out, ", ");
+                emit_expr(out, e->args.items[i], program);
+            }
             str_add(out, ")");
             break;
         case EX_INDEX: emit_expr(out, e->left, program); str_add(out, "["); emit_expr(out, e->right, program); str_add(out, "]"); break;
@@ -127,7 +131,7 @@ static void emit_expr(Str *out, Expr *e, DeclVec *program) {
             str_add(out, "}");
             break;
         case EX_TYPE: emit_type(out, e->type, "", program); break;
-        case EX_VARARGS: str_add(out, "..."); break;
+        case EX_VARARGS: break;  // Don't emit ... in function calls - it's only for declarations
     }
 }
 
@@ -357,6 +361,7 @@ char *emit_program(DeclVec program) {
                 str_add(&out, ");\n");
             }
         }
+        // Don't emit forward declarations for extern C functions - they're in C headers
     }
     str_add(&out, "\n");
     for (int i = 0; i < program.count; i++) {
@@ -379,13 +384,15 @@ char *emit_program(DeclVec program) {
                 str_printf(&out, "    tc_fat_ptr %s = { .ptr = argv, .len = (size_t)argc };\n", d->params.items[0].name);
             } else {
                 str_add(&out, "\n"); emit_type(&out, d->type, d->name, &program); str_add(&out, "(");
-                if (!d->params.count) str_add(&out, "void");
+                if (!d->params.count && !d->varargs) str_add(&out, "void");
                 for (int j = 0; j < d->params.count; j++) { if (j) str_add(&out, ", "); emit_type(&out, d->params.items[j].type, d->params.items[j].name, &program); }
+                if (d->varargs) str_add(&out, d->params.count ? ", ..." : "...");
                 str_add(&out, ") {\n");
             }
             emit_stmt_vec_with_defers(&out, &d->body, &program, 1);
             str_add(&out, "}\n");
         }
+        // Don't emit bodies for extern C functions - they're already in the C library
     }
     return out.data;
 }
