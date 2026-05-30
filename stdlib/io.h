@@ -15,6 +15,14 @@ void printi(int64_t n);
 void printin(int64_t n);
 int64_t readi(void);
 int32_t readc(void);
+FILE *fopen(char *file, char *mode);
+int32_t fclose(FILE *f);
+int32_t fgetc(FILE *stream);
+int32_t unreadc(int32_t c, FILE *stream);
+int32_t write_file(char *s, FILE *stream);
+int32_t printf_file(FILE *stream, char *fmt, ...);
+int32_t scanf_file(FILE *stream, char *fmt, ...);
+int32_t eof(FILE *stream);
 
 
 void print(char *s) {
@@ -52,4 +60,44 @@ int64_t readi(void) {
 int32_t readc(void) {
     
     return getchar();
+}
+
+FILE *fopen(char *file, char *mode) {
+    
+    return fopen(file, mode);
+}
+
+int32_t fclose(FILE *f) {
+    
+    return fclose(f);
+}
+
+int32_t fgetc(FILE *stream) {
+    
+    return fgetc(stream);
+}
+
+int32_t unreadc(int32_t c, FILE *stream) {
+    
+    return ungetc(c, stream);
+}
+
+int32_t write_file(char *s, FILE *stream) {
+    
+    return fputs(s, stream);
+}
+
+int32_t printf_file(FILE *stream, char *fmt) {
+    
+    return fprintf(stream, fmt, ...);
+}
+
+int32_t scanf_file(FILE *stream, char *fmt) {
+    
+    return fscanf(stream, fmt, ...);
+}
+
+int32_t eof(FILE *stream) {
+    
+    return feof(stream);
 }
