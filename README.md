@@ -35,7 +35,7 @@ Tight-C is a minimalistic systems programming language.
 - **Packed structs** — no padding, predictable layout
 - **C FFI** — `extern "C"` for direct interop
 - **Rust-style errors** — colored diagnostics with source lines and carets
-- **One-step compile** — `tcc source.tc -c app` transpiles and compiles in one command
+- **One-step compile** — `tightc source.tc -c app` transpiles and compiles in one command
 - **Inline imports** — `@use "lib.tc"` inlines another `.tc` file at compile time
 - **CLI args** — `i32 fn main: =>->i8 args { ... }` for command-line tools
 
@@ -62,14 +62,14 @@ Tight-C is a minimalistic systems programming language.
 make
 
 # Compile stdlib headers (only needed once)
-./tcc stdlib/io.tc -o stdlib/io.h
+./tightc stdlib/io.tc -o stdlib/io.h
 
 # One-step: transpile + compile to binary
-./tcc samples/fizzbuzz.tc -c fizzbuzz
+./tightc samples/fizzbuzz.tc -c fizzbuzz
 ./fizzbuzz
 
 # Or two-step: transpile to C, then compile yourself
-./tcc samples/fizzbuzz.tc -o fizzbuzz.c
+./tightc samples/fizzbuzz.tc -o fizzbuzz.c
 gcc fizzbuzz.c -std=c11 -o fizzbuzz
 ```
 
@@ -98,7 +98,7 @@ source.tc → [Lexer] → [Parser] → [AST] → [Emitter] → output.c → gcc/
 
 ### What it is *not*
 
-There is no optimizer, no IR, no type inference pass, and no code generation beyond string concatenation of C. The output is always **readable, debuggable C** that you can inspect with `tcc source.tc -o source.c`.
+There is no optimizer, no IR, no type inference pass, and no code generation beyond string concatenation of C. The output is always **readable, debuggable C** that you can inspect with `tightc source.tc -o source.c`.
 
 ## Design Goals
 
@@ -277,9 +277,9 @@ error[E000]: cannot assign to pinned variable 'x'
    |     ^ cannot assign to pinned variable 'x'
 
 E000
-Type "tcc --error E000" for help
+Type "tightc --error E000" for help
 
-PS C:\Users\me\.projects\langs\tc> ./tcc --error E000
+PS C:\Users\me\.projects\langs\tc> ./tightc --error E000
 E000: Assignment to pinned variable
 
 A variable marked with `pin` is immutable in the current scope.
@@ -345,7 +345,7 @@ match (n) {
 ## Compiler Usage
 
 ```bash
-tcc <input.tc> [-o output.c] [-c binary]
+tightc <input.tc> [-o output.c] [-c binary]
 ```
 
 | Flag | Description |
@@ -354,7 +354,7 @@ tcc <input.tc> [-o output.c] [-c binary]
 | `-c binary` | Transpile + compile to binary (auto-detects gcc/clang) |
 | (none) | Print transpiled C to stdout |
 
-Combine both: `tcc app.tc -o app.c -c app` keeps the `.c` and builds the binary.
+Combine both: `tightc app.tc -o app.c -c app` keeps the `.c` and builds the binary.
 
 ## Hot Reloading
 
@@ -364,13 +364,13 @@ Tight-C supports hot reloading of functions marked with the `hot` keyword. This 
 
 ```bash
 # Initial compile with hot reload enabled
-tcc hot.tc -H hotlib -c hotfn
+tightc hot.tc -H hotlib -c hotfn
 
 # Run the application
 ./hotfn
 
 # While running, modify hot.tc and rebuild only the hot library
-tcc hot.tc -H hotlib --hot-rebuild
+tightc hot.tc -H hotlib --hot-rebuild
 ```
 
 The running application will automatically detect the change and reload the library on the next hot function call.
@@ -515,7 +515,7 @@ tc-lang/
 Requires `gcc` (or `clang`) and `make`.
 
 ```bash
-make          # Build tcc
+make          # Build tightc
 make clean    # Remove build artifacts
 ```
 
