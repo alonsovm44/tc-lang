@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tight-C | Systems Programming Language with Hot Reload</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Fira Code', 'Cascadia Code', monospace;
+            background: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 100%);
+            color: #e0e0e0;
+            line-height: 1.6;
+        }
+
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 10px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #1a1a2e;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #3b82f6;
+            border-radius: 5px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2rem;
+        }
+
+        /* Navigation */
+        nav {
+            padding: 1.5rem 0;
+            border-bottom: 1px solid rgba(59, 130, 246, 0.2);
+            position: sticky;
+            top: 0;
+            background: rgba(10, 10, 10, 0.95);
+            backdrop-filter: blur(10px);
+            z-index: 100;
+        }
+
+        .nav-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 1.8rem;
+            font-weight: bold;
+            background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+
+        .logo span {
+            color: #3b82f6;
+            background: none;
+            -webkit-background-clip: unset;
+            background-clip: unset;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 2rem;
+        }
+
+        .nav-links a {
+            color: #a0a0a0;
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+
+        .nav-links a:hover {
+            color: #3b82f6;
+        }
+
+        /* Hero */
+        .hero {
+            padding: 5rem 0 4rem;
+            text-align: center;
+        }
+
+        .hero h1 {
+            font-size: 3.5rem;
+            background: linear-gradient(135deg, #ffffff, #3b82f6, #8b5cf6);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            margin-bottom: 1rem;
+        }
+
+        .hero-sub {
+            font-size: 1.3rem;
+            color: #a0a0a0;
+            margin-bottom: 2rem;
+        }
+
+        .hero-badge {
+            display: inline-block;
+            background: rgba(59, 130, 246, 0.2);
+            border: 1px solid rgba(59, 130, 246, 0.4);
+            padding: 0.5rem 1rem;
+            border-radius: 50px;
+            font-size: 0.9rem;
+            margin-bottom: 2rem;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 0.8rem 2rem;
+            border-radius: 8px;
+            font-weight: bold;
+            text-decoration: none;
+            transition: all 0.3s;
+            font-family: inherit;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #3b82f6, #2563eb);
+            color: white;
+            border: none;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(59, 130, 246, 0.3);
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateY(-2px);
+        }
+
+        /* Code preview */
+        .code-preview {
+            background: #0d1117;
+            border-radius: 12px;
+            margin: 3rem 0;
+            border: 1px solid #30363d;
+            overflow: hidden;
+        }
+
+        .code-header {
+            background: #161b22;
+            padding: 0.8rem 1rem;
+            border-bottom: 1px solid #30363d;
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .code-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #ff5f56;
+        }
+        .code-dot:nth-child(2) { background: #ffbd2e; }
+        .code-dot:nth-child(3) { background: #27c93f; }
+
+        .code-content {
+            padding: 1.5rem;
+            overflow-x: auto;
+        }
+
+        .code-content pre {
+            font-family: 'Fira Code', 'Cascadia Code', monospace;
+            font-size: 0.9rem;
+            line-height: 1.5;
+        }
+
+        .keyword { color: #ff7b72; }
+        .type { color: #79c0ff; }
+        .function { color: #d2a8ff; }
+        .string { color: #a5d6ff; }
+        .comment { color: #8b949e; }
+        .number { color: #79c0ff; }
+
+        /* Features */
+        .features {
+            padding: 4rem 0;
+        }
+
+        .section-title {
+            text-align: center;
+            font-size: 2.2rem;
+            margin-bottom: 3rem;
+            background: linear-gradient(135deg, #fff, #3b82f6);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+        }
+
+        .feature-card {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            padding: 1.5rem;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: transform 0.3s;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-5px);
+            border-color: rgba(59, 130, 246, 0.4);
+        }
+
+        .feature-icon {
+            font-size: 2rem;
+            margin-bottom: 1rem;
+        }
+
+        .feature-card h3 {
+            margin-bottom: 0.5rem;
+            color: #3b82f6;
+        }
+
+        /* Error docs */
+        .error-section {
+            background: #0a0a0a;
+            padding: 4rem 0;
+            border-top: 1px solid rgba(59, 130, 246, 0.2);
+            border-bottom: 1px solid rgba(59, 130, 246, 0.2);
+        }
+
+        .error-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+
+        .error-item {
+            background: rgba(255, 255, 255, 0.03);
+            padding: 1rem;
+            border-radius: 8px;
+            border-left: 3px solid #3b82f6;
+        }
+
+        .error-code {
+            font-family: monospace;
+            color: #3b82f6;
+            font-weight: bold;
+        }
+
+        /* Footer */
+        footer {
+            padding: 3rem 0;
+            text-align: center;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            color: #666;
+        }
+
+        @media (max-width: 768px) {
+            .hero h1 { font-size: 2rem; }
+            .container { padding: 0 1rem; }
+            .nav-links { gap: 1rem; }
+        }
+    </style>
+</head>
+<body>
+    <nav>
+        <div class="nav-container">
+            <div class="logo">Tight<span>-C</span></div>
+            <div class="nav-links">
+                <a href="#features">Features</a>
+                <a href="#errors">Errors</a>
+                <a href="#docs">Docs</a>
+                <a href="https://github.com">GitHub</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="hero">
+            <div class="hero-badge">
+                ⚡ Systems Programming · Hot Reload · Zero Overhead
+            </div>
+            <h1>Tight-C</h1>
+            <div class="hero-sub">
+                A modern systems programming language<br>
+                with C interoperability and instant hot reload
+            </div>
+            <div class="btn-group">
+                <a href="#" class="btn btn-primary">Get Started →</a>
+                <a href="#" class="btn btn-secondary">View on GitHub</a>
+            </div>
+
+            <!-- Code Preview -->
+            <div class="code-preview">
+                <div class="code-header">
+                    <div class="code-dot"></div>
+                    <div class="code-dot"></div>
+                    <div class="code-dot"></div>
+                </div>
+                <div class="code-content">
+                    <pre><code><span class="keyword">i32 fn</span> <span class="function">fibonacci</span>: <span class="type">i32</span> n {
+    <span class="keyword">if</span> (n <= 1) {
+        <span class="keyword">ret</span> n
+    }
+    <span class="keyword">ret</span> fibonacci(n - 1) + fibonacci(n - 2)
+}
+
+<span class="keyword">hot i32 fn</span> <span class="function">main</span>: <span class="type">=>u8</span> args {
+    <span class="keyword">i32</span> result = fibonacci(10)
+    <span class="function">printf</span>(<span class="string">"Fibonacci(10) = %d\n"</span>, result)
+    <span class="keyword">ret</span> 0
+}</code></pre>
+                </div>
+            </div>
+        </div>
+
+        <div id="features" class="features">
+            <h2 class="section-title">Why Tight-C?</h2>
+            <div class="feature-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">🔥</div>
+                    <h3>Hot Reload</h3>
+                    <p>Mark functions with <code style="background:#1a1a2e; padding:2px 6px; border-radius:4px;">hot</code> and update code at runtime without restarting your application.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">⚡</div>
+                    <h3>Zero Overhead</h3>
+                    <p>Compiles directly to C with minimal abstractions. What you write is what you get.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🔒</div>
+                    <h3>Memory Safety</h3>
+                    <p>Fat pointers, slices, and compile-time checks help prevent common memory bugs.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🔄</div>
+                    <h3>C Interop</h3>
+                    <p>Use any C library with <code style="background:#1a1a2e; padding:2px 6px; border-radius:4px;">extern "C"</code> blocks. No FFI overhead.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">📦</div>
+                    <h3>Simple Syntax</h3>
+                    <p>Clean, modern syntax without sacrificing performance. No preprocessor needed.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🎯</div>
+                    <h3>Compile-Time Checks</h3>
+                    <p>Scope checking, type safety, and pinning protection built into the compiler.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="errors" class="error-section">
+        <div class="container">
+            <h2 class="section-title">Helpful Error Messages</h2>
+            <div class="error-grid">
+                <div class="error-item">
+                    <div class="error-code">E000</div>
+                    <div>Cannot assign to pinned variable</div>
+                </div>
+                <div class="error-item">
+                    <div class="error-code">E014</div>
+                    <div>Undefined variable or out of scope</div>
+                </div>
+                <div class="error-item">
+                    <div class="error-code">E005</div>
+                    <div>Bare identifier as statement</div>
+                </div>
+                <div class="error-item">
+                    <div class="error-code">E003</div>
+                    <div>Keyword used as identifier</div>
+                </div>
+                <div class="error-item">
+                    <div class="error-code">E009</div>
+                    <div>File not found in @use import</div>
+                </div>
+                <div class="error-item">
+                    <div class="error-code">E012</div>
+                    <div>Unterminated string or comment</div>
+                </div>
+            </div>
+            <div style="text-align: center; margin-top: 2rem;">
+                <code style="background: #1a1a2e; padding: 0.5rem 1rem; border-radius: 8px;">tcc --error E014</code>
+                <span style="margin-left: 1rem; color: #666;">→ Detailed explanation for any error code</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="features">
+            <h2 class="section-title">Quick Start</h2>
+            <div class="code-preview" style="margin-bottom: 2rem;">
+                <div class="code-header">
+                    <div class="code-dot"></div>
+                    <div class="code-dot"></div>
+                    <div class="code-dot"></div>
+                </div>
+                <div class="code-content">
+                    <pre><code><span class="comment"># Install from source</span>
+$ git clone https://github.com/tightc/tcc
+$ cd tcc && make
+
+<span class="comment"># Compile your program to C</span>
+$ ./tcc main.tc -o main.c
+
+<span class="comment"># Or compile directly to binary</span>
+$ ./tcc main.tc -c myapp
+
+<span class="comment"># Enable hot reload</span>
+$ ./tcc game.tc -H hot.so -c game
+
+<span class="comment"># Get help on any error</span>
+$ ./tcc --error E014</code></pre>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <div class="container">
+            <p>Tight-C v1.2.0 — A language for systems programmers who value simplicity and control</p>
+            <p style="margin-top: 1rem;">
+                <a href="#" style="color: #3b82f6; text-decoration: none;">Documentation</a> |
+                <a href="#" style="color: #3b82f6; text-decoration: none;">GitHub</a> |
+                <a href="#" style="color: #3b82f6; text-decoration: none;">Discord</a>
+            </p>
+            <p style="margin-top: 1rem; font-size: 0.8rem;">© 2024 Tight-C Language. MIT Licensed.</p>
+        </div>
+    </footer>
+
+    <script>
+        // Smooth scrolling for anchor links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                const href = this.getAttribute('href');
+                if (href !== "#" && href !== "") {
+                    const target = document.querySelector(href);
+                    if (target) {
+                        e.preventDefault();
+                        target.scrollIntoView({ behavior: 'smooth' });
+                    }
+                }
+            });
+        });
+    </script>
+</body>
+</html>

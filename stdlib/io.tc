@@ -3,6 +3,17 @@ extern "C" {
     i32 fn scanf: ->i8 fmt, ... {}
     i32 fn putchar: i32 c {}
     i32 fn getchar: {}
+    // new additions
+    ->FILE fn fopen: ->i8 file, ->i8 mode {}
+    i32 fn fclose: ->FILE f {}
+    i32 fn fgetc: ->FILE stream {}
+    i32 fn ungetc: i32 c, ->FILE stream {}
+    i32 fn fputs: ->i8 s, ->FILE stream {} 
+    // fn T and T fn are the same, i am just trolling by switching lol
+    i32 fn fprintf: ->FILE stream, ->i8 fmt, ... {}
+    i32 fn  fscanf: ->FILE stream, ->i8 fmt, ... {}
+    i32 fn feof: ->FILE stream {}
+
 }
 
 // print a string with newline
@@ -40,4 +51,44 @@ i64 fn readi: {
 // read a single character from stdin
 i32 fn readc: {
     ret getchar()
+}
+
+// open a file
+->FILE fn fopen: ->i8 file, ->i8 mode {
+    ret fopen(file, mode)
+}
+
+// close a file
+i32 fn fclose: ->FILE f {
+    ret fclose(f)
+}
+
+// read a character from file
+i32 fn fgetc: ->FILE stream {
+    ret fgetc(stream)
+}
+
+// push a character back to file stream
+i32 fn unreadc: i32 c, ->FILE stream {
+    ret ungetc(c, stream)
+}
+
+// write a string to file
+i32 fn write_file: ->i8 s, ->FILE stream {
+    ret fputs(s, stream)
+}
+
+// formatted print to file
+i32 fn printf_file: ->FILE stream, ->i8 fmt, ... {
+    ret fprintf(stream, fmt, ...)
+}
+
+// formatted read from file
+i32 fn scanf_file: ->FILE stream, ->i8 fmt, ... {
+    ret fscanf(stream, fmt, ...)
+}
+
+// check if at end of file
+i32 fn eof: ->FILE stream {
+    ret feof(stream)
 }
