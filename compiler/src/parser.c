@@ -131,7 +131,14 @@ static Expr *parse_primary(Parser *p) {
                     arg->type = parse_type(p);
                     expr_push(&e->args, arg);
                 } else {
-                    expr_push(&e->args, parse_expr(p));
+                    Expr *arg = parse_expr(p);
+                    // Check if this argument was prefixed with & for pass-by-reference
+                    if (arg->kind == EX_UNARY && strcmp(arg->text, "&") == 0) {
+                        // Mark it as pass-by-reference by setting a special flag
+                        // We'll use the text field to indicate this
+                        arg->text = "&ref";
+                    }
+                    expr_push(&e->args, arg);
                 }
                 match(p, ",");
                 argn++;
@@ -175,10 +182,19 @@ static Expr *parse_postfix(Parser *p) {
             continue;
         }
         if (match(p, ".")) {
-            Expr *field = new_expr(EX_FIELD);
-            field->left = e;
-            field->text = expect_ident(p);
-            e = field;
+            if (match(p, ">")) {
+                // .> for pointer field access
+                Expr *field = new_expr(EX_PTR_FIELD);
+                field->left = e;
+                field->text = expect_ident(p);
+                e = field;
+            } else {
+                // . for regular field access
+                Expr *field = new_expr(EX_FIELD);
+                field->left = e;
+                field->text = expect_ident(p);
+                e = field;
+            }
             continue;
         }
         if (match(p, "++")) {
@@ -201,7 +217,7 @@ static Expr *parse_postfix(Parser *p) {
 }
 
 static Expr *parse_unary(Parser *p) {
-    if (at(p, "!") || at(p, "@") || at(p, "-") || at(p, "++") || at(p, "--") || at(p, "->")) {
+    if (at(p, "!") || at(p, "@") || at(p, "-") || at(p, "++") || at(p, "--") || at(p, "->") || at(p, "&")) {
         Expr *e = new_expr(EX_UNARY);
         e->text = cur(p)->text;
         p->pos++;

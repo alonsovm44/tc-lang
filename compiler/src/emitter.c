@@ -118,12 +118,19 @@ static void emit_expr(Str *out, Expr *e, DeclVec *program) {
             for (int i = 0; i < e->args.count; i++) {
                 if (e->args.items[i]->kind == EX_VARARGS) continue;  // Skip varargs marker in calls
                 if (i) str_add(out, ", ");
-                emit_expr(out, e->args.items[i], program);
+                // Check for pass-by-reference marker
+                if (e->args.items[i]->kind == EX_UNARY && !strcmp(e->args.items[i]->text, "&ref")) {
+                    str_add(out, "&");
+                    emit_expr(out, e->args.items[i]->left, program);
+                } else {
+                    emit_expr(out, e->args.items[i], program);
+                }
             }
             str_add(out, ")");
             break;
         case EX_INDEX: emit_expr(out, e->left, program); str_add(out, "["); emit_expr(out, e->right, program); str_add(out, "]"); break;
         case EX_FIELD: emit_expr(out, e->left, program); str_printf(out, ".%s", e->text); break;
+        case EX_PTR_FIELD: emit_expr(out, e->left, program); str_printf(out, "->%s", e->text); break;
         case EX_SLICE: str_add(out, "{ .ptr = &"); emit_expr(out, e->left, program); str_add(out, "["); emit_expr(out, e->right, program); str_add(out, "], .len = ("); emit_expr(out, e->third, program); str_add(out, " - "); emit_expr(out, e->right, program); str_add(out, ") }"); break;
         case EX_INIT_LIST:
             str_add(out, "{");

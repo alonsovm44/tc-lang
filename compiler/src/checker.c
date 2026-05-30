@@ -91,6 +91,7 @@ static void check_expr(Expr *e, ScopeStack *s) {
             check_expr(e->right, s);
             break;
         case EX_FIELD:
+        case EX_PTR_FIELD:
             check_expr(e->left, s);
             break;
         case EX_SLICE:

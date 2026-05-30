@@ -64,6 +64,7 @@ typedef enum {
     EX_INDEX,
     EX_SLICE,
     EX_FIELD,
+    EX_PTR_FIELD,
     EX_INIT_LIST,
     EX_TYPE,
     EX_VARARGS

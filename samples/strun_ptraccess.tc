@@ -1,19 +1,24 @@
+use "stdlib/io.tc"
 
-strun Thing{
-    i32 x
-    i32 y
+strun Person{
+    i8 age
+    ->i8 name
 }
 
-Thing fn bar: Thing t{
-    t.x = 10
-    t.y = 20
-    ret t
+void fn bar: Person p {
+    p.age = 21
+    p.name = "Jane"
 }
 
-void fn main: ->Thing t {
-    t.>x = 5
-    t.>y = 10
-    printi(t.>x)
-    printi(t.>y)
-    
+void fn foo: ->Person p {
+    p.>age = 23
+    p.>name = "John"
+}
+
+void fn main: {
+    Person p
+    bar(p)
+    foo(&p)
+    printi(p.age)
+    print(p.name)
 }
