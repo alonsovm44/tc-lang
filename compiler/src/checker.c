@@ -103,6 +103,7 @@ static void check_expr(Expr *e, ScopeStack *s) {
             break;
         case EX_LITERAL:
         case EX_TYPE:
+        case EX_VARARGS:
             break;
     }
 }

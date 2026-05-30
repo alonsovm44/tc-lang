@@ -123,7 +123,10 @@ static Expr *parse_primary(Parser *p) {
                     if (!strcmp(t->text, "alloc") && argn == 0) expect_type = true;
                     if (!strcmp(t->text, "sizeof") && argn == 0) expect_type = true;
                 }
-                if (expect_type || (is_builtin && (is_type_name(cur(p)->text) || at(p, "->") || at(p, "=>")))) {
+                if (match(p, "...")) {
+                    Expr *arg = new_expr(EX_VARARGS);
+                    expr_push(&e->args, arg);
+                } else if (expect_type || (is_builtin && (is_type_name(cur(p)->text) || at(p, "->") || at(p, "=>")))) {
                     Expr *arg = new_expr(EX_TYPE);
                     arg->type = parse_type(p);
                     expr_push(&e->args, arg);

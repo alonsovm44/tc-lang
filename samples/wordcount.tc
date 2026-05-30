@@ -1,0 +1,5 @@
+use "stdlib/io.tc"
+
+void fn main: {
+
+}

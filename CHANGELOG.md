@@ -1,7 +1,16 @@
+## v1.2.0 2026-05-30
+
+Added:
+- added varargs ... 
+- expanded io stdlib
+
+Removed:
+
+Improved/Fixed:
+
 ## v1.1.0 2026-05-22
 
 Added:
-- expanded io stdlib
 - added new modules to stdlib
 - added else and if else stmts
 - added function pointers for callbacks

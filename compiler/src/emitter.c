@@ -127,6 +127,7 @@ static void emit_expr(Str *out, Expr *e, DeclVec *program) {
             str_add(out, "}");
             break;
         case EX_TYPE: emit_type(out, e->type, "", program); break;
+        case EX_VARARGS: str_add(out, "..."); break;
     }
 }
 
