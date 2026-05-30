@@ -1,0 +1,19 @@
+
+strun Thing{
+    i32 x
+    i32 y
+}
+
+Thing fn bar: Thing t{
+    t.x = 10
+    t.y = 20
+    ret t
+}
+
+void fn main: ->Thing t {
+    t.>x = 5
+    t.>y = 10
+    printi(t.>x)
+    printi(t.>y)
+    
+}

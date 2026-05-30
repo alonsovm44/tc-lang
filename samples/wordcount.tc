@@ -1,5 +1,15 @@
 use "stdlib/io.tc"
 
+fn i32 isNextCharBlank: ->FILE f {
+
+    i32 c = fgetc(f)
+    if (c <> "EOF"){
+        ungetc(c, f)
+        ret c == " "
+    }
+    ret c
+}
+
 void fn main: {
  ->FILE file = fopen("test.txt", "r")
 
@@ -7,10 +17,19 @@ void fn main: {
     print("Error, could not open file")
     ret
  }
-
+ i32 count = 0
  loop if(!eof(file)) {
-
+    if (isNextCharBlank(file)){
+       // nothing 
+    }
+    _ {
+        // consume char
+        fgetc(file)
+        count++
+    }
  }
- 
+ print("Word count: ")
+ printi(count)
+ print("\n")
 
 }

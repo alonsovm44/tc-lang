@@ -143,7 +143,7 @@ The executable never stopped. The program state (x, y, loop position) never rese
 ## Conclusion 
 This should be enough for a POC for version 1.2
 
-## Future Plans
+## Future Plans for 1.3+
 1. Automatic struct migration when fields change
 2. Networked hot reload (update remote systems)
 3. Hot reload visualization tool (show which functions changed)
