@@ -44,6 +44,7 @@ Adding inline assembly
 We could considere this later
 
 # Pointer to strun acess
+[DONE]
 [pending]
 Since -> is reserved for
 1. pointer decl
@@ -102,6 +103,32 @@ int main(){
     return 0;
 }
 ```
+
+# methods
+
+```
+strun Person {
+    i8 age
+    ->i8 name
+
+    fn void sayHi: {
+        print("Hi! my name is ")
+        print(name)
+    }
+}
+
+Person person
+person.name = "John"
+person.sayHi() 
+
+
+```
+
+# conditional defer
+
+defer (condition){
+    // code to be executed at the end of the scope if conditions are ok
+}
 
 ## keywords for 1.2.1
 

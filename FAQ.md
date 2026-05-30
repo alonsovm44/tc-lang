@@ -41,13 +41,13 @@ A: My idea for concurrency is this (similar in spirit to Pony):
     - Data is owned by only one thread at a time, no shared mutable states. It sounds extreme, but this is the simplest way i can understand to avoid race conditions. Therefore data is lent from one thread to another via some explicit operator, the data given (not borrowed) is dead on the main scope and cannot be reused. I havent implemented this on tC, and I am not sure if I ever will.
 
 Q: Do you use AI?
-A: I'll be honest, yes, a lot. But as a speed boost. There is no honor unlike handcoding everything. I am not a very seasoned dev yet. I know it has less merit. But my philosophy is to use modern tools for modern problems.
+A: I'll be honest, yes, a lot. But as a speed boost. I am not a very seasoned dev yet. I know it has less merit. But my philosophy is to use modern tools for modern problems.
 
 Q: Was this FAQ Ai generated?
 A: No, I hand wrote it
 
 Q: Why the name Tight C?
-A: It is a double meaning pun, it abbreviates as tC which is a reference to holy C (the programming language) by Terry Davis (Ct) the t is a cross/crucifix. And it is called Tight since it is meant to be bare bones without decaying into assembly-like.
+A: It is a double meaning pun, it abbreviates as tC which is a reference to holy C (the programming language) by the legendary Terry Davis (Ct) the t is a cross/crucifix. And it is called Tight since it is meant to be bare bones without decaying into assembly-like.
 
 Q: Why the function syntax is so weird? (v1.0.0)
 A: Sorry for that, i'll see if i can make it better for v1.1 onwards

@@ -1,0 +1,15 @@
+use "stdlib/io.tc"
+
+fn i32 main: {
+    =>u8 fptr = "hello there"
+    i32 len = fptr.len
+    ->i8 firstChar = fptr.ptr[0]
+    print("First char: ")
+    print(firstChar)
+    print("\n")
+
+    print(fptr)
+    print("\n")
+    
+    ret 0
+}
