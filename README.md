@@ -4,7 +4,7 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/version-1.0.0-blue?style=flat-square" alt="Version">
+  <img src="https://img.shields.io/badge/version-1.2.0-blue?style=flat-square" alt="Version">
   <img src="https://img.shields.io/badge/language-C11-orange?style=flat-square" alt="Language">
   <img src="https://img.shields.io/badge/license-MIT-green?style=flat-square" alt="License">
   <img src="https://img.shields.io/badge/platform-Windows%20%7C%20Linux%20%7C%20macOS-lightgrey?style=flat-square" alt="Platform">
@@ -14,6 +14,13 @@
 ---
 
 Tight-C is a minimalistic systems programming language.
+
+## What's New in v1.2.0
+
+- **Varargs support** — Functions can now declare and use variadic arguments with `...`
+- **Expanded I/O stdlib** — Added file I/O functions (fopen, fclose, fgetc, fputs, fprintf, fscanf, feof, etc.)
+- **Else if statements** — Added `_if` for chained conditionals with `_` as else wildcard
+- **Match statements** — Pattern matching with wildcard support
 
 ## Project Goals
 > Make the first mainstream systems langauge from Mexico.
@@ -147,6 +154,15 @@ fn i32 add: i32 a, i32 b {
 }
 ```
 
+### Varargs
+Functions can declare variadic arguments with `...`:
+```
+extern "C" {
+    i32 fn printf: ->i8 fmt, ... {}
+}
+```
+Note: `...` in function calls is implicit - you don't need to write it when calling varargs functions.
+
 ### Strunions (Layout polymorphism)
 Both a struct and a union, this way we dont need two keywords for structs and unions
 Now we have a spectrum.
@@ -277,6 +293,8 @@ Bad:
 Fix: remove the `pin` or avoid reassigning the variable.
 ```
 ### Else if stmts
+Note, _if syntax is destined to change for v1.2.1 for something more ergonomic
+
 ```
 if(condition){
   // code
@@ -429,6 +447,22 @@ tc-lang/
 | `printin(n)` | Print i64, no newline      |
 | `readi()`    | Read i64 from stdin        |
 | `readc()`    | Read single char from stdin|
+| `unreadc(c, stream)` | Push char back to file stream |
+| `write_file(s, stream)` | Write string to file |
+| `eof(stream)` | Check if at end of file |
+
+**File I/O (via extern "C")**
+
+| Function     | Description                |
+|--------------|----------------------------|
+| `fopen(file, mode)` | Open file |
+| `fclose(f)` | Close file |
+| `fgetc(stream)` | Read char from file |
+| `ungetc(c, stream)` | Push char back to file |
+| `fputs(s, stream)` | Write string to file |
+| `fprintf(stream, fmt, ...)` | Formatted print to file |
+| `fscanf(stream, fmt, ...)` | Formatted read from file |
+| `feof(stream)` | Check end of file |
 
 **`stdlib/str.tc`** — Strings
 
