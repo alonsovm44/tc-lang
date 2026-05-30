@@ -8,6 +8,7 @@ Removed:
 
 Improved/Fixed:
 
+- fixed varargs not working>
 ## v1.1.0 2026-05-22
 
 Added:
