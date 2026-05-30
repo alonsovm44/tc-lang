@@ -15,6 +15,13 @@ void fn foo: ->Person p {
     p.>name = "John"
 }
 
+// can also be done like this
+
+void fn boo: ->Person p {
+    (->p).age = 23
+    (->p).name = "John"
+}
+
 void fn main: {
     Person p
     bar(p)
