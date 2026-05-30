@@ -51,12 +51,14 @@ A: It is a double meaning pun, it abbreviates as tC which is a reference to holy
 
 Q: Why the function syntax is so weird? (v1.0.0)
 A: Sorry for that, i'll see if i can make it better for v1.1 onwards
+Update: The function syntax has been updated and now both old and new coexist
 
 Q: Can I contribute?
 A: Yes! I'll make a contributing file soon. But follow the philosophy on spec1.0.0
 
 Q: Function pointers? How I am supposed to make a linked list?
 A: I'll add them for 1.1
+Update: They are added now
 
 Q: Where are you from?
 A: Mexico
