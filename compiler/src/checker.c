@@ -134,6 +134,13 @@ static void check_expr(Expr *e, ScopeStack *s) {
         case EX_TYPE:
         case EX_VARARGS:
             break;
+        case EX_SIZEOF:
+            // sizeof always returns i32 (size in bytes)
+            e->type = new_type(TY_NAME);
+            e->type->name = xstrdup("i32");
+            // Check the type expression stored in left field
+            if (e->left) check_expr(e->left, s);
+            break;
     }
 }
 

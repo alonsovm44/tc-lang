@@ -1,10 +1,11 @@
 ## v1.2.0 2026-05-30
 
 Added:
+- added sizeof()
 - added inline C code
 - added methods to struns
 - added enums
-- added ptr access to struct fields and passing by reference with &
+- added ptr access to struct fields with .> and passing by reference with & (borrowing)
 - added varargs ... 
 - expanded io stdlib to include more file io functions
 

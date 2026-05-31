@@ -1,5 +1,5 @@
 #ifndef TIGHTC_AST_H
-#define TIGHTC_AST_Hv
+#define TIGHTC_AST_H
 
 #include "common.h"
 

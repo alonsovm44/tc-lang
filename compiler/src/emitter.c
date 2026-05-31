@@ -155,6 +155,15 @@ static void emit_expr(Str *out, Expr *e, DeclVec *program) {
             break;
         case EX_TYPE: emit_type(out, e->type, "", program); break;
         case EX_VARARGS: break;  // Don't emit ... in function calls - it's only for declarations
+        case EX_SIZEOF:
+            str_add(out, "sizeof(");
+            if (e->left && e->left->type) {
+                emit_type(out, e->left->type, "", program);
+            } else {
+                str_add(out, "int");  // fallback
+            }
+            str_add(out, ")");
+            break;
     }
 }
 

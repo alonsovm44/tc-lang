@@ -127,18 +127,29 @@ static Expr *parse_primary(Parser *p) {
     }
     if (t->kind == TOK_IDENT || t->kind == TOK_KEYWORD) {
         p->pos++;
+        // Special handling for sizeof
+        if (!strcmp(t->text, "sizeof") && at(p, "(") && cur(p)->line == t->line) {
+            match(p, "(");  // consume opening parenthesis
+            Expr *e = new_expr(EX_SIZEOF);
+            e->line = t->line; e->col = t->col;
+            // Store the type being measured in a temporary expression
+            Expr *type_expr = new_expr(EX_TYPE);
+            type_expr->type = parse_type(p);  // Parse the type
+            e->left = type_expr;  // Store type expression in left field
+            expect(p, ")");  // consume closing parenthesis
+            return e;
+        }
         if (at(p, "(") && cur(p)->line == t->line && match(p, "(")) {
             Expr *e = new_expr(EX_CALL);
             e->text = t->text;
             e->line = t->line; e->col = t->col;
-            bool is_builtin = !strcmp(t->text, "cast") || !strcmp(t->text, "alloc") || !strcmp(t->text, "sizeof");
+            bool is_builtin = !strcmp(t->text, "cast") || !strcmp(t->text, "alloc");
             int argn = 0;
             while (!match(p, ")")) {
                 bool expect_type = false;
                 if (is_builtin) {
                     if (!strcmp(t->text, "cast") && argn == 1) expect_type = true;
                     if (!strcmp(t->text, "alloc") && argn == 0) expect_type = true;
-                    if (!strcmp(t->text, "sizeof") && argn == 0) expect_type = true;
                 }
                 if (match(p, "...")) {
                     Expr *arg = new_expr(EX_VARARGS);

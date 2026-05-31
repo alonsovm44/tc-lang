@@ -1,0 +1,6 @@
+use "stdlib/io.tc"
+
+fn void main: {
+    i32 size = sizeof(i32)
+    printi(size)
+}
