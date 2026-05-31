@@ -135,6 +135,7 @@ int main(){
 
 # methods
 [planned]
+[DONE] May 30 2026
 ```
 strun Person {
     i8 age
@@ -179,7 +180,7 @@ implicit self (rust style)
 
 # todo
 
-- Automatic clean up of old dll/ hot versions.
+- Automatic clean up of old dll/ hot versions. Only n and n-1 available for fallback
 
 ## keywords for 1.2.1
 

@@ -221,9 +221,9 @@ int main(int argc, char **argv) {
     bool keep_temp = false;
     for (int i = 1; i < argc; i++) {
         if (!strcmp(argv[i], "--help") || !strcmp(argv[i], "-h")) {
-            puts("Tight-C compiler v1.2.0\n"
+            puts("Tight-C compiler v1.2.1\n"
                  "\n"
-                 "Usage: tcc <input.tc> [options]\n"
+                 "Usage: tightc <input.tc> [options]\n"
                  "\n"
                  "Options:\n"
                  "  -o, --output <file>    Write transpiled C to file (.h gets #pragma once)\n"
@@ -237,14 +237,14 @@ int main(int argc, char **argv) {
                  "  --error list           List all error codes\n"
                  "\n"
                  "Examples:\n"
-                 "  tcc main.tc -o main.c           Transpile to C\n"
-                 "  tcc main.tc -c app               Transpile + compile to binary\n"
-                 "  tcc main.tc -o main.c -c app     Keep .c and compile\n"
-                 "  tcc lib.tc -o lib.h               Emit as header\n"
-                 "  tcc main.tc -H hot.so -c app     Hot reload: emit lib + host\n");
+                 "  tightc main.tc -o main.c           Transpile to C\n"
+                 "  tightc main.tc -c app               Transpile + compile to binary\n"
+                 "  tightc main.tc -o main.c -c app     Keep .c and compile\n"
+                 "  tightc lib.tc -o lib.h               Emit as header\n"
+                 "  tightc main.tc -H hot.so -c app     Hot reload: emit lib + host\n");
             return 0;
         } else if (!strcmp(argv[i], "--version") || !strcmp(argv[i], "-v")) {
-            puts("tcc 1.2.0");
+            puts("tight-c 1.2.1");
             return 0;
         } else if (!strcmp(argv[i], "--error") || !strcmp(argv[i], "--explain")) {
             if (++i >= argc) die("missing error code after --error");
