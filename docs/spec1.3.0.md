@@ -391,5 +391,4 @@ None - async features are opt-in.
 2. Networked channels
 3. Work-stealing scheduler
 4. Async/await syntax sugar
-5. Mutex types for mutable shared state
 

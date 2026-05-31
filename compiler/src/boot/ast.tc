@@ -1,0 +1,65 @@
+use "stdlib/str.tc"
+use "stdlib/io.tc"
+
+enum TypeKind {
+    TY_NAME,
+    TY_RAWPTR,
+    TY_FATPTR,
+    TY_ARRAY,
+    TY_FNPTR
+}
+
+strun Param{
+    ->Type type
+    ->i8 name
+    i8 is_union_field // no bolleans, so smallest type for bool is i8
+    i8 is_anonymous   // no bolleans, so smallest type for bool is i8
+}
+
+strun ParamVec {
+    ->Param items
+    i32 count
+    i32 cap
+}
+
+strun ExprVec {
+    ->Expr items
+    i32 count
+    i32 cap
+}
+
+strun StmtVec{
+    ->Stmt items
+    i32 count
+    i32 cap
+}
+
+strun DeclVec {
+    ->Decl items
+    i32 count
+    i32 cap
+
+}
+
+strun Type {
+    TypeKind type 
+    ->i8 name
+    ->Type inner
+    ->Expr size
+    ParamVec params
+}
+
+fn void expr_push: ->ExprVec v, ->Expr x {
+    if(v.>count == v.>cap){
+        a = v.>cap
+        if(a){
+            a = a * 2
+        }
+        else{
+            a = 8
+        }
+    }
+    v.>items[v.>count] = x
+    v.>count++
+}   
+

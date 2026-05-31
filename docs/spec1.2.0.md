@@ -1,4 +1,5 @@
 # Hot function reloading
+[Partially-done]
 Here's the core idea:
 
 tC's hot reload lets you mark any function with hot, and the compiler automatically splits your program into two parts: a stable executable containing main() and function stubs, plus a shared library (.so/.dll) containing the actual implementations of all hot functions. When you edit a hot function and recompile, only the tiny shared library rebuilds , the executable keeps running, detects the file change, and seamlessly swaps in the new version using dlopen/LoadLibrary. Your program's state (variables, heap data, open files) never resets.
@@ -145,9 +146,7 @@ This should be enough for a POC for version 1.2
 
 ## Future Plans for 1.3+
 1. Automatic struct migration when fields change
-2. Networked hot reload (update remote systems)
-3. Hot reload visualization tool (show which functions changed)
-4. Rollback support (revert to previous version if new code crashes)
+2. Rollback support (revert to previous version if new code crashes)
 
 ## keywords for 1.2.0
 
