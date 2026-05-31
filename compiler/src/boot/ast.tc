@@ -49,6 +49,119 @@ strun Type {
     ParamVec params
 }
 
+enum ExprKind{
+    EX_NAME,
+    EX_LITERAL,
+    EX_BINARY,
+    EX_UNARY,
+    EX_CALL,
+    EX_INDEX,
+    EX_SLICE,
+    EX_FIELD,
+    EX_PTR_FIELD,
+    EX_INIT_LIST,
+    EX_TYPE,
+    EX_VARARGS,
+    EX_METHOD_CALL
+}
+
+strun Expr{
+    ExprKind kind
+    ->i8 text
+    ->Type type
+    ->Expr left
+    ->Expr right
+    ->Expr third
+    ExprVec args
+    i32 line
+    i32 col
+}
+
+strun MatchArm {
+    ->Expr pattern
+    StmtVec body
+}
+
+strun MatchArmVec{
+    ->MatchArm items
+    i32 count
+    i32 cap
+}
+
+strun ElseIfArm{
+    ->Expr cond
+    StmtVec body
+}
+
+strun ElseIfVec{
+    ->ElseIfArm items
+    i32 count
+    i32 cap
+}
+
+strun EnumMember{
+    ->i8 name 
+}
+
+strun EnumMemberVec{
+    ->EnumMember items
+    i32 count
+    i32 cap
+}
+
+enum StmtKind{
+    ST_VAR,
+    ST_BLOCK,
+    ST_IF,
+    ST_LOOP,
+    ST_DEFER,
+    ST_RET,
+    ST_BREAK,
+    ST_PIN,
+    ST_EXPR,
+    ST_MATCH,
+    ST_INLINE_C
+}
+
+strun Stmt{
+    StmtKind kind
+    ->i8 text
+    ->Type type
+    ->Expr expr
+    ->Expr expr2
+    StmtVec body
+    MatchArmVec arms
+    ElseIfVec else_ifs
+    StmtVec else_body
+    ->i8 text
+}
+
+enum DeclKind{
+    DC_USE,
+    DC_STRUCT,
+    DC_ENUM,
+    DC_FN,
+    DC_VAR,
+    DC_EXTERN_FN
+}
+
+strun Decl{
+    DeclKind kind
+    i8 public
+    i8 is_hot
+    ->i8 name
+    ->i8 path 
+    ->Type type
+    ->Expr init
+    ParamVec params 
+    StmtVec body
+    i8 varargs
+    i8 packed
+    EnumMemberVec enum_members
+    DeclVec methods
+
+}
+
 fn void expr_push: ->ExprVec v, ->Expr x {
     if(v.>count == v.>cap){
         a = v.>cap
@@ -58,8 +171,12 @@ fn void expr_push: ->ExprVec v, ->Expr x {
         else{
             a = 8
         }
+        v.>items = xrealloc(v.>items, sizeof(Expr *) * (size_t)a)
+
     }
-    v.>items[v.>count] = x
-    v.>count++
+    v.>items[v.>count++] = x
 }   
 
+fn void stmt_push: ->StmtVec v, ->Stmt x {
+
+}

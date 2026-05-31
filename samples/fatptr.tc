@@ -18,6 +18,3 @@ i32 fn main: {
     ret 0
 }
 
-fn i32 foo: {
-    
-}

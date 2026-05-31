@@ -19,10 +19,8 @@ void fn main: {
  }
  i32 count = 0
  loop if(!eof(file)) {
-    if (isNextCharBlank(file)){
-       // nothing 
-    }
-    _ {
+    if (isNextCharBlank(file)){}
+    else {
         // consume char
         fgetc(file)
         count++

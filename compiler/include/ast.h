@@ -68,7 +68,8 @@ typedef enum {
     EX_INIT_LIST,
     EX_TYPE,
     EX_VARARGS,
-    EX_METHOD_CALL
+    EX_METHOD_CALL,
+    EX_SIZEOF
 } ExprKind;
 
 struct Expr {

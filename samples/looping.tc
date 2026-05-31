@@ -1,0 +1,15 @@
+use "stdlib/io.tc"
+// to be added
+//for loops
+"C" {
+    for( int i=0; i<10; i++){
+        printf("%d\n", i)
+    }
+}
+
+fn void main: {
+    i32 i = 0
+    loop i, 1..10 {
+        printi(i)
+    }
+}

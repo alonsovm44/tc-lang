@@ -1,5 +1,5 @@
 use "stdlib/io.tc"
-
+// deprecated as of 1.2.1, introduced else and if else statements
 fn void classify: i32 n {
     if (n < 0) {
         print("negative")
