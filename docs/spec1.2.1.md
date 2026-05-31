@@ -134,7 +134,7 @@ int main(){
 ```
 
 # methods
-
+[planned]
 ```
 strun Person {
     i8 age

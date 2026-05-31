@@ -67,7 +67,8 @@ typedef enum {
     EX_PTR_FIELD,
     EX_INIT_LIST,
     EX_TYPE,
-    EX_VARARGS
+    EX_VARARGS,
+    EX_METHOD_CALL
 } ExprKind;
 
 struct Expr {
@@ -161,6 +162,7 @@ struct Decl {
     bool varargs;
     bool packed;
     EnumMemberVec enum_members;  // For DC_ENUM
+    DeclVec methods;  // For DC_STRUCT: methods defined in strun
 };
 
 void expr_push(ExprVec *v, Expr *x);

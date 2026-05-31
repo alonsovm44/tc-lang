@@ -131,6 +131,22 @@ static void emit_expr(Str *out, Expr *e, DeclVec *program) {
         case EX_INDEX: emit_expr(out, e->left, program); str_add(out, "["); emit_expr(out, e->right, program); str_add(out, "]"); break;
         case EX_FIELD: emit_expr(out, e->left, program); str_printf(out, ".%s", e->text); break;
         case EX_PTR_FIELD: emit_expr(out, e->left, program); str_printf(out, "->%s", e->text); break;
+        case EX_METHOD_CALL:
+            // Emit method call as StructName_methodName(&expr, args...)
+            if (e->type && e->type->name) {
+                str_printf(out, "%s_%s(&", e->type->name, e->text);
+            } else {
+                // Fallback if struct name not available
+                str_add(out, e->text);
+                str_add(out, "(&");
+            }
+            emit_expr(out, e->left, program);
+            for (int i = 0; i < e->args.count; i++) {
+                str_add(out, ", ");
+                emit_expr(out, e->args.items[i], program);
+            }
+            str_add(out, ")");
+            break;
         case EX_SLICE: str_add(out, "{ .ptr = &"); emit_expr(out, e->left, program); str_add(out, "["); emit_expr(out, e->right, program); str_add(out, "], .len = ("); emit_expr(out, e->third, program); str_add(out, " - "); emit_expr(out, e->right, program); str_add(out, ") }"); break;
         case EX_INIT_LIST:
             str_add(out, "{");
@@ -362,6 +378,26 @@ char *emit_program(DeclVec program) {
             }
             str_printf(&out, "} %s;\n\n", d->name);
         }
+        // Emit method forward declarations for structs
+        if (d->kind == DC_STRUCT && d->methods.count > 0) {
+            for (int m = 0; m < d->methods.count; m++) {
+                Decl *method = d->methods.items[m];
+                // Method name: StructName_methodName
+                emit_type(&out, method->type, "", &program);
+                str_add(&out, " ");
+                str_printf(&out, "%s_%s(", d->name, method->name);
+                // First parameter is self (pointer to struct)
+                str_printf(&out, "struct %s *self", d->name);
+                // Then the rest of the parameters
+                for (int j = 0; j < method->params.count; j++) {
+                    str_add(&out, ", ");
+                    emit_type(&out, method->params.items[j].type, method->params.items[j].name, &program);
+                }
+                if (method->varargs) str_add(&out, ", ...");
+                str_add(&out, ");\n");
+            }
+            str_add(&out, "\n");
+        }
     }
     for (int i = 0; i < program.count; i++) {
         Decl *d = program.items[i];
@@ -409,6 +445,28 @@ char *emit_program(DeclVec program) {
             str_add(&out, "}\n");
         }
         // Don't emit bodies for extern C functions - they're already in the C library
+    }
+    // Emit method implementations for structs
+    for (int i = 0; i < program.count; i++) {
+        Decl *d = program.items[i];
+        if (d->kind == DC_STRUCT && d->methods.count > 0) {
+            for (int m = 0; m < d->methods.count; m++) {
+                Decl *method = d->methods.items[m];
+                // Method name: StructName_methodName
+                str_add(&out, "\n"); emit_type(&out, method->type, "", &program);
+                str_add(&out, " ");
+                str_printf(&out, "%s_%s(struct %s *self", d->name, method->name, d->name);
+                // Then the rest of the parameters
+                for (int j = 0; j < method->params.count; j++) {
+                    str_add(&out, ", ");
+                    emit_type(&out, method->params.items[j].type, method->params.items[j].name, &program);
+                }
+                if (method->varargs) str_add(&out, ", ...");
+                str_add(&out, ") {\n");
+                emit_stmt_vec_with_defers(&out, &method->body, &program, 1);
+                str_add(&out, "}\n");
+            }
+        }
     }
     return out.data;
 }

@@ -4,10 +4,17 @@
 
 #include <stdlib.h>
 #include <string.h>
+#include <stdio.h>
+
+// Variable information for scope tracking
+typedef struct {
+    char *name;
+    Type *type;
+} VarInfo;
 
 // Scope stack entry
 typedef struct {
-    char **vars;
+    VarInfo *vars;
     int count;
     int cap;
 } Scope;
@@ -39,22 +46,33 @@ static void pop_scope(ScopeStack *s) {
     }
 }
 
-static void declare_var(ScopeStack *s, const char *name) {
+static void declare_var(ScopeStack *s, const char *name, Type *type) {
     Scope *top = &s->scopes[s->depth - 1];
     if (top->count == top->cap) {
         top->cap = top->cap ? top->cap * 2 : 8;
-        top->vars = xrealloc(top->vars, sizeof(char *) * (size_t)top->cap);
+        top->vars = xrealloc(top->vars, sizeof(VarInfo) * (size_t)top->cap);
     }
-    top->vars[top->count++] = (char *)name;
+    top->vars[top->count++] = (VarInfo){(char *)name, type};
 }
 
 static bool var_in_scope(ScopeStack *s, const char *name) {
     for (int i = s->depth - 1; i >= 0; i--) {
         for (int j = 0; j < s->scopes[i].count; j++) {
-            if (strcmp(s->scopes[i].vars[j], name) == 0) return true;
+            if (strcmp(s->scopes[i].vars[j].name, name) == 0) return true;
         }
     }
     return false;
+}
+
+static Type *get_var_type(ScopeStack *s, const char *name) {
+    for (int i = s->depth - 1; i >= 0; i--) {
+        for (int j = 0; j < s->scopes[i].count; j++) {
+            if (strcmp(s->scopes[i].vars[j].name, name) == 0) {
+                return s->scopes[i].vars[j].type;
+            }
+        }
+    }
+    return NULL;
 }
 
 static bool fn_exists(DeclVec *program, const char *name) {
@@ -75,6 +93,8 @@ static void check_expr(Expr *e, ScopeStack *s) {
                 tc_error("E014", e->line, e->col, (int)strlen(e->text),
                     "undefined variable '%s'", e->text);
             }
+            // Set type for variable expressions by looking up the variable
+            e->type = get_var_type(s, e->text);
             break;
         case EX_CALL:
             for (int i = 0; i < e->args.count; i++) check_expr(e->args.items[i], s);
@@ -89,6 +109,14 @@ static void check_expr(Expr *e, ScopeStack *s) {
         case EX_INDEX:
             check_expr(e->left, s);
             check_expr(e->right, s);
+            break;
+        case EX_METHOD_CALL:
+            check_expr(e->left, s);
+            // Set the method call type from the left expression (struct instance)
+            if (e->left->type) {
+                e->type = e->left->type;
+            }
+            for (int i = 0; i < e->args.count; i++) check_expr(e->args.items[i], s);
             break;
         case EX_FIELD:
         case EX_PTR_FIELD:
@@ -117,7 +145,7 @@ static void check_stmts(StmtVec *body, ScopeStack *s) {
         switch (st->kind) {
             case ST_VAR:
                 if (st->expr) check_expr(st->expr, s);
-                declare_var(s, st->name);
+                declare_var(s, st->name, st->type);
                 break;
             case ST_EXPR:
                 check_expr(st->expr, s);
@@ -168,6 +196,24 @@ static void check_stmts(StmtVec *body, ScopeStack *s) {
 }
 
 void check_program(DeclVec *program) {
+    // Check for method/field name conflicts in structs
+    for (int i = 0; i < program->count; i++) {
+        Decl *d = program->items[i];
+        if (d->kind == DC_STRUCT) {
+            // Check each method against each field
+            for (int m = 0; m < d->methods.count; m++) {
+                Decl *method = d->methods.items[m];
+                for (int f = 0; f < d->params.count; f++) {
+                    Param *field = &d->params.items[f];
+                    if (strcmp(method->name, field->name) == 0) {
+                        fprintf(stderr, "error: method '%s' has the same name as a field in struct '%s'\n", method->name, d->name);
+                        exit(1);
+                    }
+                }
+            }
+        }
+    }
+
     for (int i = 0; i < program->count; i++) {
         Decl *d = program->items[i];
         if (d->kind != DC_FN) continue;
@@ -178,7 +224,7 @@ void check_program(DeclVec *program) {
         push_scope(&s);
         // Declare function parameters in scope
         for (int j = 0; j < d->params.count; j++) {
-            declare_var(&s, d->params.items[j].name);
+            declare_var(&s, d->params.items[j].name, d->params.items[j].type);
         }
         check_stmts(&d->body, &s);
         pop_scope(&s);

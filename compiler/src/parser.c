@@ -5,6 +5,7 @@
 
 #include <stdio.h>
 #include <string.h>
+#include <stdlib.h>
 
 typedef struct {
     Token *tokens;
@@ -205,11 +206,31 @@ static Expr *parse_postfix(Parser *p) {
                 field->text = expect_ident(p);
                 e = field;
             } else {
-                // . for regular field access
-                Expr *field = new_expr(EX_FIELD);
-                field->left = e;
-                field->text = expect_ident(p);
-                e = field;
+                // Check if this is a method call: expr.method(...)
+                char *field_name = expect_ident(p);
+                if (match(p, "(")) {
+                    // Method call
+                    Expr *method_call = new_expr(EX_METHOD_CALL);
+                    method_call->left = e;
+                    method_call->text = field_name;
+                    // Store struct name in type->name for emitter to use
+                    if (e->type && e->type->name) {
+                        method_call->type = new_type(TY_NAME);
+                        method_call->type->name = xstrdup(e->type->name);
+                    }
+                    // Parse arguments
+                    while (!match(p, ")")) {
+                        expr_push(&method_call->args, parse_expr(p));
+                        match(p, ",");
+                    }
+                    e = method_call;
+                } else {
+                    // Regular field access
+                    Expr *field = new_expr(EX_FIELD);
+                    field->left = e;
+                    field->text = field_name;
+                    e = field;
+                }
             }
             continue;
         }
@@ -424,23 +445,48 @@ static Decl *parse_struct(Parser *p, bool public, bool packed) {
     add_struct(p, d->name);
     expect(p, "{");
     while (!match(p, "}")) {
-        bool is_union_field = false;
-        // Check for & prefix (union field in strun)
-        if (match(p, "&")) {
-            is_union_field = true;
-        }
-        Type *ft = parse_type(p);
-        char *fn = NULL;
-        bool is_anonymous = false;
-        // Check if this is an anonymous field (no name)
-        if (at(p, ";") || at(p, ",")) {
-            fn = xstrdup("");  // Empty string for anonymous field
-            is_anonymous = true;
+        // Check for method definition
+        if (match(p, "fn")) {
+            // Parse return type
+            Type *ret = parse_type(p);
+            // Parse method name
+            char *method_name = expect_ident(p);
+            expect(p, ":");
+            // Create method declaration
+            Decl *method = new_decl(DC_FN);
+            method->name = method_name;
+            method->type = ret;
+            // Parse parameters (implicit self will be added later)
+            while (!at(p, "{")) {
+                if (match(p, "...")) { method->varargs = true; break; }
+                Type *pt = parse_type(p);
+                char *pn = expect_ident(p);
+                param_push(&method->params, pt, pn, false, false);
+                if (!match(p, ",")) break;
+            }
+            p->pin_count = 0;
+            method->body = parse_block(p);
+            decl_push(&d->methods, method);
         } else {
-            fn = expect_ident(p);
+            // Parse field
+            bool is_union_field = false;
+            // Check for & prefix (union field in strun)
+            if (match(p, "&")) {
+                is_union_field = true;
+            }
+            Type *ft = parse_type(p);
+            char *fn = NULL;
+            bool is_anonymous = false;
+            // Check if this is an anonymous field (no name)
+            if (at(p, ";") || at(p, ",")) {
+                fn = xstrdup("");  // Empty string for anonymous field
+                is_anonymous = true;
+            } else {
+                fn = expect_ident(p);
+            }
+            param_push(&d->params, ft, fn, is_union_field, is_anonymous);
+            match(p, ",");
         }
-        param_push(&d->params, ft, fn, is_union_field, is_anonymous);
-        match(p, ",");
     }
     return d;
 }

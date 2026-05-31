@@ -1,0 +1,38 @@
+use "stdlib/io.tc"
+
+strun Person {
+    i32 age
+    
+    fn void sayHi: {
+        print("Hi from Person method!\n")
+    }
+    
+    fn i32 getAge: {
+        ret self.>age
+    }
+    
+    fn void setAge: i32 newAge {
+        self.>age = newAge
+    }
+}
+
+fn void main: {
+    Person person
+    person.age = 25
+    
+    person.sayHi()
+    person.setAge(30)
+    print("Method implementation working!\n")
+
+    // testing .> syntax with pointers
+    Person person2
+    person2.age = 40
+    testPointer(&person2)
+    printi(person2.age)
+}
+
+fn void testPointer: ->Person p {
+    p.>age = 50
+    print("Modified via pointer: ")
+    printi(p.>age)
+}

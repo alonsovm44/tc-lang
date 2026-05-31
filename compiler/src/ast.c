@@ -1,6 +1,7 @@
 #include "ast.h"
 
 #include <string.h>
+#include <stdio.h>
 
 void expr_push(ExprVec *v, Expr *x) {
     if (v->count == v->cap) {
