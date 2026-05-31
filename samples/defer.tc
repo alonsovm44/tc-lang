@@ -1,0 +1,8 @@
+use "stdlib/io.tc"
+
+fn void main: {
+    defer{
+        print("end of the scope")
+    }
+    print("start of the scope")
+}

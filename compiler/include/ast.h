@@ -104,6 +104,16 @@ typedef struct {
     int cap;
 } ElseIfVec;
 
+typedef struct {
+    char *name;
+} EnumMember;
+
+typedef struct {
+    EnumMember *items;
+    int count;
+    int cap;
+} EnumMemberVec;
+
 typedef enum {
     ST_VAR,
     ST_BLOCK,
@@ -132,6 +142,7 @@ struct Stmt {
 typedef enum {
     DC_USE,
     DC_STRUCT,
+    DC_ENUM,
     DC_FN,
     DC_VAR,
     DC_EXTERN_FN
@@ -149,6 +160,7 @@ struct Decl {
     StmtVec body;
     bool varargs;
     bool packed;
+    EnumMemberVec enum_members;  // For DC_ENUM
 };
 
 void expr_push(ExprVec *v, Expr *x);
@@ -157,6 +169,7 @@ void decl_push(DeclVec *v, Decl *x);
 void param_push(ParamVec *v, Type *type, char *name, bool is_union_field, bool is_anonymous);
 void match_arm_push(MatchArmVec *v, Expr *pattern, StmtVec body);
 void elseif_push(ElseIfVec *v, Expr *cond, StmtVec body);
+void enum_member_push(EnumMemberVec *v, char *name);
 Type *new_type(TypeKind kind);
 Expr *new_expr(ExprKind kind);
 Stmt *new_stmt(StmtKind kind);

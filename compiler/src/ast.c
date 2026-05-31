@@ -50,6 +50,14 @@ void elseif_push(ElseIfVec *v, Expr *cond, StmtVec body) {
     v->items[v->count++] = (ElseIfArm){cond, body};
 }
 
+void enum_member_push(EnumMemberVec *v, char *name) {
+    if (v->count == v->cap) {
+        v->cap = v->cap ? v->cap * 2 : 8;
+        v->items = xrealloc(v->items, sizeof(EnumMember) * (size_t)v->cap);
+    }
+    v->items[v->count++] = (EnumMember){name};
+}
+
 Type *new_type(TypeKind kind) {
     Type *t = xmalloc(sizeof(Type));
     memset(t, 0, sizeof(Type));

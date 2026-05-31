@@ -1,0 +1,19 @@
+use "stdlib/io.tc"
+
+enum Color {
+    RED
+    GREEN
+    BLUE
+    BLACK
+    WHITE
+}
+
+fn void main: {
+    Color c = RED
+    
+    if (c == RED) {
+        print("Color is RED\n")
+    } else {
+        print("Color is not RED\n")
+    }
+}

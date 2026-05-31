@@ -353,6 +353,15 @@ char *emit_program(DeclVec program) {
             
             str_add(&out, "};\n\n");
         }
+        if (d->kind == DC_ENUM) {
+            str_printf(&out, "typedef enum {\n");
+            for (int j = 0; j < d->enum_members.count; j++) {
+                str_printf(&out, "    %s", d->enum_members.items[j].name);
+                if (j < d->enum_members.count - 1) str_add(&out, ",\n");
+                else str_add(&out, "\n");
+            }
+            str_printf(&out, "} %s;\n\n", d->name);
+        }
     }
     for (int i = 0; i < program.count; i++) {
         Decl *d = program.items[i];

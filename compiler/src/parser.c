@@ -13,6 +13,9 @@ typedef struct {
     char **structs;
     int struct_count;
     int struct_cap;
+    char **enums;
+    int enum_count;
+    int enum_cap;
     char **pinned;
     int pin_count;
     int pin_cap;
@@ -45,6 +48,19 @@ static void add_struct(Parser *p, char *name) {
         p->structs = xrealloc(p->structs, sizeof(char *) * (size_t)p->struct_cap);
     }
     p->structs[p->struct_count++] = name;
+}
+
+static bool is_enum(Parser *p, const char *name) {
+    for (int i = 0; i < p->enum_count; i++) if (strcmp(p->enums[i], name) == 0) return true;
+    return false;
+}
+
+static void add_enum(Parser *p, char *name) {
+    if (p->enum_count == p->enum_cap) {
+        p->enum_cap = p->enum_cap ? p->enum_cap * 2 : 8;
+        p->enums = xrealloc(p->enums, sizeof(char *) * (size_t)p->enum_cap);
+    }
+    p->enums[p->enum_count++] = name;
 }
 
 static Expr *parse_expr(Parser *p);
@@ -267,19 +283,17 @@ static Stmt *parse_stmt(Parser *p) {
         Stmt *s = new_stmt(ST_IF);
         expect(p, "("); s->expr = parse_expr(p); expect(p, ")");
         s->body = parse_block(p);
-        // Parse _if(...){} chains and final _{}
-        while (at(p, "_if")) {
-            p->pos++;  // consume '_if'
-            expect(p, "("); Expr *cond = parse_expr(p); expect(p, ")");
-            StmtVec arm_body = parse_block(p);
-            elseif_push(&s->elseifs, cond, arm_body);
-        }
-        if (at(p, "_")) {
-            // Check next token is '{' (pure else, not '_if' or wildcard)
-            Token *next = &p->tokens[p->pos + 1];
-            if (next->kind == TOK_SYMBOL && strcmp(next->text, "{") == 0) {
-                p->pos++;  // consume '_'
+        // Parse else if(...){} chains and final else{}
+        while (match(p, "else")) {
+            if (match(p, "if")) {
+                // else if
+                expect(p, "("); Expr *cond = parse_expr(p); expect(p, ")");
+                StmtVec arm_body = parse_block(p);
+                elseif_push(&s->elseifs, cond, arm_body);
+            } else {
+                // just else
                 s->else_body = parse_block(p);
+                break;
             }
         }
         return s;
@@ -335,7 +349,7 @@ static Stmt *parse_stmt(Parser *p) {
     }
     int mark = p->pos;
     bool is_fn_type = at(p, "fn");
-    bool type_start = is_type_name(cur(p)->text) || at(p, "->") || at(p, "=>") || is_fn_type || is_struct(p, cur(p)->text);
+    bool type_start = is_type_name(cur(p)->text) || at(p, "->") || at(p, "=>") || is_fn_type || is_struct(p, cur(p)->text) || is_enum(p, cur(p)->text);
     if (type_start) {
         Type *type = parse_type(p);
         if (cur(p)->kind == TOK_IDENT) {
@@ -431,6 +445,28 @@ static Decl *parse_struct(Parser *p, bool public, bool packed) {
     return d;
 }
 
+static Decl *parse_enum(Parser *p, bool public) {
+    Decl *d = new_decl(DC_ENUM);
+    d->public = public;
+    // Check for explicit type (e.g., enum u8 Color)
+    if (is_type_name(cur(p)->text)) {
+        d->type = parse_type(p);
+    } else {
+        // Default to i32
+        d->type = new_type(TY_NAME);
+        d->type->name = xstrdup("i32");
+    }
+    d->name = expect_ident(p);
+    add_enum(p, d->name);
+    expect(p, "{");
+    while (!match(p, "}")) {
+        char *member_name = expect_ident(p);
+        enum_member_push(&d->enum_members, member_name);
+        match(p, ",");
+    }
+    return d;
+}
+
 static void resolve_path(const char *base, const char *rel, char *out, size_t out_size) {
     // Find last slash in base path
     const char *last_slash = NULL;
@@ -513,6 +549,10 @@ DeclVec parse_program(Token *tokens) {
         }
         if (match(&p, "struct") || match(&p, "strun")) {
             decl_push(&p.decls, parse_struct(&p, public, false));
+            continue;
+        }
+        if (match(&p, "enum")) {
+            decl_push(&p.decls, parse_enum(&p, public));
             continue;
         }
         // Check for hot fn syntax

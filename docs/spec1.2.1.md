@@ -4,6 +4,8 @@
 [APPROVED]
 Simple enums since using match with magic numbers causes bugs
 
+[DONE]
+
 enum Color {
     RED
     GREEN
@@ -12,14 +14,36 @@ enum Color {
     WHITE
 }
 
-# if else 
-using _f and _ is cumbersome
+Types default to i32. Note: C doesn't support enum type specification like C++, so explicit types are ignored for now (all enums are int32_t in C).
 
-[solution]
+enum Color {
+    RED
+    GREEN
+    BLUE
+    BLACK
+    WHITE
+}
 
-Just implement `else` and nest if-else like in Go
+# if else
+using _if and _ is cumbersome
+[DONE]
 
-# inlining
+Implemented `else` and `else if` syntax like in Go:
+
+```tc
+if (condition) {
+    // code
+} else if (condition) {
+    // code
+} else {
+    // code
+}
+```
+
+The `_` wildcard is now reserved for match statements only.
+
+# Inlining
+Escape hatch for when you need to use C code, aka TightC incompetence.
 
 Inline C
 ```c
@@ -30,6 +54,11 @@ Inline C
     }
 }
 ```
+## Inlining rules
+
+When inlining C code, the compiler should check for name conflicts and provide a way to rename functions.
+When inlining C code, all inline blocks go at the top of the file. 
+Inlined C code can interact with outside defined variables. 
 
 ## [possible]
 Inline assembly
@@ -41,6 +70,7 @@ Adding inline assembly
 }
 
 ```
+Overkill for now
 We could considere this later
 
 # Pointer to strun acess
@@ -121,13 +151,44 @@ Person person
 person.name = "John"
 person.sayHi() 
 
-
 ```
 
-# conditional defer
+## Methods rules
 
+Methods cannot have the same name as a field.
+Bad:
+
+```tc
+strun Foo {
+    i32 bar  // field
+    
+    fn void bar: {  // method
+        print("method bar")
+    }
+}
+
+fn void main: {
+    Foo f
+    f.bar()      // method
+    f.bar = 42   // field
+}
+```
+implicit self (rust style)
+
+# Conditional defer
+
+```tc
 defer (condition){
     // code to be executed at the end of the scope if conditions are ok
+}
+```
+Multiple conditions
+
+defer (condition1 && condition2 ...){
+
+}
+defer (condition1 || condition2 ...){
+
 }
 
 ## keywords for 1.2.1
