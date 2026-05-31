@@ -125,7 +125,8 @@ typedef enum {
     ST_BREAK,
     ST_PIN,
     ST_EXPR,
-    ST_MATCH
+    ST_MATCH,
+    ST_INLINE_C
 } StmtKind;
 
 struct Stmt {
