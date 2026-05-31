@@ -8,6 +8,7 @@ Added:
 
 Removed:
 
+- removed conditional defer
 Improved/Fixed:
 
 - changed binary name from tcc to tightc so we dont collide with tiny c compiler (tcc)
