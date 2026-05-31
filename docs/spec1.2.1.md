@@ -177,21 +177,9 @@ fn void main: {
 ```
 implicit self (rust style)
 
-# Conditional defer
+# todo
 
-```tc
-defer (condition){
-    // code to be executed at the end of the scope if conditions are ok
-}
-```
-Multiple conditions
-
-defer (condition1 && condition2 ...){
-
-}
-defer (condition1 || condition2 ...){
-
-}
+- Automatic clean up of old dll/ hot versions.
 
 ## keywords for 1.2.1
 
