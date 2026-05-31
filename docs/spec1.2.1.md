@@ -75,7 +75,6 @@ We could considere this later
 
 # Pointer to strun acess
 [DONE]
-[pending]
 Since -> is reserved for
 1. pointer decl
 2. dereference
@@ -144,6 +143,9 @@ strun Person {
     fn void sayHi: {
         print("Hi! my name is ")
         print(name)
+    }
+    fn i32 getAge: {
+        ret self.age
     }
 }
 
