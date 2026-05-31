@@ -7,7 +7,8 @@ typedef enum {
     TOK_NUMBER,
     TOK_STRING,
     TOK_SYMBOL,
-    TOK_KEYWORD
+    TOK_KEYWORD,
+    TOK_INLINE_C
 } TokenKind;
 
 typedef struct {

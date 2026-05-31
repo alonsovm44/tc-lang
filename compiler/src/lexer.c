@@ -55,6 +55,45 @@ TokenVec lex_source(const char *src) {
             i += 2; col += 2;
             continue;
         }
+        // Handle inline C code: "C"{ ... }
+        if (src[i] == '"' && src[i + 1] == 'C' && src[i + 2] == '"' && src[i + 3] == '{') {
+            int start = i;
+            i += 4; col += 4;
+            
+            // Find the matching closing brace
+            int brace_count = 1;
+            int c_start_line = line, c_start_col = col;
+            
+            while (src[i] && brace_count > 0) {
+                if (src[i] == '{') brace_count++;
+                else if (src[i] == '}') brace_count--;
+                else if (src[i] == '\n') { line++; col = 1; i++; continue; }
+                else if (src[i] == '/' && src[i + 1] == '/') {
+                    while (src[i] && src[i] != '\n') { i++; col++; }
+                    continue;
+                }
+                else if (src[i] == '/' && src[i + 1] == '*') {
+                    i += 2; col += 2;
+                    while (src[i] && !(src[i] == '*' && src[i + 1] == '/')) {
+                        if (src[i] == '\n') { line++; col = 1; i++; } else { i++; col++; }
+                    }
+                    if (src[i]) { i += 2; col += 2; }
+                    continue;
+                }
+                
+                i++; col++;
+            }
+            
+            if (brace_count > 0) {
+                tc_error("E012", c_start_line, c_start_col, 1, "unterminated inline C block");
+            }
+            
+            // Extract the C code (inside the braces)
+            char *c_code = xstrndup(src + start + 4, (size_t)(i - start - 5));
+            token_push(&out, (Token){TOK_INLINE_C, c_code, start_line, start_col});
+            continue;
+        }
+        
         if (strchr("{}()[],:.=+-*/%<>!&|^@", src[i])) {
             token_push(&out, (Token){TOK_SYMBOL, xstrndup(src + i, 1), start_line, start_col});
             i++; col++;

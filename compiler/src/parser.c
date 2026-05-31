@@ -368,6 +368,13 @@ static Stmt *parse_stmt(Parser *p) {
         while (!match(p, "}")) stmt_push(&s->body, parse_stmt(p));
         return s;
     }
+    // Handle inline C code
+    if (cur(p)->kind == TOK_INLINE_C) {
+        Stmt *s = new_stmt(ST_INLINE_C);
+        s->text = xstrdup(cur(p)->text);
+        p->pos++;
+        return s;
+    }
     int mark = p->pos;
     bool is_fn_type = at(p, "fn");
     bool type_start = is_type_name(cur(p)->text) || at(p, "->") || at(p, "=>") || is_fn_type || is_struct(p, cur(p)->text) || is_enum(p, cur(p)->text);

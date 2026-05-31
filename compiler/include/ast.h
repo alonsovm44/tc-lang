@@ -139,6 +139,7 @@ struct Stmt {
     MatchArmVec arms;    // For ST_MATCH
     ElseIfVec elseifs;   // For ST_IF: _if(...){} arms
     StmtVec else_body;   // For ST_IF: _{} final else
+    char *text;          // For ST_INLINE_C: the C code text
 };
 
 typedef enum {

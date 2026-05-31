@@ -191,6 +191,9 @@ static void check_stmts(StmtVec *body, ScopeStack *s) {
             case ST_BREAK:
             case ST_PIN:
                 break;
+            case ST_INLINE_C:
+                // Inline C code doesn't need type checking
+                break;
         }
     }
 }

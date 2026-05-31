@@ -1,6 +1,7 @@
 ## v1.2.0 2026-05-30
 
 Added:
+- added inline C code
 - added methods to struns
 - added enums
 - added ptr access to struct fields and passing by reference with &

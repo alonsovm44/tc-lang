@@ -219,6 +219,12 @@ static void emit_stmt(Str *out, Stmt *s, StmtVec *scope, DeclVec *program, int i
         case ST_BREAK: str_add(out, "break;\n"); break;
         case ST_PIN: break;
         case ST_EXPR: emit_expr(out, s->expr, program); str_add(out, ";\n"); break;
+        case ST_INLINE_C:
+            // Emit inline C code directly
+            str_add(out, "\n");
+            str_add(out, s->text);
+            str_add(out, "\n");
+            break;
         case ST_DEFER: break;
         case ST_MATCH: {
             str_add(out, "switch ("); emit_expr(out, s->expr, program); str_add(out, ") {\n");
