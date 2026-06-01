@@ -1,0 +1,5 @@
+# printHi{print("Hello World!")}
+
+fn void main: {
+    printHi
+}

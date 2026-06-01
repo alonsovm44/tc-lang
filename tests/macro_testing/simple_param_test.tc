@@ -1,0 +1,5 @@
+# swap(T, x, y){T temp = x; x = y; y = temp}
+
+fn void main: {
+    i32 a = 1
+}

@@ -1,0 +1,7 @@
+# twice(x){
+    x * 2
+}
+
+fn void main: {
+    i32 result = twice(5)
+}

@@ -1,0 +1,13 @@
+# swap(T, x, y){
+    T temp = x
+    x = y
+    y = temp
+}
+
+fn void main: {
+    i32 a = 1
+    i32 b = 2
+    swap(i32, a, b)
+    printi(a)
+    printi(b)
+}

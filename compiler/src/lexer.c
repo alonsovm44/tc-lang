@@ -69,8 +69,8 @@ static char *replace_parameter(const char *text, const char *param, const char *
         if (strncmp(src, param, param_len) == 0) {
             // Check if this is a whole word match (not part of another identifier)
             const char *next = src + param_len;
-            bool is_word_boundary = (!isalnum((unsigned char)*next) && *next != '_') || (*next == '\0');
-            bool prev_ok = (src == text) || (!isalnum((unsigned char)*(src-1)) && *(src-1) != '_');
+            bool is_word_boundary = (!isalnum((unsigned char)*next) && *next != '_') || (*next == '\0') || (*next == '\n');
+            bool prev_ok = (src == text) || (!isalnum((unsigned char)*(src-1)) && *(src-1) != '_') || (*(src-1) == '\n');
             
             if (is_word_boundary && prev_ok) {
                 strcpy(dst, arg);
@@ -109,7 +109,7 @@ static char *expand_parametric_macro(Macro *macro, const char *args_str) {
         return xstrdup(macro->replacement);
     }
     
-    // Parse arguments
+    // Parse arguments - args_str should already be the content inside parentheses
     char **args = xmalloc(sizeof(char*) * (size_t)macro->param_count);
     int arg_count = 0;
     
@@ -125,8 +125,12 @@ static char *expand_parametric_macro(Macro *macro, const char *args_str) {
             args[arg_count] = xstrndup(arg_start, (size_t)(arg_end - arg_start));
             arg_count++;
             arg_start = arg_end + 1;
+            // Skip whitespace after comma
+            while (*arg_start && isspace((unsigned char)*arg_start)) arg_start++;
+            arg_end = arg_start;
+        } else {
+            arg_end++;
         }
-        arg_end++;
     }
     
     // Add last argument
@@ -145,13 +149,46 @@ static char *expand_parametric_macro(Macro *macro, const char *args_str) {
         free(old_result);
     }
     
+    // Check if result contains newlines (multi-line macro)
+    bool has_newlines = (strchr(result, '\n') != NULL);
+    
+    // Only trim whitespace for single-line macros
+    char *final_result;
+    if (!has_newlines) {
+        // Trim leading and trailing whitespace from result
+        char *trimmed = result;
+        while (isspace((unsigned char)*trimmed)) trimmed++;
+        
+        // Trim trailing whitespace
+        char *end = trimmed + strlen(trimmed) - 1;
+        while (end > trimmed && isspace((unsigned char)*end)) end--;
+        *(end + 1) = '\0';
+        
+        // Check if result is empty after trimming
+        if (strlen(trimmed) == 0) {
+            // Return the original result if trimming made it empty
+            for (int i = 0; i < arg_count; i++) {
+                free(args[i]);
+            }
+            free(args);
+            return result;
+        }
+        
+        // Create a copy without leading/trailing whitespace
+        final_result = xstrdup(trimmed);
+    } else {
+        // For multi-line macros, just use the result as-is
+        final_result = xstrdup(result);
+    }
+    
     // Clean up
     for (int i = 0; i < arg_count; i++) {
         free(args[i]);
     }
     free(args);
+    free(result);
     
-    return result;
+    return final_result;
 }
 
 static Macro *find_macro(const char *name) {
@@ -192,10 +229,147 @@ static TokenVec lex_source_with_depth(const char *src, int depth) {
         return out;
     }
     
+    // Handle empty source
+    if (!src || strlen(src) == 0) {
+        TokenVec out = {0};
+        token_push(&out, (Token){TOK_EOF, xstrdup(""), 1, 1});
+        return out;
+    }
+    
     TokenVec out = {0};
     int i = 0, line = 1, col = 1;
     while (src[i]) {
         char c = src[i];
+        
+        // Handle macro definitions: # name(params,...) { replacement } - MUST BE FIRST CHECK
+        if (src[i] == '#') {
+            int start = i;
+            int macro_start_line = line, macro_start_col = col;
+            
+            // Find the entire macro definition first
+            int macro_end = i + 1; // Skip #
+            int brace_count = 0;
+            bool in_body = false;
+            int scan_line = line, scan_col = col + 1; // Start scanning after #
+            
+            while (src[macro_end]) {
+                if (src[macro_end] == '{') {
+                    brace_count++;
+                    in_body = true;
+                }
+                else if (src[macro_end] == '}') {
+                    brace_count--;
+                    if (in_body && brace_count == 0) {
+                        macro_end++; // Include the closing brace
+                        scan_col++;
+                        break;
+                    }
+                }
+                else if (src[macro_end] == '\n') {
+                    scan_line++;
+                    scan_col = 1;
+                    macro_end++;
+                    continue;
+                }
+                scan_col++;
+                macro_end++;
+            }
+            
+            if (brace_count > 0) {
+                tc_error("E012", macro_start_line, macro_start_col, 1, "unterminated macro definition");
+            }
+            
+            // Parse the macro definition
+            const char *parse_ptr = src + start + 1; // Skip #
+            
+            // Skip whitespace after #
+            while (*parse_ptr && isspace((unsigned char)*parse_ptr)) parse_ptr++;
+            
+            // Extract macro name
+            const char *name_start = parse_ptr;
+            while (*parse_ptr && !isspace((unsigned char)*parse_ptr) && *parse_ptr != '(' && *parse_ptr != '{') parse_ptr++;
+            const char *name_end = parse_ptr;
+            
+            // Extract parameters if parametric
+            bool is_parametric = false;
+            char **params = NULL;
+            int param_count = 0;
+            
+            if (*parse_ptr == '(') {
+                is_parametric = true;
+                parse_ptr++; // Skip (
+                
+                // Parse parameters
+                while (*parse_ptr && *parse_ptr != ')') {
+                    // Skip whitespace
+                    while (*parse_ptr && isspace((unsigned char)*parse_ptr)) parse_ptr++;
+                    
+                    if (*parse_ptr == ')') break;
+                    
+                    // Extract parameter name
+                    const char *param_start = parse_ptr;
+                    while (*parse_ptr && !isspace((unsigned char)*parse_ptr) && *parse_ptr != ',' && *parse_ptr != ')') parse_ptr++;
+                    const char *param_end = parse_ptr;
+                    
+                    // Add parameter to list
+                    if (param_count == 0) {
+                        params = xmalloc(sizeof(char*));
+                    } else {
+                        params = xrealloc(params, sizeof(char*) * (size_t)(param_count + 1));
+                    }
+                    params[param_count] = xstrndup(param_start, (size_t)(param_end - param_start));
+                    param_count++;
+                    
+                    // Skip whitespace and comma
+                    while (*parse_ptr && isspace((unsigned char)*parse_ptr)) parse_ptr++;
+                    if (*parse_ptr == ',') parse_ptr++;
+                }
+                
+                if (*parse_ptr == ')') parse_ptr++; // Skip )
+            }
+            
+            // Skip whitespace before {
+            while (*parse_ptr && isspace((unsigned char)*parse_ptr)) parse_ptr++;
+            
+            if (*parse_ptr == '{') {
+                // Find the opening brace in the original source by searching from name_end
+                const char *opening_brace = name_end;
+                while (*opening_brace && *opening_brace != '{') opening_brace++;
+                
+                if (!*opening_brace) {
+                    tc_error("E012", macro_start_line, macro_start_col, 1, "unterminated macro definition");
+                }
+                
+                // The closing brace is at macro_end - 1
+                const char *closing_brace = src + macro_end - 1;
+                
+                // Extract replacement text (between opening and closing braces)
+                const char *replacement_start = opening_brace + 1;
+                const char *replacement_end = closing_brace;
+                size_t replacement_len = (size_t)(replacement_end - replacement_start);
+                char *replacement = xmalloc(replacement_len + 1);
+                memcpy(replacement, replacement_start, replacement_len);
+                replacement[replacement_len] = '\0';
+                
+                // Add macro to global list
+                char *name = xstrndup(name_start, (size_t)(name_end - name_start));
+                add_parametric_macro(name, replacement, params, param_count, is_parametric);
+                free(name);
+                
+                // Skip past the entire macro definition in the main source
+                i = macro_end;
+                line = scan_line;
+                col = scan_col;
+                continue;
+            } else {
+                // If no { after #, treat # as a symbol
+                token_push(&out, (Token){TOK_SYMBOL, xstrndup(src + start, 1), macro_start_line, macro_start_col});
+                i++;
+                col++;
+                continue;
+            }
+        }
+        
         if (isspace((unsigned char)c)) {
             if (c == '\n') { line++; col = 1; } else { col++; }
             i++;
@@ -225,156 +399,6 @@ static TokenVec lex_source_with_depth(const char *src, int depth) {
             i += 2; col += 2;
             continue;
         }
-        // Handle macro definitions: # name(params,...) { replacement }
-        if (src[i] == '#') {
-            int start = i++;
-            col++;
-            
-            // Skip whitespace after #
-            while (src[i] && isspace((unsigned char)src[i])) {
-                if (src[i] == '\n') { line++; col = 1; } else { col++; }
-                i++;
-            }
-            
-            // Extract macro name
-            while (src[i] && !isspace((unsigned char)src[i]) && src[i] != '(' && src[i] != '{') {
-                if (src[i] == '\n') { line++; col = 1; } else { col++; }
-                i++;
-            }
-            
-            // Check if this is a parametric macro
-            bool is_parametric = false;
-            if (src[i] == '(') {
-                is_parametric = true;
-                i++; col++;
-                
-                // Skip parameters (for now, just find the closing ')')
-                int paren_count = 1;
-                while (src[i] && paren_count > 0) {
-                    if (src[i] == '(') paren_count++;
-                    else if (src[i] == ')') paren_count--;
-                    else if (src[i] == '\n') { line++; col = 1; i++; continue; }
-                    i++; col++;
-                }
-            }
-            
-            // Skip whitespace before {
-            while (src[i] && isspace((unsigned char)src[i])) {
-                if (src[i] == '\n') { line++; col = 1; } else { col++; }
-                i++;
-            }
-            
-            if (src[i] == '{') {
-                i++; col++;
-                
-                // Find matching closing brace
-                int brace_count = 1;
-                int macro_start_line = line, macro_start_col = col;
-                
-                while (src[i] && brace_count > 0) {
-                    if (src[i] == '{') brace_count++;
-                    else if (src[i] == '}') brace_count--;
-                    else if (src[i] == '\n') { line++; col = 1; i++; continue; }
-                    else if (src[i] == '/' && src[i + 1] == '/') {
-                        while (src[i] && src[i] != '\n') { i++; col++; }
-                        continue;
-                    }
-                    else if (src[i] == '/' && src[i + 1] == '*') {
-                        i += 2; col += 2;
-                        while (src[i] && !(src[i] == '*' && src[i + 1] == '/')) {
-                            if (src[i] == '\n') { line++; col = 1; i++; } else { i++; col++; }
-                        }
-                        if (src[i]) { i += 2; col += 2; }
-                        continue;
-                    }
-                    
-                    i++; col++;
-                }
-                
-                if (brace_count > 0) {
-                    tc_error("E012", macro_start_line, macro_start_col, 1, "unterminated macro definition");
-                }
-                
-                // Parse and add macro to global list
-                const char *macro_start = src + start + 1; // Skip #
-                
-                // Skip whitespace after #
-                while (*macro_start && isspace((unsigned char)*macro_start)) macro_start++;
-                
-                // Extract macro name
-                char *name_start = macro_start;
-                while (*macro_start && !isspace((unsigned char)*macro_start) && *macro_start != '(' && *macro_start != '{') macro_start++;
-                char *name_end = macro_start;
-                
-                // Extract parameters if parametric
-                char **params = NULL;
-                int param_count = 0;
-                bool is_parametric = false;
-                
-                if (*macro_start == '(') {
-                    is_parametric = true;
-                    macro_start++; // Skip (
-                    
-                    // Parse parameters
-                    while (*macro_start && *macro_start != ')') {
-                        // Skip whitespace
-                        while (*macro_start && isspace((unsigned char)*macro_start)) macro_start++;
-                        
-                        if (*macro_start == ')') break;
-                        
-                        // Extract parameter name
-                        char *param_start = macro_start;
-                        while (*macro_start && !isspace((unsigned char)*macro_start) && *macro_start != ',' && *macro_start != ')') macro_start++;
-                        char *param_end = macro_start;
-                        
-                        // Add parameter to list
-                        if (param_count == 0) {
-                            params = xmalloc(sizeof(char*));
-                        } else {
-                            params = xrealloc(params, sizeof(char*) * (size_t)(param_count + 1));
-                        }
-                        params[param_count] = xstrndup(param_start, (size_t)(param_end - param_start));
-                        param_count++;
-                        
-                        // Skip whitespace and comma
-                        while (*macro_start && isspace((unsigned char)*macro_start)) macro_start++;
-                        if (*macro_start == ',') macro_start++;
-                    }
-                    
-                    if (*macro_start == ')') macro_start++; // Skip )
-                }
-                
-                // Skip whitespace before {
-                while (*macro_start && isspace((unsigned char)*macro_start)) macro_start++;
-                
-                if (*macro_start == '{') {
-                    macro_start++; // Skip {
-                    
-                    // Find matching closing brace
-                    char *replacement_start = macro_start;
-                    char *replacement_end = replacement_start;
-                    int brace_count = 1;
-                    
-                    while (*replacement_end && brace_count > 0) {
-                        if (*replacement_end == '{') brace_count++;
-                        else if (*replacement_end == '}') brace_count--;
-                        replacement_end++;
-                    }
-                    
-                    // Add macro to global list
-                    char *name = xstrndup(name_start, (size_t)(name_end - name_start));
-                    char *replacement = xstrndup(replacement_start, (size_t)(replacement_end - replacement_start - 1));
-                    add_parametric_macro(name, replacement, params, param_count, is_parametric);
-                }
-                
-                continue;
-            } else {
-                // If no { after #, treat # as a symbol
-                token_push(&out, (Token){TOK_SYMBOL, xstrndup(src + start, 1), start_line, start_col});
-                continue;
-            }
-        }
-        
         // Handle inline C code: "C"{ ... } - must come before string literal check
         if (src[i] == '"' && src[i + 1] == 'C' && src[i + 2] == '"' && src[i + 3] == '{') {
             int start = i;
@@ -466,6 +490,7 @@ static TokenVec lex_source_with_depth(const char *src, int depth) {
                     }
                     
                     // Extract arguments string (without outer parentheses)
+                    // i now points past the closing ')', so we need i - arg_start - 1 characters
                     char *args_str = xstrndup(src + arg_start, (size_t)(i - arg_start - 1));
                     
                     // Expand the macro
@@ -473,7 +498,7 @@ static TokenVec lex_source_with_depth(const char *src, int depth) {
                     free(args_str);
                 } else {
                     // Simple macro expansion
-                    expanded = xstrdup(macro->replacement);
+                    expanded = trim_whitespace_copy(macro->replacement);
                 }
                 
                 // For now, handle simple single-line expansions properly
@@ -481,62 +506,66 @@ static TokenVec lex_source_with_depth(const char *src, int depth) {
                 if (expanded && strlen(expanded) > 0) {
                     // Check if the expanded text contains newlines (multi-line)
                     bool has_newlines = (strchr(expanded, '\n') != NULL);
+                    bool expanded_used = false;  // Track if expanded was used as token text
                     
                     if (!has_newlines) {
-                        // Single line expansion - determine proper token type
-                        TokenKind kind = TOK_IDENT;
+                        // Single line expansion - check if it's a simple token or complex expression
                         
-                        // Check if it's a number
+                        // Check if it's a simple number
                         if (isdigit((unsigned char)expanded[0]) || 
                             (expanded[0] == '-' && isdigit((unsigned char)expanded[1]))) {
-                            kind = TOK_NUMBER;
+                            token_push(&out, (Token){TOK_NUMBER, expanded, start_line, start_col});
+                            expanded_used = true;
                         }
-                        // Check if it's a string
+                        // Check if it's a simple string
                         else if (expanded[0] == '"' && expanded[strlen(expanded)-1] == '"') {
-                            kind = TOK_STRING;
+                            token_push(&out, (Token){TOK_STRING, expanded, start_line, start_col});
+                            expanded_used = true;
                         }
-                        // Check if it's a keyword
+                        // Check if it's a simple keyword
                         else if (is_keyword(expanded)) {
-                            kind = TOK_KEYWORD;
+                            token_push(&out, (Token){TOK_KEYWORD, expanded, start_line, start_col});
+                            expanded_used = true;
                         }
-                        
-                        token_push(&out, (Token){kind, expanded, start_line, start_col});
+                        // Complex expression - re-lex it properly
+                        else {
+                            TokenVec expanded_tokens = lex_source_with_depth(expanded, depth + 1);
+                            
+                            // Add all expanded tokens to output (excluding TOK_EOF at index count-1)
+                            for (int j = 0; j < expanded_tokens.count - 1; j++) {
+                                // Update line/col info for the expanded tokens
+                                expanded_tokens.items[j].line = start_line;
+                                expanded_tokens.items[j].col = start_col;
+                                token_push(&out, expanded_tokens.items[j]);
+                            }
+                            
+                            // Clean up expanded tokens array (but not the token strings themselves)
+                            free(expanded_tokens.items);
+                        }
                     } else {
-                        // Multi-line expansion - for now, create a simple workaround
-                        // Split by semicolons and create multiple tokens
-                        char *line_start = expanded;
-                        char *line_end = expanded;
+                        // Multi-line expansion - re-lex it properly
+                        TokenVec expanded_tokens = lex_source_with_depth(expanded, depth + 1);
                         
-                        while (*line_end) {
-                            if (*line_end == '\n') {
-                                // Extract line
-                                char *line = xstrndup(line_start, (size_t)(line_end - line_start));
-                                if (strlen(line) > 0) {
-                                    token_push(&out, (Token){TOK_IDENT, line, start_line, start_col});
-                                }
-                                free(line);
-                                line_start = line_end + 1;
-                            }
-                            line_end++;
+                        // Add all expanded tokens to output (excluding TOK_EOF at index count-1)
+                        for (int j = 0; j < expanded_tokens.count - 1; j++) {
+                            // Update line/col info for the expanded tokens
+                            expanded_tokens.items[j].line = start_line;
+                            expanded_tokens.items[j].col = start_col;
+                            token_push(&out, expanded_tokens.items[j]);
                         }
                         
-                        // Handle last line
-                        if (line_start < line_end) {
-                            char *last_line = xstrndup(line_start, (size_t)(line_end - line_start));
-                            if (strlen(last_line) > 0) {
-                                token_push(&out, (Token){TOK_IDENT, last_line, start_line, start_col});
-                            }
-                            free(last_line);
-                        }
-                        
-                        free(expanded);
-                        expanded = NULL;
+                        // Clean up expanded tokens array (but not the token strings themselves)
+                        free(expanded_tokens.items);
                     }
-                }
-                
-                if (expanded) {
+                    
+                    // Only free expanded if it wasn't used as token text
+                    if (!expanded_used) {
+                        free(expanded);
+                    }
+                } else if (expanded) {
                     free(expanded);
                 }
+                free(text);
             } else {
                 token_push(&out, (Token){is_keyword(text) ? TOK_KEYWORD : TOK_IDENT, text, start_line, start_col});
             }
