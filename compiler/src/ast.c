@@ -18,7 +18,7 @@ void stmt_push(StmtVec *v, Stmt *x) {
     }
     v->items[v->count++] = x;
 }
-
+//!
 void decl_push(DeclVec *v, Decl *x) {
     if (v->count == v->cap) {
         v->cap = v->cap ? v->cap * 2 : 8;
@@ -26,7 +26,7 @@ void decl_push(DeclVec *v, Decl *x) {
     }
     v->items[v->count++] = x;
 }
-
+//!!
 void param_push(ParamVec *v, Type *type, char *name, bool is_union_field, bool is_anonymous) {
     if (v->count == v->cap) {
         v->cap = v->cap ? v->cap * 2 : 8;
@@ -34,7 +34,7 @@ void param_push(ParamVec *v, Type *type, char *name, bool is_union_field, bool i
     }
     v->items[v->count++] = (Param){type, name, is_union_field, is_anonymous};
 }
-
+// no one will read this anyway
 void match_arm_push(MatchArmVec *v, Expr *pattern, StmtVec body) {
     if (v->count == v->cap) {
         v->cap = v->cap ? v->cap * 2 : 4;

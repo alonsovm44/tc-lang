@@ -1,6 +1,3 @@
-use "stdlib/str.tc"
-use "stdlib/io.tc"
-
 enum TypeKind {
     TY_NAME,
     TY_RAWPTR,
@@ -162,6 +159,10 @@ strun Decl{
 
 }
 
+extern "C"{
+    fn ->void xrealloc: ->void ptr, usize size {}
+}
+
 fn void expr_push: ->ExprVec v, ->Expr x {
     if(v.>count == v.>cap){
         a = v.>cap
@@ -171,12 +172,121 @@ fn void expr_push: ->ExprVec v, ->Expr x {
         else{
             a = 8
         }
-        v.>items = xrealloc(v.>items, sizeof(Expr *) * (size_t)a)
-
+        v.>items = xrealloc(v.>items, sizeof(Expr *) * a) // a should be size_t a but i dont have size_t in this version
     }
     v.>items[v.>count++] = x
 }   
 
 fn void stmt_push: ->StmtVec v, ->Stmt x {
+    if(v.>count == v.>cap){
+        a = v.>cap
+        if(a){
+            a = a * 2
+        }
+        else{
+            a = 8
+        }
+        v.>items = xrealloc(v.>items, sizeof(Stmt *) * a)
+    }
+    v.>items[v.>count++] = x
+}
 
+fn void decl_push: ->DeclVec v, ->Decl x {
+    if (v.>count == v.>cap){
+        a = v.>cap
+        if(a){
+            a = a * 2
+        }
+        else{
+            a = 8
+        }
+        v.>items = xrealloc(v.>items, sizeof(Decl *) *a)
+    }
+    v.>items[v.>count++] = x
+}
+
+fn void param_push: ->ParamVec v, ->Param x {
+    if(v.>count == v.>cap){
+        a = v.>cap
+        if(a){
+            a = a * 2
+        }
+        else{
+            a = 8
+        }
+        v.>items = xrealloc(v.>items, sizeof(Param *) * a)
+    }
+    v.>items[v.>count++] = x    
+}
+
+fn void match_arm_push: ->MatchArmVec v, ->Expr pattern, ->StmtVec body {
+    if(v.>count == v.>cap){
+        a = v.>cap
+        if(a){
+            a = a * 2
+        }
+        else{
+            a = 4
+        }
+        v.>items = xrealloc(v.>items, sizeof(MatchArm) * a)
+    }
+    // no compound literals in tC so we have to do it the old boilerplate way
+    MatchArm arm
+    arm.pattern = pattern
+    arm.body = body
+    v.>items[v.>count++] = arm
+}
+
+fn void else_if_push: ->ElseIfVec v, ->Expr cond, ->StmtVec body {
+    if(v.>count == v.>cap){
+        a = v.>cap
+        if(a){
+            a = a * 2
+        }
+        else{
+            a = 4
+        }
+        v.>items = xrealloc(v.>items, sizeof(ElseIfArm) * a)
+    }
+    // no compound literals in tC so we have to do it the old boilerplate way
+    ElseIfArm arm
+    arm.cond = cond
+    arm.body = body
+    v.>items[v.>count++] = arm
+}
+
+fn void enum_number_push: ->EnumMemberVec v, ->i8 name {
+    if(v.>count == v.>cap){
+        a = v.>cap
+        if(a){
+            a = a * 2
+        }
+        else{
+            a = 8
+        }
+        v.>items = xrealloc(v.>items, sizeof(EnumMember) * a)
+    }
+    // no compound literals in tC so we have to do it the old boilerplate way
+    EnumMember member
+    member.name = name
+    v.>items[v.>count++] = member
+}
+
+extern "C"{
+    ->void fn xmalloc: usize size {}
+}
+use "stdlib/mem.io" // for memset()
+
+fn ->Type new_type: TypeKind kind{
+    ->Type t = xmalloc(sizeof(Type))
+    memset(t, 0, sizeof(Type))
+    t.>kind = kind
+    return t
+} 
+
+fn ->Expr new_expr: ExprKind kind{
+    ->Expr e = xmalloc(sizeof(Expr))
+    memset(e, 0, sizeof(Expr))
+    e.>kind = kind
+    return e
 }
