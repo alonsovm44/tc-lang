@@ -4,6 +4,6 @@ use "stdlib/io.tc"
 
 fn void main: {
     int x = 42
-    printi(x)
+    printi(x) 
     print("\n")
 }
