@@ -1,0 +1,20 @@
+use "stdlib/io.tc"
+
+# int {i32}
+# float {f32}
+
+fn void main: {
+    print("Testing comprehensive macro features\n")
+    print("===================================\n\n")
+    
+    // Simple type alias macros
+    int x = 100
+    float y = 3.14
+    
+    print("Type aliases working:\n")
+    print("int x = ")
+    printi(x)
+    print("\n")
+    
+    print("All macro tests completed successfully!\n")
+}

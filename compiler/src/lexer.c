@@ -1,6 +1,7 @@
 #include "lexer.h"
 
 #include "common.h"
+#include "ast.h"
 
 #include <ctype.h>
 #include <string.h>
@@ -19,6 +20,32 @@ static bool two_char_symbol(const char *s) {
         if (strncmp(s, symbols[i], 2) == 0) return true;
     }
     return false;
+}
+
+static MacroVec global_macros = {0};
+
+static void add_macro(const char *name, const char *replacement) {
+    Macro *m = xmalloc(sizeof(Macro));
+    m->name = xstrdup(name);
+    m->replacement = xstrdup(replacement);
+    m->params = NULL;
+    m->param_count = 0;
+    m->is_parametric = false;
+    
+    if (global_macros.count == global_macros.cap) {
+        global_macros.cap = global_macros.cap ? global_macros.cap * 2 : 16;
+        global_macros.items = xrealloc(global_macros.items, sizeof(Macro*) * (size_t)global_macros.cap);
+    }
+    global_macros.items[global_macros.count++] = m;
+}
+
+static const char *find_macro_replacement(const char *name) {
+    for (int i = global_macros.count - 1; i >= 0; i--) {
+        if (strcmp(global_macros.items[i]->name, name) == 0) {
+            return global_macros.items[i]->replacement;
+        }
+    }
+    return NULL;
 }
 
 TokenVec lex_source(const char *src) {
@@ -55,6 +82,102 @@ TokenVec lex_source(const char *src) {
             i += 2; col += 2;
             continue;
         }
+        // Handle macro definitions: # name { replacement }
+        if (src[i] == '#') {
+            int start = i++;
+            col++;
+            
+            // Skip whitespace after #
+            while (src[i] && isspace((unsigned char)src[i])) {
+                if (src[i] == '\n') { line++; col = 1; } else { col++; }
+                i++;
+            }
+            
+            // Extract macro name
+            while (src[i] && !isspace((unsigned char)src[i]) && src[i] != '{') {
+                if (src[i] == '\n') { line++; col = 1; } else { col++; }
+                i++;
+            }
+            
+            // Skip whitespace before {
+            while (src[i] && isspace((unsigned char)src[i])) {
+                if (src[i] == '\n') { line++; col = 1; } else { col++; }
+                i++;
+            }
+            
+            if (src[i] == '{') {
+                i++; col++;
+                
+                // Find matching closing brace
+                int brace_count = 1;
+                int macro_start_line = line, macro_start_col = col;
+                
+                while (src[i] && brace_count > 0) {
+                    if (src[i] == '{') brace_count++;
+                    else if (src[i] == '}') brace_count--;
+                    else if (src[i] == '\n') { line++; col = 1; i++; continue; }
+                    else if (src[i] == '/' && src[i + 1] == '/') {
+                        while (src[i] && src[i] != '\n') { i++; col++; }
+                        continue;
+                    }
+                    else if (src[i] == '/' && src[i + 1] == '*') {
+                        i += 2; col += 2;
+                        while (src[i] && !(src[i] == '*' && src[i + 1] == '/')) {
+                            if (src[i] == '\n') { line++; col = 1; i++; } else { i++; col++; }
+                        }
+                        if (src[i]) { i += 2; col += 2; }
+                        continue;
+                    }
+                    
+                    i++; col++;
+                }
+                
+                if (brace_count > 0) {
+                    tc_error("E012", macro_start_line, macro_start_col, 1, "unterminated macro definition");
+                }
+                
+                // Parse and add macro to global list
+                const char *macro_start = src + start + 1; // Skip #
+                
+                // Skip whitespace after #
+                while (*macro_start && isspace((unsigned char)*macro_start)) macro_start++;
+                
+                // Extract macro name
+                char *name_start = macro_start;
+                while (*macro_start && !isspace((unsigned char)*macro_start) && *macro_start != '{') macro_start++;
+                char *name_end = macro_start;
+                
+                // Skip whitespace before {
+                while (*macro_start && isspace((unsigned char)*macro_start)) macro_start++;
+                
+                if (*macro_start == '{') {
+                    macro_start++; // Skip {
+                    
+                    // Find matching closing brace
+                    char *replacement_start = macro_start;
+                    char *replacement_end = replacement_start;
+                    int brace_count = 1;
+                    
+                    while (*replacement_end && brace_count > 0) {
+                        if (*replacement_end == '{') brace_count++;
+                        else if (*replacement_end == '}') brace_count--;
+                        replacement_end++;
+                    }
+                    
+                    // Add macro to global list
+                    char *name = xstrndup(name_start, (size_t)(name_end - name_start));
+                    char *replacement = xstrndup(replacement_start, (size_t)(replacement_end - replacement_start - 1));
+                    add_macro(name, replacement);
+                }
+                
+                continue;
+            } else {
+                // If no { after #, treat # as a symbol
+                token_push(&out, (Token){TOK_SYMBOL, xstrndup(src + start, 1), start_line, start_col});
+                continue;
+            }
+        }
+        
         // Handle inline C code: "C"{ ... } - must come before string literal check
         if (src[i] == '"' && src[i + 1] == 'C' && src[i + 2] == '"' && src[i + 3] == '{') {
             int start = i;
@@ -122,7 +245,16 @@ TokenVec lex_source(const char *src) {
             int start = i;
             while (isalnum((unsigned char)src[i]) || src[i] == '_') { i++; col++; }
             char *text = xstrndup(src + start, (size_t)(i - start));
-            token_push(&out, (Token){is_keyword(text) ? TOK_KEYWORD : TOK_IDENT, text, start_line, start_col});
+            
+            // Check if this identifier is a macro
+            const char *replacement = find_macro_replacement(text);
+            if (replacement) {
+                // Replace with macro expansion - for now, treat as identifier
+                // In a full implementation, we'd need to re-lex the replacement text
+                token_push(&out, (Token){TOK_IDENT, xstrdup(replacement), start_line, start_col});
+            } else {
+                token_push(&out, (Token){is_keyword(text) ? TOK_KEYWORD : TOK_IDENT, text, start_line, start_col});
+            }
             continue;
         }
         tc_error("E013", line, col, 1, "unexpected character '%c'", src[i]);

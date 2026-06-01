@@ -1,0 +1,9 @@
+use "stdlib/io.tc"
+
+# int {i32}
+
+fn void main: {
+    int x = 42
+    printi(x)
+    print("\n")
+}

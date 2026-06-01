@@ -6,6 +6,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include <ctype.h>
 
 typedef struct {
     Token *tokens;
@@ -20,6 +21,7 @@ typedef struct {
     char **pinned;
     int pin_count;
     int pin_cap;
+    MacroVec macros;
 } Parser;
 
 static Token *cur(Parser *p) { return &p->tokens[p->pos]; }
@@ -28,6 +30,73 @@ static bool match(Parser *p, const char *text) { if (at(p, text)) { p->pos++; re
 
 static void expect(Parser *p, const char *text) {
     if (!match(p, text)) tc_error("E001", cur(p)->line, cur(p)->col, (int)strlen(cur(p)->text), "expected '%s', got '%s'", text, cur(p)->text);
+}
+
+static void macro_push(Parser *p, Macro *m) {
+    if (p->macros.count == p->macros.cap) {
+        p->macros.cap = p->macros.cap ? p->macros.cap * 2 : 16;
+        p->macros.items = xrealloc(p->macros.items, sizeof(Macro*) * (size_t)p->macros.cap);
+    }
+    p->macros.items[p->macros.count++] = m;
+}
+
+static Macro *find_macro(Parser *p, const char *name) {
+    for (int i = p->macros.count - 1; i >= 0; i--) {
+        if (strcmp(p->macros.items[i]->name, name) == 0) {
+            return p->macros.items[i];
+        }
+    }
+    return NULL;
+}
+
+static void parse_macro(Parser *p) {
+    Token *macro_token = cur(p);
+    char *macro_text = macro_token->text;
+    
+    // Parse macro text: "# name { replacement }"
+    char *start = macro_text + 1; // Skip #
+    
+    // Skip whitespace after #
+    while (*start && isspace((unsigned char)*start)) start++;
+    
+    // Extract macro name
+    char *name_start = start;
+    while (*start && !isspace((unsigned char)*start) && *start != '{') start++;
+    char *name_end = start;
+    
+    // Skip whitespace before {
+    while (*start && isspace((unsigned char)*start)) start++;
+    
+    if (*start != '{') {
+        tc_error("E001", macro_token->line, macro_token->col, 1, "expected '{' in macro definition");
+    }
+    start++; // Skip {
+    
+    // Find matching closing brace
+    char *replacement_start = start;
+    char *replacement_end = replacement_start;
+    int brace_count = 1;
+    
+    while (*replacement_end && brace_count > 0) {
+        if (*replacement_end == '{') brace_count++;
+        else if (*replacement_end == '}') brace_count--;
+        replacement_end++;
+    }
+    
+    if (brace_count > 0) {
+        tc_error("E012", macro_token->line, macro_token->col, 1, "unterminated macro definition");
+    }
+    
+    // Create macro
+    Macro *m = xmalloc(sizeof(Macro));
+    m->name = xstrndup(name_start, (size_t)(name_end - name_start));
+    m->replacement = xstrndup(replacement_start, (size_t)(replacement_end - replacement_start - 1));
+    m->params = NULL;
+    m->param_count = 0;
+    m->is_parametric = false;
+    
+    macro_push(p, m);
+    p->pos++; // Consume the macro token
 }
 
 static char *expect_ident(Parser *p) {
@@ -606,6 +675,11 @@ DeclVec parse_program(Token *tokens) {
             Decl *d = new_decl(DC_INLINE_C);
             d->text = c_tok->text;
             decl_push(&p.decls, d);
+            continue;
+        }
+        // Check for macro definitions: TOK_MACRO token
+        if (cur(&p)->kind == TOK_MACRO) {
+            parse_macro(&p);
             continue;
         }
         bool public = match(&p, "pub");

@@ -1,6 +1,7 @@
 ## v1.2.0 2026-05-30
 
 Added:
+- added basic macro support for basic text replacement
 - added inline C working in the global scope
 - added sizeof()
 - added inline C code

@@ -47,6 +47,20 @@ typedef struct {
     int cap;
 } DeclVec;
 
+typedef struct {
+    char *name;
+    char *replacement;
+    char **params;  // For parametric macros
+    int param_count;
+    bool is_parametric;
+} Macro;
+
+typedef struct {
+    Macro **items;
+    int count;
+    int cap;
+} MacroVec;
+
 struct Type {
     TypeKind kind;
     char *name;
