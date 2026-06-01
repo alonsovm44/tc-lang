@@ -1,0 +1,131 @@
+use "stdlib/io.tc"
+
+fn void main: {
+    print("Testing Bitwise Operations\n")
+    print("==========================\n\n")
+    
+    // Test values
+    u8 a = 0b11001010  // 202 in decimal
+    u8 b = 0b10110110  // 182 in decimal
+    
+    print("a = 0b11001010 (202)\n")
+    print("b = 0b10110110 (182)\n\n")
+    
+    // AND (&)
+    u8 result = a & b
+    print("a & b (AND):\n")
+    print("  11001010\n")
+    print("& 10110110\n")
+    print("  --------\n")
+    print("  10000010 (")
+    printi(result)
+    print(")\n\n")
+    
+    // OR (|)
+    result = a | b
+    print("a | b (OR):\n")
+    print("  11001010\n")
+    print("| 10110110\n")
+    print("  --------\n")
+    print("  11111110 (")
+    printi(result)
+    print(")\n\n")
+    
+    // XOR (^)
+    result = a ^ b
+    print("a ^ b (XOR):\n")
+    print("  11001010\n")
+    print("^ 10110110\n")
+    print("  --------\n")
+    print("  01111100 (")
+    printi(result)
+    print(")\n\n")
+    
+    // NOT (!)
+    result = !a
+    print("!a (NOT):\n")
+    print("  11001010\n")
+    print("! --------\n")
+    print("  00110101 (")
+    printi(result)
+    print(")\n\n")
+    
+    // Shift Left (<<)
+    result = a << 2
+    print("a << 2 (Shift Left):\n")
+    print("  11001010 << 2\n")
+    print("  00101000 (")
+    printi(result)
+    print(")\n\n")
+    
+    // Shift Right (>>)
+    result = a >> 2
+    print("a >> 2 (Shift Right):\n")
+    print("  11001010 >> 2\n")
+    print("  00110010 (")
+    printi(result)
+    print(")\n\n")
+    
+    // Compound assignment operators (using separate operations)
+    print("Bitwise with Assignment:\n")
+    u8 x = 0b00001111
+    print("x = 0b00001111 (15)\n")
+    
+    x = x << 1
+    print("x = x << 1: ")
+    printi(x)
+    print("\n")
+    
+    x = x >> 1
+    print("x = x >> 1: ")
+    printi(x)
+    print("\n")
+    
+    x = x | 0b11110000
+    print("x = x | 0b11110000: ")
+    printi(x)
+    print("\n")
+    
+    x = x & 0b10101010
+    print("x = x & 0b10101010: ")
+    printi(x)
+    print("\n")
+    
+    x = x ^ 0b11111111
+    print("x = x ^ 0b11111111: ")
+    printi(x)
+    print("\n\n")
+    
+    // Practical examples
+    print("Practical Examples:\n")
+    
+    // Setting a bit
+    u8 flags = 0b00000000
+    print("flags = 0b00000000\n")
+    flags = flags | 0b00000100  // Set bit 2
+    print("Set bit 2: ")
+    printi(flags)
+    print("\n")
+    
+    // Clearing a bit
+    flags = flags & 0b11111011  // Clear bit 2
+    print("Clear bit 2: ")
+    printi(flags)
+    print("\n")
+    
+    // Toggling a bit
+    flags = flags ^ 0b00000100  // Toggle bit 2
+    print("Toggle bit 2: ")
+    printi(flags)
+    print("\n")
+    
+    // Checking if a bit is set
+    u8 mask = 0b00000100
+    if ((flags & mask) <> 0) {
+        print("Bit 2 is set\n")
+    } else {
+        print("Bit 2 is not set\n")
+    }
+    
+    print("\nBitwise operations test completed!\n")
+}

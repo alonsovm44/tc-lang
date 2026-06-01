@@ -1,9 +1,0 @@
-
-VAR x 1 
-VAR y 2 
-PUSH x
-PUSH y
-ADD
-VAR z
-POP z
-PRINT z

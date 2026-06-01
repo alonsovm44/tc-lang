@@ -43,7 +43,9 @@ Adding built in functions for C parity
 
 The rest can be built in library
 
-# macro
+
+
+# macros
 Text replacement macros
 Allows to customize the language
 
@@ -74,7 +76,7 @@ Renaming the macro
 macro printHi {print("Hello World!")}
 
 ```
-Useful for boilerplate
+- Useful for boilerplate
 ```
 # main {
     hot pub fn void main: =>->args
@@ -83,42 +85,35 @@ Useful for boilerplate
 main {
     //logic
 }
+
+# check_error{
+    if(status != 0){
+        // error handling
+        print("error detected")
+        ret 1
+    }
+}
+
+fn void foo: {
+    // code
+    check_error // this expands on comptime
+}
 ```
 
-Or if you have a very common long function signature
+- Or if you have a very common long function signature
 
 ```
-# fun01 {
+# hpfint {
     hot pub fn i32 
 }
 
-fun01 foo: int x{
+hpfint voidfoo: int x{
 
 }
-fun01 bar: int y{
+hpfint voidbar: int y{
 
 }
 ... // many functions with the same signature
-
-
-```
-
-## As a way to include files C style
-```
-# {"file/path.tc"}
-```
-
-Now we have three ways of including a file
-```
-use "path/to/file.tc" // expects a .h lib
-@use "path/to/file.tc" inlines content to the AST, for when you want to include a .tc lib alone
-# lib {"path/to/lib.tc"} pastes file content in the scope C style, can be used inside functions/methods/scopes
-```
-
-Use 
-```
-# math {"stdlib/math.tc"}
-// can be used to call c libs (as long as they're single header)
 ```
 
 Other way to use C files (.c and .h) is via "C".
@@ -132,14 +127,52 @@ Other way to use C files (.c and .h) is via "C".
 
 ```
 
-- Why three different ways?
+## Macros are scoped
+```
 
-| Feature | use | @use | # include |
-|---------|-----|------|-----------|
-| Level | Semantic (AST) | Semantic (AST) | Text (macro) |
-| C header needed | Yes | No | No |
-| Scope control | Global | Global | Anywhere |
-| Type checking | Full | Full | Post-expansion |
-| Use in functions | No | No | Yes |
-| Best for | External libs | Internal libs | Templates/local utils |
-Best for	External libs	Internal libs	Templates/local utils
+//global scope
+# float {f32} // f32 is float in all scopes
+// not recommended since it can collide with other macros
+    {
+       # int32{i32}
+    } // int32 dies here
+    {
+        # int {i32}
+    } // int dies here
+
+
+fn void foo: {
+    # int{i32}
+    // i32 is int here
+}// after this int dies
+```
+
+## Parametric macros
+
+```
+# name(params,...){
+    //body
+}
+// Examples
+
+# swap(T, x, y){
+    T temp = x
+    x = y
+    y = temp
+}
+
+fn void main: {
+    i32 a = 1
+    i32 b = 2
+    swap(i32, a, b)
+    printi(a)
+    printi(b)
+
+    // works for floats too
+    f32 c = 1.5
+    f32 d = 2.5
+    swap(f32, c, d)
+    printf(c)
+    printf(d)
+}
+```

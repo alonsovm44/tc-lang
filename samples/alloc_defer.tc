@@ -1,0 +1,56 @@
+use "stdlib/io.tc"
+
+fn void main: {
+    print("Testing allocation and defer\n")
+    
+    // Example 1: Simple allocation with defer for cleanup
+    i32 size = 10
+    ->i32 ptr = alloc(i32, size)
+    
+    defer {
+        print("Cleaning up allocated memory\n")
+        free(ptr)
+    }
+    
+    print("Allocated array of size: ")
+    printi(size)
+    print("\n")
+    
+    // Use the allocated memory
+    i32 i = 0
+    loop {
+        if (i >= size) { break }
+        ptr[i] = i * 2
+        i++
+    }
+    
+    print("Array values: ")
+    i = 0
+    loop {
+        if (i >= size) { break }
+        printi(ptr[i])
+        print(" ")
+        i++
+    }
+    print("\n")
+    
+    // Example 2: Multiple defers execute in reverse order LIFO
+    // i know it is more common to make it FIFO but I chose LIFO because it is more intuitive for me
+    print("\nTesting multiple defers:\n")
+    
+    ->i32 ptr2 = alloc(i32, 5)
+    defer {
+        print("Second defer executed\n")
+        free(ptr2)
+    }
+    
+    ->i32 ptr3 = alloc(i32, 3)
+    defer {
+        print("First defer executed\n")
+        free(ptr3)
+    }
+    
+    print("Allocations done, defers will execute in reverse order\n")
+    
+    print("\nAllocation and defer test completed!\n")
+}

@@ -281,28 +281,28 @@ fn ->Type new_type: TypeKind kind{
     ->Type t = xmalloc(sizeof(Type))
     memset(t, 0, sizeof(Type))
     t.>kind = kind
-    return t
+    ret t
 } 
 
 fn ->Expr new_expr: ExprKind kind{
     ->Expr e = xmalloc(sizeof(Expr))
     memset(e, 0, sizeof(Expr))
     e.>kind = kind
-    return e
+    ret e
 }
 
 fn ->Stmt new_stmt: StmtKind kind{
     ->Stmt s = xmalloc(sizeof(Stmt))
     memset(s, 0, sizeof(Stmt))
     s.>kind = kind
-    return s
+    ret s
 }
 
 fn ->Decl new_decl: DeclKind kind{
     ->Decl d = xmalloc(sizeof(Decl))
     memset(d, 0, sizeof(Decl))
     d.>kind = kind
-    return d
+    ret d
 }
 
 
