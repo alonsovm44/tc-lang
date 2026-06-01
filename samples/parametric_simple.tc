@@ -1,0 +1,17 @@
+use "stdlib/io.tc"
+
+# twice(x){
+    x * 2
+}
+
+fn void main: {
+    print("Testing simple parametric macro\n")
+    print("=================================\n\n")
+    
+    i32 result = twice(5)
+    print("twice(5) = ")
+    printi(result)
+    print("\n")
+    
+    print("Parametric macro test completed!\n")
+}

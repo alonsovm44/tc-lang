@@ -1,0 +1,7 @@
+# test{
+    i32 x = 5
+}
+
+fn void main: {
+    test
+}

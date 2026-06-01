@@ -1,0 +1,48 @@
+use "stdlib/io.tc"
+
+# swap(T, x, y){
+    T temp = x
+    x = y
+    y = temp
+}
+
+fn void main: {
+    print("Testing parametric macros\n")
+    print("==========================\n\n")
+    
+    // Test with integers
+    i32 a = 1
+    i32 b = 2
+    print("Before swap: a=")
+    printi(a)
+    print(", b=")
+    printi(b)
+    print("\n")
+    
+    swap(i32, a, b)
+    
+    print("After swap: a=")
+    printi(a)
+    print(", b=")
+    printi(b)
+    print("\n\n")
+    
+    // Test with floats
+    f32 c = 1.5
+    f32 d = 2.5
+    print("Before swap: c=")
+    printf(c)
+    print(", d=")
+    printf(d)
+    print("\n")
+    
+    swap(f32, c, d)
+    
+    print("After swap: c=")
+    printf(c)
+    print(", d=")
+    printf(d)
+    print("\n")
+    
+    print("\nParametric macro test completed!\n")
+}

@@ -1,0 +1,8 @@
+# test(x){
+    42
+}
+
+fn void main: {
+    i32 result = test(5)
+    printi(result)
+}
