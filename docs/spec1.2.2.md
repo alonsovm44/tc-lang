@@ -43,13 +43,103 @@ Adding built in functions for C parity
 
 The rest can be built in library
 
-# typedef 
-Adding a word or something that renames types into aliases
+# macro
+Text replacement macros
+Allows to customize the language
 
 ```
-type i32 = int 
-//or
-@i32 = int
-//or 
-#i32 = int 
+# name {target}
+// example
+
+# int {i32}
+# float {f32}
+# func {fn}
+
+func void main: {} // now we can use func instead of fn 
+
+// other example
+
+# printHi {print("Hello World!")}
+// now we can use printHi instead of print("Hello World!")
+
+func void foo:{
+    printHi
+}
 ```
+## Other uses
+Renaming the macro
+
+```
+# macro{#}
+macro printHi {print("Hello World!")}
+
+```
+Useful for boilerplate
+```
+# main {
+    hot pub fn void main: =>->args
+}
+
+main {
+    //logic
+}
+```
+
+Or if you have a very common long function signature
+
+```
+# fun01 {
+    hot pub fn i32 
+}
+
+fun01 foo: int x{
+
+}
+fun01 bar: int y{
+
+}
+... // many functions with the same signature
+
+
+```
+
+## As a way to include files C style
+```
+# {"file/path.tc"}
+```
+
+Now we have three ways of including a file
+```
+use "path/to/file.tc" // expects a .h lib
+@use "path/to/file.tc" inlines content to the AST, for when you want to include a .tc lib alone
+# lib {"path/to/lib.tc"} pastes file content in the scope C style, can be used inside functions/methods/scopes
+```
+
+Use 
+```
+# math {"stdlib/math.tc"}
+// can be used to call c libs (as long as they're single header)
+```
+
+Other way to use C files (.c and .h) is via "C".
+
+```
+{
+    //global scope
+    "C"{#include "libs/raylib.h"}
+    // now we can use raylib functions
+}
+
+```
+
+- Why three different ways?
+
+| Feature | use | @use | # include |
+|---------|-----|------|-----------|
+| Level | Semantic (AST) | Semantic (AST) | Text (macro) |
+| C header needed | Yes | No | No |
+| Scope control | Global | Global | Anywhere |
+| Type checking | Full | Full | Post-expansion |
+| Use in functions | No | No | Yes |
+| Best for | External libs | Internal libs | Templates/local utils |
+Best for	External libs	Internal libs	Templates/local utils

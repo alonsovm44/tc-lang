@@ -290,3 +290,19 @@ fn ->Expr new_expr: ExprKind kind{
     e.>kind = kind
     return e
 }
+
+fn ->Stmt new_stmt: StmtKind kind{
+    ->Stmt s = xmalloc(sizeof(Stmt))
+    memset(s, 0, sizeof(Stmt))
+    s.>kind = kind
+    return s
+}
+
+fn ->Decl new_decl: DeclKind kind{
+    ->Decl d = xmalloc(sizeof(Decl))
+    memset(d, 0, sizeof(Decl))
+    d.>kind = kind
+    return d
+}
+
+
