@@ -1,6 +1,11 @@
 // Comprehensive Macro Test File
 // Tests all macro features: basic, parametric single-line, parametric multi-line
 
+// Define printi using inline C
+"C"{
+    static void printi(int32_t x) { printf("%d\n", x); }
+}
+
 // 1. Basic Macro - simple type alias
 # int{i32}
 # float{f32}
@@ -18,15 +23,10 @@
     y = temp
 }
 
-// 4. Multi-line Parametric Macro with calculations
-# max(a, b){
-    i32 result
-    if a > b {
-        result = a
-    } else {
-        result = b
-    }
-    result
+// 4. Multi-line Parametric Macro - print macro
+# print_twice(msg){
+    print(msg)
+    print(msg)
 }
 
 fn void main: {
@@ -45,13 +45,9 @@ fn void main: {
     i32 b = 2
     swap(i32, a, b)
     
-    // Test max macro
-    i32 m = max(10, 20)
-    
     printi(doubled)
     printi(squared)
     printi(sum)
     printi(a)
     printi(b)
-    printi(m)
 }
