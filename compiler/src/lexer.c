@@ -55,7 +55,7 @@ TokenVec lex_source(const char *src) {
             i += 2; col += 2;
             continue;
         }
-        // Handle inline C code: "C"{ ... }
+        // Handle inline C code: "C"{ ... } - must come before string literal check
         if (src[i] == '"' && src[i + 1] == 'C' && src[i + 2] == '"' && src[i + 3] == '{') {
             int start = i;
             i += 4; col += 4;

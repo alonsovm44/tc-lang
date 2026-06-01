@@ -309,6 +309,15 @@ char *emit_program(DeclVec program) {
     str_add(&out, "#define TC_LENOF(x) (sizeof(x) / sizeof((x)[0]))\n");
     str_add(&out, "#define TC_FAT_LENOF(x) ((x).len)\n");
     str_add(&out, "\n");
+    // Emit global inline C code (for #include statements, etc.)
+    for (int i = 0; i < program.count; i++) {
+        Decl *d = program.items[i];
+        if (d->kind == DC_INLINE_C && d->text) {
+            str_add(&out, d->text);
+            str_add(&out, "\n");
+        }
+    }
+    str_add(&out, "\n");
     char *seen[64] = {0};
     int seen_count = 0;
     for (int i = 0; i < program.count; i++) {

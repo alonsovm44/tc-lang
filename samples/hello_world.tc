@@ -1,5 +1,12 @@
 use "stdlib/io.tc"
 
-fn void main: {
+// alternatively
+void fn foo: {
     print("Hello World!\n")
 }
+
+fn void main: {
+    print("Hello World!\n")
+    foo()
+}
+

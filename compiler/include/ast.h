@@ -149,7 +149,8 @@ typedef enum {
     DC_ENUM,
     DC_FN,
     DC_VAR,
-    DC_EXTERN_FN
+    DC_EXTERN_FN,
+    DC_INLINE_C
 } DeclKind;
 
 struct Decl {
@@ -166,6 +167,7 @@ struct Decl {
     bool packed;
     EnumMemberVec enum_members;  // For DC_ENUM
     DeclVec methods;  // For DC_STRUCT: methods defined in strun
+    char *text;  // For DC_INLINE_C: the C code text
 };
 
 void expr_push(ExprVec *v, Expr *x);

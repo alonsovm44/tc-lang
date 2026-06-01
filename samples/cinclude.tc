@@ -1,9 +1,10 @@
+
 "C"{
     #include "raylib.h"
 }
 
 fn void main: {
     "C"{
-        printf("Hello from Tig-C!")
+        printf("Hello from Tig-C!\n");
     }
 }

@@ -226,7 +226,11 @@ void check_program(DeclVec *program) {
 
     for (int i = 0; i < program->count; i++) {
         Decl *d = program->items[i];
-        if (d->kind != DC_FN) continue;
+        if (d->kind != DC_FN) {
+            // Skip inline C declarations - they don't need type checking
+            if (d->kind == DC_INLINE_C) continue;
+            continue;
+        }
 
         ScopeStack s = {0};
         s.program = program;

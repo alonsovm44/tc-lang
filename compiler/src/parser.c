@@ -599,6 +599,15 @@ DeclVec parse_program(Token *tokens) {
             decl_push(&p.decls, d);
             continue;
         }
+        // Check for global inline C: TOK_INLINE_C token
+        if (cur(&p)->kind == TOK_INLINE_C) {
+            Token *c_tok = cur(&p);
+            p.pos++;  // consume the TOK_INLINE_C token
+            Decl *d = new_decl(DC_INLINE_C);
+            d->text = c_tok->text;
+            decl_push(&p.decls, d);
+            continue;
+        }
         bool public = match(&p, "pub");
         if (match(&p, "extern")) {
             if (cur(&p)->kind != TOK_STRING || strcmp(cur(&p)->text, "\"C\"")) tc_error("E011", cur(&p)->line, cur(&p)->col, (int)strlen(cur(&p)->text), "extern expects \"C\", got '%s'", cur(&p)->text);
