@@ -43,8 +43,6 @@ Adding built in functions for C parity
 
 The rest can be built in library
 
-
-
 # macros
 Text replacement macros
 Allows to customize the language
