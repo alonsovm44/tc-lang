@@ -1,0 +1,163 @@
+#include "common.h"
+
+#include <stdarg.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+void die(const char *fmt, ...) {
+    va_list ap;
+    va_start(ap, fmt);
+    vfprintf(stderr, fmt, ap);
+    va_end(ap);
+    fputc('\n', stderr);
+    exit(1);
+}
+
+static SrcContext g_src = {0};
+
+void tc_set_source(const char *filename, const char *source) {
+    g_src.filename = filename;
+    g_src.source = source;
+}
+
+static const char *get_line_start(const char *src, int target_line) {
+    int line = 1;
+    const char *p = src;
+    while (*p && line < target_line) {
+        if (*p == '\n') line++;
+        p++;
+    }
+    return p;
+}
+
+static int get_line_len(const char *line_start) {
+    int len = 0;
+    while (line_start[len] && line_start[len] != '\n') len++;
+    return len;
+}
+
+void tc_error(const char *ecode, int line, int col, int span, const char *fmt, ...) {
+    const char *RED    = "\033[1;31m";
+    const char *BLUE   = "\033[1;34m";
+    const char *CYAN   = "\033[1;36m";
+    const char *BOLD   = "\033[1m";
+    const char *DIM    = "\033[2m";
+    const char *RESET  = "\033[0m";
+
+    va_list ap;
+    va_start(ap, fmt);
+    fprintf(stderr, "%s%serror[%s]%s%s: ", RED, BOLD, ecode, RESET, BOLD);
+    vfprintf(stderr, fmt, ap);
+    va_end(ap);
+    fprintf(stderr, "%s\n", RESET);
+
+    if (g_src.filename) {
+        fprintf(stderr, " %s-->%s %s:%d:%d\n", BLUE, RESET, g_src.filename, line, col);
+    }
+
+    if (g_src.source && line > 0) {
+        const char *ls = get_line_start(g_src.source, line);
+        int ll = get_line_len(ls);
+        char line_num[16];
+        int nw = snprintf(line_num, sizeof(line_num), "%d", line);
+
+        fprintf(stderr, " %*s %s|%s\n", nw, "", BLUE, RESET);
+        fprintf(stderr, " %s%d%s %s|%s %.*s\n", BLUE, line, RESET, BLUE, RESET, ll, ls);
+        fprintf(stderr, " %*s %s|%s ", nw, "", BLUE, RESET);
+
+        if (span < 1) span = 1;
+        for (int i = 1; i < col; i++) fputc(' ', stderr);
+        fprintf(stderr, "%s", RED);
+        for (int i = 0; i < span; i++) fputc('^', stderr);
+        fprintf(stderr, "%s", RESET);
+
+        va_list ap2;
+        va_start(ap2, fmt);
+        fprintf(stderr, " %s", RED);
+        vfprintf(stderr, fmt, ap2);
+        va_end(ap2);
+        fprintf(stderr, "%s\n", RESET);
+    }
+
+    fprintf(stderr, "\n%s%s%s\n", CYAN, ecode, RESET);
+    fprintf(stderr, "%sType \"tcc --error %s\" for help%s\n", DIM, ecode, RESET);
+
+    exit(1);
+}
+
+void *xmalloc(size_t size) {
+    void *ptr = malloc(size ? size : 1);
+    if (!ptr) die("out of memory");
+    return ptr;
+}
+
+void *xrealloc(void *ptr, size_t size) {
+    void *next = realloc(ptr, size ? size : 1);
+    if (!next) die("out of memory");
+    return next;
+}
+
+char *xstrndup(const char *s, size_t n) {
+    char *out = xmalloc(n + 1);
+    memcpy(out, s, n);
+    out[n] = 0;
+    return out;
+}
+
+char *xstrdup(const char *s) {
+    return xstrndup(s, strlen(s));
+}
+
+void str_push(Str *s, char c) {
+    if (s->len + 1 >= s->cap) {
+        s->cap = s->cap ? s->cap * 2 : 128;
+        s->data = xrealloc(s->data, s->cap);
+    }
+    s->data[s->len++] = c;
+    s->data[s->len] = 0;
+}
+
+void str_add(Str *s, const char *text) {
+    while (*text) str_push(s, *text++);
+}
+
+void str_printf(Str *s, const char *fmt, ...) {
+    va_list ap;
+    va_start(ap, fmt);
+    va_list copy;
+    va_copy(copy, ap);
+    int needed = vsnprintf(NULL, 0, fmt, copy);
+    va_end(copy);
+    if (needed < 0) die("formatting failed");
+    size_t old = s->len;
+    while (s->len + (size_t)needed + 1 >= s->cap) {
+        s->cap = s->cap ? s->cap * 2 : 128;
+        s->data = xrealloc(s->data, s->cap);
+    }
+    vsnprintf(s->data + old, (size_t)needed + 1, fmt, ap);
+    va_end(ap);
+    s->len += (size_t)needed;
+}
+
+bool is_keyword(const char *text) {
+    static const char *keywords[] = {
+        "if", "else", "loop", "break", "defer", "ret", "struct", "enum", "fn", "use", "pub", "pin", "extern", "hot", "sizeof",
+        "void", "i2", "i4", "i8", "i16", "i32", "i64", "u2", "u4", "u8", "u16", "u32", "u64", "f32", "f64",
+        NULL
+    };
+    for (int i = 0; keywords[i]; i++) {
+        if (strcmp(text, keywords[i]) == 0) return true;
+    }
+    return false;
+}
+
+bool is_type_name(const char *text) {
+    static const char *types[] = {
+        "void", "i2", "i4", "i8", "i16", "i32", "i64", "u2", "u4", "u8", "u16", "u32", "u64", "f32", "f64", NULL
+    };
+    for (int i = 0; types[i]; i++) {
+        if (strcmp(text, types[i]) == 0) return true;
+    }
+    return false;
+}
