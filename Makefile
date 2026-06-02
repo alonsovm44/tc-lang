@@ -2,7 +2,7 @@ CC      = gcc
 CFLAGS  = -std=c11 -Wall -Wextra -I compiler/include
 SRC     = $(wildcard compiler/src/*.c)
 OBJ     = $(SRC:.c=.o)
-TARGET  = tightc
+TARGET  = tigc
 
 all: $(TARGET)
 

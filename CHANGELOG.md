@@ -17,6 +17,7 @@ Removed:
 - removed conditional defer
 Improved/Fixed:
 
+- changed binary name from tightc to tigc
 - changed binary name from tcc to tightc so we dont collide with tiny c compiler (tcc)
 - fixed varargs not working>
 ## v1.1.0 2026-05-22
