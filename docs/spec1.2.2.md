@@ -3,6 +3,7 @@
 ## "For" loops
 [DISCARDED] 
 > It is unnecesary syntax sugar, postponed for later versions.
+> Beware of code diabetes, it affects 3 out of 5 programmers (according to my butt, which is not a scientific source but still)
 syntax sugar over for loops without for keyword
 The variable is automatically declared as i32 and set to the first value of the range
 (in this case we make an exception for no shadowing, loop variables can be shadowed)
@@ -176,3 +177,21 @@ fn void main: {
     printf(d)
 }
 ```
+
+# keywords in 1.2.2
+No changes
+
+1. if 
+2. loop
+3. break
+4. defer
+5. ret
+6. strun
+7. fn
+8. use
+9. pub 
+10. pin
+11. match
+12. hot
+13. else
+14. enum 
