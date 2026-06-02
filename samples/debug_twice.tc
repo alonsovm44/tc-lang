@@ -1,7 +1,2 @@
-# twice(x){
-    x * 2
-}
+// macros test
 
-fn void main: {
-    i32 result = twice(5)
-}

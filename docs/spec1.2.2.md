@@ -1,7 +1,8 @@
 # v 1.2.2 spec
 
 ## "For" loops
-
+[DISCARDED] 
+> It is unnecesary syntax sugar, postponed for later versions.
 syntax sugar over for loops without for keyword
 The variable is automatically declared as i32 and set to the first value of the range
 (in this case we make an exception for no shadowing, loop variables can be shadowed)
@@ -44,6 +45,7 @@ Adding built in functions for C parity
 The rest can be built in library
 
 # macros
+[DONE] 1 June 2026
 Text replacement macros
 Allows to customize the language
 
