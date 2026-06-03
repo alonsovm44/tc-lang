@@ -17,7 +17,8 @@ Tight-C is a minimalistic systems programming language.
 
 ## What's New in v1.2.3
 
-- **Bulletproof Global Hot Reloading** — No special `hot` keyword needed anymore. Every function, structure (`strun`), and enum layout can be live-updated on-the-fly. The infinite driver loop resides in the Host while the logic runs inside versioned libraries, allowing zero-restart hot-reloading with automatic old DLL cleanup!
+- **Better Hot Reloading** — No special `hot` keyword needed anymore. Every function, structure (`strun`), and enum layout can be live-updated on-the-fly. The infinite driver loop resides in the Host while the logic runs inside versioned libraries, allowing zero-restart hot-reloading with automatic old DLL cleanup!
+> Note: if you find bugs, (which will be found) please report them, open an issue.
 - **Simplified Keywords** — Removed the `hot` keyword completely. Tight-C now has only 13 keywords.
 - **Varargs support** — Functions can now declare and use variadic arguments with `...`
 - **Expanded I/O stdlib** — Added file I/O functions (fopen, fclose, fgetc, fputs, fprintf, fscanf, feof, etc.)
