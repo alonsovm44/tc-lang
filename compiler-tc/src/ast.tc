@@ -2,7 +2,7 @@
     #ifndef TIGHTC_AST_H
 #define TIGHTC_AST_H
 
-#include "common.h"
+#include "../compiler/include/common.h"
 
 typedef struct Type Type;
 typedef struct Expr Expr;

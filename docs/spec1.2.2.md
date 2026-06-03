@@ -177,9 +177,26 @@ fn void main: {
     printf(d)
 }
 ```
+# Simplifying hot reloading
+Currently hot reloading is limited to hot functions. The process is verbose and tedious. It requires marking specific functions with a special syntax and
+The hot reloading feature is thought for the development process, when the finished product is done we just compile normally. All hot objects get their impl in the final bianry
+
+Idea: use hot compilation to move ALL the code into a dll/so
+
+```bash
+#Normal
+./tigc source.tc -c app
+#global hot
+./tigc source.tc -c app -H hotlib
+./app
+#modify code while app is running
+./tigc source.tc -H hotlib --hot 
+#we shorten --hot-rebuild to just --hot
+```
+No need for hot keyword, ALL objects (struns, functions, enums, globals) are moved to the shared lib.
+While more complex, this allows to hot modify all code, not just function impl.
 
 # keywords in 1.2.2
-No changes
 
 1. if 
 2. loop
@@ -192,6 +209,9 @@ No changes
 9. pub 
 10. pin
 11. match
-12. hot
-13. else
-14. enum 
+12. else
+11. enum 
+
+Removed
+
+`hot`

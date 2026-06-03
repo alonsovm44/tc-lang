@@ -1,10 +1,10 @@
 "C"{
-    #include "common.h"
-#include "checker.h"
-#include "emitter.h"
-#include "io.h"
-#include "lexer.h"
-#include "parser.h"
+    #include "../compiler/include/common.h"
+    #include "../compiler/include/checker.h"
+    #include "../compiler/include/emitter.h"
+    #include "../compiler/include/io.h"
+    #include "../compiler/include/lexer.h"
+    #include "../compiler/include/parser.h"
 
 #include <stdio.h>
 #include <stdlib.h>

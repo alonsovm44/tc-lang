@@ -4,7 +4,8 @@ use "lexer.tc"
 #ifndef TIGHTC_PARSER_H
 #define TIGHTC_PARSER_H
 
-
+#include "../compiler/include/ast.h"
+#include "../compiler/include/lexer.h"
 
 DeclVec parse_program(Token *tokens);
 
@@ -13,11 +14,14 @@ DeclVec parse_program(Token *tokens);
 }
 
 
-use "parser.tc"
 use "common.tc"
 use "io.tc"
 
 "C"{
+    #include "../compiler/include/parser.h"
+    #include "../compiler/include/common.h"
+    #include "../compiler/include/ast.h"
+    #include "../compiler/include/lexer.h"
 
 #include <stdio.h>
 #include <string.h>

@@ -2,7 +2,7 @@
     #ifndef TIGHTC_CHECKER_H
 #define TIGHTC_CHECKER_H
 
-#include "ast.h"
+#include "../compiler/include/ast.h"
 
 void check_program(DeclVec *program);
 
@@ -11,9 +11,9 @@ void check_program(DeclVec *program);
 }
 
 "C"{
-    #include "checker.h"
-#include "common.h"
-#include "ast.h"
+    #include "../compiler/include/checker.h"
+    #include "../compiler/include/common.h"
+    #include "../compiler/include/ast.h"
 
 #include <stdlib.h>
 #include <string.h>

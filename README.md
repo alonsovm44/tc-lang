@@ -19,8 +19,9 @@ Tight-C is a minimalistic systems programming language.
 
 - **Varargs support** — Functions can now declare and use variadic arguments with `...`
 - **Expanded I/O stdlib** — Added file I/O functions (fopen, fclose, fgetc, fputs, fprintf, fscanf, feof, etc.)
-- **Else if statements** — Added `_if` for chained conditionals with `_` as else wildcard
+- **Else if statements** — Added `else if` and `else` for chained conditionals.
 - **Match statements** — Pattern matching with wildcard support
+- **Much more** - See the Changelog
 
 ## Project Goals
 > Make the first mainstream systems langauge from Mexico.

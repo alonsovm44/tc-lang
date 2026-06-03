@@ -411,6 +411,30 @@ static TokenVec lex_source_with_depth(const char *src, int depth) {
             while (src[i] && brace_count > 0) {
                 if (src[i] == '{') brace_count++;
                 else if (src[i] == '}') brace_count--;
+                else if (src[i] == '"') {
+                    // Skip double-quoted string literal
+                    i++; col++;
+                    while (src[i] && src[i] != '"') {
+                        if (src[i] == '\\' && src[i+1]) { i++; col++; }
+                        if (src[i] == '\n') { line++; col = 1; }
+                        else { col++; }
+                        i++;
+                    }
+                    if (src[i]) { i++; col++; }
+                    continue;
+                }
+                else if (src[i] == '\'') {
+                    // Skip single-quoted char literal
+                    i++; col++;
+                    while (src[i] && src[i] != '\'') {
+                        if (src[i] == '\\' && src[i+1]) { i++; col++; }
+                        if (src[i] == '\n') { line++; col = 1; }
+                        else { col++; }
+                        i++;
+                    }
+                    if (src[i]) { i++; col++; }
+                    continue;
+                }
                 else if (src[i] == '\n') { line++; col = 1; i++; continue; }
                 else if (src[i] == '/' && src[i + 1] == '/') {
                     while (src[i] && src[i] != '\n') { i++; col++; }
