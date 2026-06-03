@@ -702,15 +702,12 @@ DeclVec parse_program(Token *tokens) {
             decl_push(&p.decls, parse_enum(&p, public));
             continue;
         }
-        // Check for hot fn syntax
-        bool is_hot = match(&p, "hot");
         // Check for new fn syntax first
         if (match(&p, "fn")) {
             // New syntax: fn <type> <name>: <type> arg1, <type> arg2, ...
             Type *ret_type = parse_type(&p);
             Decl *d = new_decl(DC_FN);
             d->public = public;
-            d->is_hot = is_hot;
             d->type = ret_type;
             d->name = expect_ident(&p);
             expect(&p, ":");

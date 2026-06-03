@@ -228,8 +228,8 @@ int main(int argc, char **argv) {
                  "Options:\n"
                  "  -o, --output <file>    Write transpiled C to file (.h gets #pragma once)\n"
                  "  -c, --compile <name>   Compile to binary (auto-detects gcc/clang)\n"
-                 "  -H, --hot <lib>        Enable hot reload, emit shared library to <lib>\n"
-                 "  --hot-rebuild          Rebuild only hot library (for running program)\n"
+                 "  -H <lib>               Enable hot reload, emit shared library to <lib>\n"
+                 "  --hot                  Rebuild hot library (while app is running)\n"
                  "  -t, --temp             Keep temporary .c files for debugging\n"
                  "  -h, --help             Show this help message\n"
                  "  -v, --version          Show version\n"
@@ -238,10 +238,12 @@ int main(int argc, char **argv) {
                  "\n"
                  "Examples:\n"
                  "  tigc main.tc -o main.c           Transpile to C\n"
-                 "  tigc main.tc -c app               Transpile + compile to binary\n"
-                 "  tigc main.tc -o main.c -c app     Keep .c and compile\n"
-                 "  tigc lib.tc -o lib.h               Emit as header\n"
-                 "  tigc main.tc -H hot.so -c app     Hot reload: emit lib + host\n");
+                 "  tigc main.tc -c app              Transpile + compile to binary\n"
+                 "  tigc main.tc -o main.c -c app    Keep .c and compile\n"
+                 "  tigc lib.tc -o lib.h             Emit as header\n"
+                 "  tigc main.tc -c app -H hotlib    Hot reload: create app + hotlib_1.dll\n"
+                 "  ./app                            Run the application\n"
+                 "  tigc main.tc -H hotlib --hot     Rebuild hotlib (app updates automatically)\n");
             return 0;
         } else if (!strcmp(argv[i], "--version") || !strcmp(argv[i], "-v")) {
             puts("tight-c 1.2.2");
@@ -257,10 +259,10 @@ int main(int argc, char **argv) {
         } else if (!strcmp(argv[i], "-o") || !strcmp(argv[i], "--output")) {
             if (++i >= argc) die("missing output path after -o");
             output = argv[i];
-        } else if (!strcmp(argv[i], "-H") || !strcmp(argv[i], "--hot")) {
+        } else if (!strcmp(argv[i], "-H")) {
             if (++i >= argc) die("missing library name after -H");
             hot_lib = argv[i];
-        } else if (!strcmp(argv[i], "--hot-rebuild")) {
+        } else if (!strcmp(argv[i], "--hot")) {
             hot_rebuild = true;
         } else if (!strcmp(argv[i], "-t") || !strcmp(argv[i], "--temp")) {
             keep_temp = true;
