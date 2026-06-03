@@ -178,8 +178,8 @@ fn void main: {
 }
 ```
 # Simplifying hot reloading
-Currently hot reloading is limited to hot functions. The process is verbose and tedious. It requires marking specific functions with a special syntax and
-The hot reloading feature is thought for the development process, when the finished product is done we just compile normally. All hot objects get their impl in the final bianry
+Currently hot reloading is limited to hot functions. The process is verbose and tedious. It requires marking specific functions with a special syntax, which is an extra keyword.
+The hot reloading feature is thought for the development process, when the finished product is done we just compile normally. All hot objects get their impl in the final bianry in production.
 
 Idea: use hot compilation to move ALL the code into a dll/so
 
