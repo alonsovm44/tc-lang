@@ -7,6 +7,7 @@ Removed:
 - removed hot keyword and simplified hot reloading, now works good
 Improved/Fixed:
 
+- improved hot reloading and made it easier
 ## v1.2.1 2026-06-02
 
 Added:
@@ -61,7 +62,7 @@ Improved/Fixed:
 - fixed scoping errors not showing in compile time by tcc
 - fixed struns being packed by default, now they can be packed with @
 ## v1.0.0 2026-05-22
-
+<initial release>
 Added:
 
 Removed:

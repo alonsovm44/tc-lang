@@ -4,7 +4,7 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/version-1.2.0-blue?style=flat-square" alt="Version">
+  <img src="https://img.shields.io/badge/version-1.2.3-blue?style=flat-square" alt="Version">
   <img src="https://img.shields.io/badge/language-C11-orange?style=flat-square" alt="Language">
   <img src="https://img.shields.io/badge/license-MIT-green?style=flat-square" alt="License">
   <img src="https://img.shields.io/badge/platform-Windows%20%7C%20Linux%20%7C%20macOS-lightgrey?style=flat-square" alt="Platform">
@@ -15,8 +15,10 @@
 
 Tight-C is a minimalistic systems programming language.
 
-## What's New in v1.2.0
+## What's New in v1.2.3
 
+- **Bulletproof Global Hot Reloading** — No special `hot` keyword needed anymore. Every function, structure (`strun`), and enum layout can be live-updated on-the-fly. The infinite driver loop resides in the Host while the logic runs inside versioned libraries, allowing zero-restart hot-reloading with automatic old DLL cleanup!
+- **Simplified Keywords** — Removed the `hot` keyword completely. Tight-C now has only 13 keywords.
 - **Varargs support** — Functions can now declare and use variadic arguments with `...`
 - **Expanded I/O stdlib** — Added file I/O functions (fopen, fclose, fgetc, fputs, fprintf, fscanf, feof, etc.)
 - **Else if statements** — Added `else if` and `else` for chained conditionals.
@@ -29,7 +31,7 @@ Tight-C is a minimalistic systems programming language.
 
 ## Features
 
-- **14 keywords** — `if`, `loop`, `break`, `defer`, `ret`, `strun`, `fn`, `use`, `pub`, `pin`, `match`, `hot`, `else`, `enum`
+- **13 keywords** — `if`, `loop`, `break`, `defer`, `ret`, `strun`, `fn`, `use`, `pub`, `pin`, `match`, `else`, `enum`
 - **No hidden magic** — no GC, no type inference, no shadowing, no aliasing
 - **Raw pointers** (`->`) and **fat pointers** (`=>`) with built-in slicing
 - **Manual memory** — `alloc()` / `free()` with `defer` for cleanup
@@ -361,31 +363,31 @@ Combine both: `tightc app.tc -o app.c -c app` keeps the `.c` and builds the bina
 
 ## Hot Reloading
 
-Tight-C supports hot reloading of functions marked with the `hot` keyword. This allows you to modify code and recompile shared libraries without restarting the main executable.
+Tight-C supports global, bulletproof hot reloading. This allows you to modify functions, structs (`strun` definitions), and enums, and recompile shared libraries *completely on-the-fly* without restarting your running application.
 
 ### Basic Usage
 
 ```bash
-# Initial compile with hot reload enabled
-tightc hot.tc -H hotlib -c hotfn
+# 1. Compile host + hot library version 1
+tigc hot.tc -H hotlib -c hot_app
 
-# Run the application
-./hotfn
+# 2. Run the application
+./hot_app
 
-# While running, modify hot.tc and rebuild only the hot library
-tightc hot.tc -H hotlib --hot-rebuild
+# 3. While running, modify any function/logic in hot.tc and rebuild the library
+tigc hot.tc -H hotlib --hot
 ```
 
-The running application will automatically detect the change and reload the library on the next hot function call.
+The running application will automatically detect the changes, unload the old library, load the new one, and immediately execute the new code on the next loop iteration.
 
 ### How It Works
 
-Hot reload uses versioned shared libraries to avoid file locking issues on Windows:
+Tight-C uses a robust Host/DLL splitting architecture to avoid Windows file locking issues and guarantee clean reloads during loops:
 
-- Functions marked with `hot` are compiled into a separate shared library
-- Each rebuild creates a new version (e.g., `hotlib_1.dll`, `hotlib_2.dll`)
-- A version file tracks the current version number
-- The host executable monitors the version file and dynamically loads new versions
+- **Host (The Driver)**: The `main` function is compiled directly into the host executable. This ensures the main driver/application loop resides safely outside the shared library, avoiding trapped call stacks. The host manages loading/unloading and resolves stubs.
+- **Library (The Engine)**: All other functions, structs, and enums are compiled into the shared library (`hotlib_N.dll` on Windows / `hotlib_N.so` on Unix). Every function is exported automatically.
+- **Dynamic Reloading**: When a function is called, a host stub checks the current library version, reloads if a new version is detected, and executes through function pointers.
+- **Automatic Cleanup**: On a successful reload, the host automatically and cleanly deletes old version files to keep your workspace pristine.
 
 ### Example
 
@@ -396,11 +398,11 @@ extern "C" {
     i32 fn Sleep: u32 ms {}
 }
 
-hot fn i32 add: i32 x, i32 y {
+fn i32 add: i32 x, i32 y {
     ret x + y + 10
 }
 
-fn void main: {
+fn i32 main: {
     loop {
         i32 result = add(3, 4)
         printi(result)
@@ -409,19 +411,19 @@ fn void main: {
 }
 ```
 
-Running this prints `17` every 2 seconds. If you change `ret x + y + 10` to `ret x + y + 20` and rebuild with `--hot-rebuild`, the output will change to `24` without restarting the application.
+Running this prints `17` every 2 seconds. If you edit `ret x + y + 10` to `ret x + y + 20` and run `tigc hot.tc -H hotlib --hot`, the output instantly changes to `27` without restarting the app!
 
 ### Additional Flags
 
 | Flag | Description |
 |------|-------------|
-| `-H <libname>` | Enable hot reload mode, specify the library name |
-| `--hot-rebuild` | Rebuild only the hot library (for running applications) |
-| `-t, --temp` | Keep temporary .c files for debugging |
+| `-H <libname>` | Enable hot reload mode and specify the shared library name |
+| `--hot` | Rebuild only the hot library version for a running application |
+| `-t, --temp` | Keep temporary `.c` files for debugging |
 
 ### Proof of Concept
 
-See the `HOTSWAPPING/` folder for a complete working example with documentation, including the demo output showing hot reload in action.
+See the `demos/HOTSWAPPING/` folder for a complete working example with documentation, including the demo output showing hot reload in action.
 
 This feature demonstrates Tight-C's capability for advanced systems programming patterns, using the industry-standard approach to hot reload on Windows (versioned libraries).
 
