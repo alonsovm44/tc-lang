@@ -221,7 +221,7 @@ int main(int argc, char **argv) {
     bool keep_temp = false;
     for (int i = 1; i < argc; i++) {
         if (!strcmp(argv[i], "--help") || !strcmp(argv[i], "-h")) {
-            puts("Tight-C compiler v1.2.2\n"
+            puts("Tight-C compiler v1.2.3\n"
                  "\n"
                  "Usage: tigc <input.tc> [options]\n"
                  "\n"
@@ -246,7 +246,7 @@ int main(int argc, char **argv) {
                  "  tigc main.tc -H hotlib --hot     Rebuild hotlib (app updates automatically)\n");
             return 0;
         } else if (!strcmp(argv[i], "--version") || !strcmp(argv[i], "-v")) {
-            puts("tight-c 1.2.2");
+            puts("tight-c 1.2.3");
             return 0;
         } else if (!strcmp(argv[i], "--error") || !strcmp(argv[i], "--explain")) {
             if (++i >= argc) die("missing error code after --error");
