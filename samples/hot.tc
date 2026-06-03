@@ -5,13 +5,27 @@ extern "C" {
 }
 
 fn i32 add: i32 x, i32 y {
-    ret x * y   // CHANGED: now multiplies!
+    ret x + y + 10  // CHANGED: now adds (should print 7)
 }
 
-fn void main: {
+fn void do_work: {
+    // This function is called from the loop in tc_main
+    // When recompiled, the new version will be loaded on next call
+    i32 result = add(3, 4)
+    printi(result)
+    Sleep(2000)
+}
+
+fn i32 main: {
+    // Note: With hot reload, this loop runs in the DLL
+    // To see updates, the program must return to host periodically
+    // For demo purposes, we'll just print a few times and exit
+    i32 i = 0
     loop {
-        i32 result = add(3, 4)
-        printi(result)
-        Sleep(2000)
+        do_work()
+        i = i + 1
+        if (i >= 100) {
+            ret 0  // Exit after 100 iterations for demo
+        }
     }
 }

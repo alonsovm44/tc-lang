@@ -196,6 +196,11 @@ Idea: use hot compilation to move ALL the code into a dll/so
 No need for hot keyword, ALL objects (struns, functions, enums, globals) are moved to the shared lib.
 While more complex, this allows to hot modify all code, not just function impl.
 
+# todo
+
+- Automatic clean up of old dll/ hot versions. Only n and n-1 available for fallback
+
+
 # keywords in 1.2.2
 
 1. if 
@@ -210,7 +215,7 @@ While more complex, this allows to hot modify all code, not just function impl.
 10. pin
 11. match
 12. else
-11. enum 
+13. enum 
 
 Removed
 

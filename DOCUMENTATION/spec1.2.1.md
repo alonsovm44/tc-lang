@@ -1,5 +1,5 @@
 # v 1.2.1
-
+[SHIPPED]
 # enums
 [APPROVED]
 Simple enums since using match with magic numbers causes bugs
@@ -132,7 +132,12 @@ int main(){
     return 0;
 }
 ```
-
+Alternatively we can use
+```
+(->p).field 
+// basically 
+(*p).field
+```
 # methods
 [planned]
 [DONE] May 30 2026
@@ -178,9 +183,6 @@ fn void main: {
 ```
 implicit self (rust style)
 
-# todo
-
-- Automatic clean up of old dll/ hot versions. Only n and n-1 available for fallback
 
 ## keywords for 1.2.1
 

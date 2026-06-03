@@ -568,62 +568,110 @@ char *emit_hot_split(DeclVec program, const char *hot_lib, char **hot_c_out) {
         }
     }
 
-    // Emit forward declarations for all functions
+    // === HOT LIBRARY: All function bodies ===
+    // (Forward declarations not needed - function bodies are definitions)
     for (int i = 0; i < program.count; i++) {
         Decl *d = program.items[i];
         if (d->kind == DC_FN) {
+            bool is_main = (strcmp(d->name, "main") == 0);
+            if (is_main) {
+                // Do not emit main into the DLL!
+                continue;
+            }
+            // Regular functions keep their names and are exported from the DLL
+            str_add(&hot, "\n#ifdef _WIN32\n__declspec(dllexport)\n#endif\n");
             emit_type(&hot, d->type, d->name, &program); str_add(&hot, "(");
             if (!d->params.count) str_add(&hot, "void");
             for (int j = 0; j < d->params.count; j++) { if (j) str_add(&hot, ", "); emit_type(&hot, d->params.items[j].type, d->params.items[j].name, &program); }
-            str_add(&hot, ");\n");
-        }
-    }
-    str_add(&hot, "\n");
-
-    // Emit ALL function bodies to hot library
-    for (int i = 0; i < program.count; i++) {
-        Decl *d = program.items[i];
-        if (d->kind == DC_FN) {
-            bool is_main_args = (strcmp(d->name, "main") == 0 && d->params.count == 1 && d->params.items[0].type->kind == TY_FATPTR);
-            bool is_main = (strcmp(d->name, "main") == 0);
-            if (is_main_args) {
-                str_add(&hot, "\n#ifdef _WIN32\n__declspec(dllexport)\n#endif\nint32_t tc_main(int argc, char **argv) {\n");
-                str_printf(&hot, "    tc_fat_ptr %s = { .ptr = argv, .len = (size_t)argc };\n", d->params.items[0].name);
-            } else if (is_main) {
-                str_add(&hot, "\n#ifdef _WIN32\n__declspec(dllexport)\n#endif\n");
-                emit_type(&hot, d->type, "tc_main", &program);
-                str_add(&hot, "(void) {\n");
-            } else {
-                str_add(&hot, "\n"); emit_type(&hot, d->type, d->name, &program); str_add(&hot, "(");
-                if (!d->params.count) str_add(&hot, "void");
-                for (int j = 0; j < d->params.count; j++) { if (j) str_add(&hot, ", "); emit_type(&hot, d->params.items[j].type, d->params.items[j].name, &program); }
-                str_add(&hot, ") {\n");
-            }
+            str_add(&hot, ") {\n");
             emit_stmt_vec_with_defers(&hot, &d->body, &program, 1);
             str_add(&hot, "}\n");
         }
     }
 
-    // === HOST: Minimal loader with reload support ===
+    // === HOST: Stubs that call into hot library ===
     str_add(&host, "#include <stdint.h>\n#include <stdio.h>\n#include <stdlib.h>\n#include <string.h>\n");
 #ifdef _WIN32
     str_add(&host, "#include <windows.h>\n");
 #else
     str_add(&host, "#include <dlfcn.h>\n");
 #endif
+
+    str_add(&host, "#define TC_ALLOC(type, count) ((type *)calloc((count), sizeof(type)))\n");
+    str_add(&host, "#define TC_LENOF(x) (sizeof(x) / sizeof((x)[0]))\n");
+    str_add(&host, "#define TC_FAT_LENOF(x) ((x).len)\n\n");
+
+    // Emit fat pointer types for host
+    char *seen_host[64] = {0};
+    int seen_count_host = 0;
+    for (int i = 0; i < program.count; i++) {
+        Decl *d = program.items[i];
+        if (d->type) scan_fat_types_in_type(d->type, &host, &program, seen_host, &seen_count_host);
+        for (int j = 0; j < d->params.count; j++) {
+            scan_fat_types_in_type(d->params.items[j].type, &host, &program, seen_host, &seen_count_host);
+        }
+        if (d->body.count) scan_fat_types_in_stmts(&d->body, &host, &program, seen_host, &seen_count_host);
+    }
     str_add(&host, "\n");
 
-    // Global state for hot reloading
-    str_add(&host, "static volatile int current_version = 0;\n");
-    str_add(&host, "static volatile int reload_requested = 0;\n");
+    // Emit struct definitions for host
+    for (int i = 0; i < program.count; i++) {
+        Decl *d = program.items[i];
+        if (d->kind == DC_STRUCT) {
+            Str struct_def = {0};
+            str_add(&struct_def, "typedef struct {\n");
+            bool in_union_block = false;
+            for (int j = 0; j < d->params.count; j++) {
+                Param *field = &d->params.items[j];
+                if (field->is_union_field) {
+                    if (!in_union_block) {
+                        str_add(&struct_def, "    union {\n");
+                        in_union_block = true;
+                    }
+                    str_add(&struct_def, "        "); emit_type(&struct_def, field->type, field->name, &program); str_add(&struct_def, ";\n");
+                } else {
+                    if (in_union_block) {
+                        str_add(&struct_def, "    };\n");
+                        in_union_block = false;
+                    }
+                    str_add(&struct_def, "        "); emit_type(&struct_def, field->type, field->name, &program); str_add(&struct_def, ";\n");
+                }
+            }
+            if (in_union_block) str_add(&struct_def, "    };\n");
+            str_add(&struct_def, "} ");
+            if (d->packed) str_add(&struct_def, "__attribute__((packed)) ");
+            str_printf(&struct_def, "%s;\n\n", d->name);
+            str_add(&host, struct_def.data);
+            free(struct_def.data);
+        }
+    }
+
+    // === HOST: Function pointer dispatch table ===
+    str_add(&host, "// Hot reload function pointer table\n");
+    for (int i = 0; i < program.count; i++) {
+        Decl *d = program.items[i];
+        if (d->kind == DC_FN) {
+            if (strcmp(d->name, "main") == 0) continue; // Skip main pointer
+            emit_type(&host, d->type, "", &program);
+            str_printf(&host, "(*hot_%s)(", d->name);
+            if (!d->params.count) str_add(&host, "void");
+            for (int j = 0; j < d->params.count; j++) {
+                if (j) str_add(&host, ", ");
+                emit_type(&host, d->params.items[j].type, "", &program);
+            }
+            str_add(&host, ");\n");
+        }
+    }
+    str_add(&host, "\n");
+
+    // === HOST: Library management ===
 #ifdef _WIN32
     str_add(&host, "static HMODULE hot_lib_handle = NULL;\n");
 #else
     str_add(&host, "static void *hot_lib_handle = NULL;\n");
 #endif
-    str_add(&host, "static int32_t (*tc_main_ptr)(int, char**) = NULL;\n\n");
+    str_add(&host, "static int current_version = 0;\n\n");
 
-    // Get version from file
     str_add(&host, "static int get_version(void) {\n");
     str_printf(&host, "    FILE *vf = fopen(\"%s.version\", \"r\");\n", hot_lib);
     str_add(&host, "    int version = 1;\n");
@@ -631,94 +679,87 @@ char *emit_hot_split(DeclVec program, const char *hot_lib, char **hot_c_out) {
     str_add(&host, "    return version;\n");
     str_add(&host, "}\n\n");
 
-    // Load library for a specific version
-    str_add(&host, "static int load_library(int version) {\n");
+    str_add(&host, "static void load_hot_functions(int version) {\n");
+    str_add(&host, "    if (version == current_version) return;\n");
+    str_add(&host, "    int old_version = current_version;\n");
+    str_add(&host, "    current_version = version;\n");
 #ifdef _WIN32
-    str_printf(&host, "    char dll_path[256];\n");
-    str_printf(&host, "    snprintf(dll_path, sizeof(dll_path), \"%s_%%d.dll\", version);\n", hot_lib);
     str_add(&host, "    if (hot_lib_handle) FreeLibrary(hot_lib_handle);\n");
+    str_printf(&host, "    char dll_path[256];\n");
+    str_printf(&host, "    snprintf(dll_path, sizeof(dll_path), \".\\\\%%s_%%d.dll\", \"%s\", version);\n", hot_lib);
     str_add(&host, "    hot_lib_handle = LoadLibraryA(dll_path);\n");
-    str_add(&host, "    if (!hot_lib_handle) {\n");
-    str_printf(&host, "        fprintf(stderr, \"Failed to load %s_%%d.dll\\n\", version);\n", hot_lib);
-    str_add(&host, "        return 0;\n");
-    str_add(&host, "    }\n");
-    str_add(&host, "    tc_main_ptr = (void*)GetProcAddress(hot_lib_handle, \"tc_main\");\n");
+    str_add(&host, "    if (!hot_lib_handle) { fprintf(stderr, \"Failed to load hot library %s_%%d.dll, error code: %%d\\n\", version, (int)GetLastError()); return; }\n");
 #else
+    str_add(&host, "    if (hot_lib_handle) dlclose(hot_lib_handle);\n");
     str_printf(&host, "    char so_path[256];\n");
     str_printf(&host, "    snprintf(so_path, sizeof(so_path), \"./%s_%%d.so\", version);\n", hot_lib);
-    str_add(&host, "    if (hot_lib_handle) dlclose(hot_lib_handle);\n");
     str_add(&host, "    hot_lib_handle = dlopen(so_path, RTLD_LAZY);\n");
-    str_add(&host, "    if (!hot_lib_handle) {\n");
-    str_printf(&host, "        fprintf(stderr, \"Failed to load %s_%%d.so: %s\\n\", version, dlerror());\n", hot_lib);
-    str_add(&host, "        return 0;\n");
-    str_add(&host, "    }\n");
-    str_add(&host, "    tc_main_ptr = dlsym(hot_lib_handle, \"tc_main\");\n");
+    str_add(&host, "    if (!hot_lib_handle) { fprintf(stderr, \"Failed to load hot library: %s\\n\", dlerror()); return; }\n");
 #endif
-    str_add(&host, "    if (!tc_main_ptr) {\n");
-    str_add(&host, "        fprintf(stderr, \"Failed to find tc_main\\n\");\n");
-    str_add(&host, "        return 0;\n");
-    str_add(&host, "    }\n");
-    str_add(&host, "    current_version = version;\n");
-    str_printf(&host, "    fprintf(stderr, \"[hot] Loaded version %%d\\n\", version);\n");
-    str_add(&host, "    return 1;\n");
-    str_add(&host, "}\n\n");
-
-    // Background monitor thread
+    str_add(&host, "    if (old_version > 0) {\n");
+    str_add(&host, "        char old_path[256];\n");
 #ifdef _WIN32
-    str_add(&host, "static DWORD WINAPI monitor_thread(LPVOID arg) {\n");
+    str_printf(&host, "        snprintf(old_path, sizeof(old_path), \"%s_%%d.dll\", old_version);\n", hot_lib);
 #else
-    str_add(&host, "static void* monitor_thread(void *arg) {\n");
+    str_printf(&host, "        snprintf(old_path, sizeof(old_path), \"./%s_%%d.so\", old_version);\n", hot_lib);
 #endif
-    str_add(&host, "    (void)arg;\n");
-    str_add(&host, "    while (1) {\n");
-    str_add(&host, "        Sleep(500);  // Check every 500ms\n");
-    str_add(&host, "        int new_ver = get_version();\n");
-    str_add(&host, "        if (new_ver != current_version) {\n");
-    str_add(&host, "            reload_requested = new_ver;\n");
-    str_add(&host, "        }\n");
+    str_add(&host, "        remove(old_path);\n");
     str_add(&host, "    }\n");
-    str_add(&host, "    return 0;\n");
-    str_add(&host, "}\n\n");
-
-    // Wrapper that handles reloading
-    str_add(&host, "static int32_t tc_main_wrapper(int argc, char **argv) {\n");
-    str_add(&host, "    int32_t result = 0;\n");
-    str_add(&host, "    while (1) {\n");
-    str_add(&host, "        // Check for reload request\n");
-    str_add(&host, "        if (reload_requested && reload_requested != current_version) {\n");
-    str_add(&host, "            if (load_library(reload_requested)) {\n");
-    str_add(&host, "                reload_requested = 0;\n");
-    str_add(&host, "            }\n");
-    str_add(&host, "        }\n");
-    str_add(&host, "        // Call the actual main function\n");
-    str_add(&host, "        if (tc_main_ptr) {\n");
-    str_add(&host, "            result = tc_main_ptr(argc, argv);\n");
-    str_add(&host, "            // If tc_main returns, check if we should reload and restart\n");
-    str_add(&host, "            if (reload_requested && reload_requested != current_version) {\n");
-    str_add(&host, "                continue;  // Loop back to reload and restart\n");
-    str_add(&host, "            }\n");
-    str_add(&host, "            break;  // tc_main returned normally, exit\n");
-    str_add(&host, "        }\n");
-    str_add(&host, "        break;\n");
-    str_add(&host, "    }\n");
-    str_add(&host, "    return result;\n");
-    str_add(&host, "}\n\n");
-
-    // Main entry point
-    str_add(&host, "int main(int argc, char **argv) {\n");
-    str_add(&host, "    int version = get_version();\n");
-    str_add(&host, "    if (!load_library(version)) return 1;\n");
-    str_add(&host, "\n");
-    str_add(&host, "    // Start monitor thread\n");
+    for (int i = 0; i < program.count; i++) {
+        Decl *d = program.items[i];
+        if (d->kind == DC_FN) {
+            if (strcmp(d->name, "main") == 0) continue; // Skip main lookup
 #ifdef _WIN32
-    str_add(&host, "    CreateThread(NULL, 0, monitor_thread, NULL, 0, NULL);\n");
+            str_printf(&host, "    hot_%s = (void*)GetProcAddress(hot_lib_handle, \"%s\");\n", d->name, d->name);
 #else
-    str_add(&host, "    pthread_t tid;\n");
-    str_add(&host, "    pthread_create(&tid, NULL, monitor_thread, NULL);\n");
+            str_printf(&host, "    hot_%s = dlsym(hot_lib_handle, \"%s\");\n", d->name, d->name);
 #endif
-    str_add(&host, "\n");
-    str_add(&host, "    return tc_main_wrapper(argc, argv);\n");
-    str_add(&host, "}\n");
+        }
+    }
+    str_add(&host, "}\n\n");
+
+    str_add(&host, "static void reload_check(void) {\n");
+    str_add(&host, "    int new_ver = get_version();\n");
+    str_add(&host, "    if (new_ver != current_version) load_hot_functions(new_ver);\n");
+    str_add(&host, "}\n\n");
+
+    // === HOST: Stubs and Main Driver ===
+    for (int i = 0; i < program.count; i++) {
+        Decl *d = program.items[i];
+        if (d->kind == DC_FN) {
+            bool is_main_args = (strcmp(d->name, "main") == 0 && d->params.count == 1 && d->params.items[0].type->kind == TY_FATPTR);
+            bool is_main = (strcmp(d->name, "main") == 0);
+
+            if (is_main_args) {
+                // Emit full main body with args directly inside Host
+                str_add(&host, "\nint32_t main(int argc, char **argv) {\n");
+                str_add(&host, "    load_hot_functions(get_version());\n");
+                str_printf(&host, "    tc_fat_ptr %s = { .ptr = argv, .len = (size_t)argc };\n", d->params.items[0].name);
+                emit_stmt_vec_with_defers(&host, &d->body, &program, 1);
+                str_add(&host, "}\n");
+            } else if (is_main) {
+                // Emit full void main body directly inside Host
+                str_add(&host, "\nint32_t main(void) {\n");
+                str_add(&host, "    load_hot_functions(get_version());\n");
+                emit_stmt_vec_with_defers(&host, &d->body, &program, 1);
+                str_add(&host, "    return 0;\n");
+                str_add(&host, "}\n");
+            } else {
+                // Function stub with reload check
+                str_add(&host, "\n"); emit_type(&host, d->type, d->name, &program); str_add(&host, "(");
+                if (!d->params.count) str_add(&host, "void");
+                for (int j = 0; j < d->params.count; j++) { if (j) str_add(&host, ", "); emit_type(&host, d->params.items[j].type, d->params.items[j].name, &program); }
+                str_add(&host, ") {\n");
+                str_add(&host, "    reload_check();\n");
+                str_add(&host, "    ");
+                // Check if return type is void by name
+                if (!(d->type->kind == TY_NAME && !strcmp(d->type->name, "void"))) str_add(&host, "return ");
+                str_printf(&host, "hot_%s(", d->name);
+                for (int j = 0; j < d->params.count; j++) { if (j) str_add(&host, ", "); str_add(&host, d->params.items[j].name); }
+                str_add(&host, ");\n}\n");
+            }
+        }
+    }
 
     *hot_c_out = hot.data;
     return host.data;

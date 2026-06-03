@@ -1,3 +1,24 @@
+## v1.2.2 2026-06-02
+
+Added:
+
+Removed:
+
+- removed hot keyword and simplified hot reloading, now works good
+Improved/Fixed:
+
+## v1.2.1 2026-06-02
+
+Added:
+- added methods to struns
+- added varargs ... 
+- expanded io stdlib to include more file io functions
+- added ptr access to struct fields with .> and passing by reference with & (borrowing)
+
+Removed:
+
+Improved/Fixed:
+
 ## v1.2.0 2026-05-30
 
 Added:
@@ -6,11 +27,7 @@ Added:
 - added inline C working in the global scope
 - added sizeof()
 - added inline C code
-- added methods to struns
 - added enums
-- added ptr access to struct fields with .> and passing by reference with & (borrowing)
-- added varargs ... 
-- expanded io stdlib to include more file io functions
 
 Removed:
 
