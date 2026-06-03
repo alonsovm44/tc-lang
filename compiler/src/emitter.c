@@ -604,7 +604,7 @@ char *emit_hot_split(DeclVec program, const char *hot_lib, char **hot_c_out) {
         }
     }
 
-    // === HOST: Minimal loader only ===
+    // === HOST: Minimal loader with reload support ===
     str_add(&host, "#include <stdint.h>\n#include <stdio.h>\n#include <stdlib.h>\n#include <string.h>\n");
 #ifdef _WIN32
     str_add(&host, "#include <windows.h>\n");
@@ -613,7 +613,17 @@ char *emit_hot_split(DeclVec program, const char *hot_lib, char **hot_c_out) {
 #endif
     str_add(&host, "\n");
 
-    // Library loading and main forwarding
+    // Global state for hot reloading
+    str_add(&host, "static volatile int current_version = 0;\n");
+    str_add(&host, "static volatile int reload_requested = 0;\n");
+#ifdef _WIN32
+    str_add(&host, "static HMODULE hot_lib_handle = NULL;\n");
+#else
+    str_add(&host, "static void *hot_lib_handle = NULL;\n");
+#endif
+    str_add(&host, "static int32_t (*tc_main_ptr)(int, char**) = NULL;\n\n");
+
+    // Get version from file
     str_add(&host, "static int get_version(void) {\n");
     str_printf(&host, "    FILE *vf = fopen(\"%s.version\", \"r\");\n", hot_lib);
     str_add(&host, "    int version = 1;\n");
@@ -621,23 +631,93 @@ char *emit_hot_split(DeclVec program, const char *hot_lib, char **hot_c_out) {
     str_add(&host, "    return version;\n");
     str_add(&host, "}\n\n");
 
-    str_add(&host, "int main(int argc, char **argv) {\n");
-    str_add(&host, "    int version = get_version();\n");
+    // Load library for a specific version
+    str_add(&host, "static int load_library(int version) {\n");
 #ifdef _WIN32
     str_printf(&host, "    char dll_path[256];\n");
     str_printf(&host, "    snprintf(dll_path, sizeof(dll_path), \"%s_%%d.dll\", version);\n", hot_lib);
-    str_add(&host, "    HMODULE lib = LoadLibraryA(dll_path);\n");
-    str_add(&host, "    if (!lib) { fprintf(stderr, \"Failed to load hot library\\n\"); return 1; }\n");
-    str_add(&host, "    int32_t (*tc_main)(int, char**) = (void*)GetProcAddress(lib, \"tc_main\");\n");
+    str_add(&host, "    if (hot_lib_handle) FreeLibrary(hot_lib_handle);\n");
+    str_add(&host, "    hot_lib_handle = LoadLibraryA(dll_path);\n");
+    str_add(&host, "    if (!hot_lib_handle) {\n");
+    str_printf(&host, "        fprintf(stderr, \"Failed to load %s_%%d.dll\\n\", version);\n", hot_lib);
+    str_add(&host, "        return 0;\n");
+    str_add(&host, "    }\n");
+    str_add(&host, "    tc_main_ptr = (void*)GetProcAddress(hot_lib_handle, \"tc_main\");\n");
 #else
     str_printf(&host, "    char so_path[256];\n");
     str_printf(&host, "    snprintf(so_path, sizeof(so_path), \"./%s_%%d.so\", version);\n", hot_lib);
-    str_add(&host, "    void *lib = dlopen(so_path, RTLD_LAZY);\n");
-    str_add(&host, "    if (!lib) { fprintf(stderr, \"Failed to load hot library: %s\\n\", dlerror()); return 1; }\n");
-    str_add(&host, "    int32_t (*tc_main)(int, char**) = dlsym(lib, \"tc_main\");\n");
+    str_add(&host, "    if (hot_lib_handle) dlclose(hot_lib_handle);\n");
+    str_add(&host, "    hot_lib_handle = dlopen(so_path, RTLD_LAZY);\n");
+    str_add(&host, "    if (!hot_lib_handle) {\n");
+    str_printf(&host, "        fprintf(stderr, \"Failed to load %s_%%d.so: %s\\n\", version, dlerror());\n", hot_lib);
+    str_add(&host, "        return 0;\n");
+    str_add(&host, "    }\n");
+    str_add(&host, "    tc_main_ptr = dlsym(hot_lib_handle, \"tc_main\");\n");
 #endif
-    str_add(&host, "    if (!tc_main) { fprintf(stderr, \"Failed to find tc_main\\n\"); return 1; }\n");
-    str_add(&host, "    return tc_main(argc, argv);\n");
+    str_add(&host, "    if (!tc_main_ptr) {\n");
+    str_add(&host, "        fprintf(stderr, \"Failed to find tc_main\\n\");\n");
+    str_add(&host, "        return 0;\n");
+    str_add(&host, "    }\n");
+    str_add(&host, "    current_version = version;\n");
+    str_printf(&host, "    fprintf(stderr, \"[hot] Loaded version %%d\\n\", version);\n");
+    str_add(&host, "    return 1;\n");
+    str_add(&host, "}\n\n");
+
+    // Background monitor thread
+#ifdef _WIN32
+    str_add(&host, "static DWORD WINAPI monitor_thread(LPVOID arg) {\n");
+#else
+    str_add(&host, "static void* monitor_thread(void *arg) {\n");
+#endif
+    str_add(&host, "    (void)arg;\n");
+    str_add(&host, "    while (1) {\n");
+    str_add(&host, "        Sleep(500);  // Check every 500ms\n");
+    str_add(&host, "        int new_ver = get_version();\n");
+    str_add(&host, "        if (new_ver != current_version) {\n");
+    str_add(&host, "            reload_requested = new_ver;\n");
+    str_add(&host, "        }\n");
+    str_add(&host, "    }\n");
+    str_add(&host, "    return 0;\n");
+    str_add(&host, "}\n\n");
+
+    // Wrapper that handles reloading
+    str_add(&host, "static int32_t tc_main_wrapper(int argc, char **argv) {\n");
+    str_add(&host, "    int32_t result = 0;\n");
+    str_add(&host, "    while (1) {\n");
+    str_add(&host, "        // Check for reload request\n");
+    str_add(&host, "        if (reload_requested && reload_requested != current_version) {\n");
+    str_add(&host, "            if (load_library(reload_requested)) {\n");
+    str_add(&host, "                reload_requested = 0;\n");
+    str_add(&host, "            }\n");
+    str_add(&host, "        }\n");
+    str_add(&host, "        // Call the actual main function\n");
+    str_add(&host, "        if (tc_main_ptr) {\n");
+    str_add(&host, "            result = tc_main_ptr(argc, argv);\n");
+    str_add(&host, "            // If tc_main returns, check if we should reload and restart\n");
+    str_add(&host, "            if (reload_requested && reload_requested != current_version) {\n");
+    str_add(&host, "                continue;  // Loop back to reload and restart\n");
+    str_add(&host, "            }\n");
+    str_add(&host, "            break;  // tc_main returned normally, exit\n");
+    str_add(&host, "        }\n");
+    str_add(&host, "        break;\n");
+    str_add(&host, "    }\n");
+    str_add(&host, "    return result;\n");
+    str_add(&host, "}\n\n");
+
+    // Main entry point
+    str_add(&host, "int main(int argc, char **argv) {\n");
+    str_add(&host, "    int version = get_version();\n");
+    str_add(&host, "    if (!load_library(version)) return 1;\n");
+    str_add(&host, "\n");
+    str_add(&host, "    // Start monitor thread\n");
+#ifdef _WIN32
+    str_add(&host, "    CreateThread(NULL, 0, monitor_thread, NULL, 0, NULL);\n");
+#else
+    str_add(&host, "    pthread_t tid;\n");
+    str_add(&host, "    pthread_create(&tid, NULL, monitor_thread, NULL);\n");
+#endif
+    str_add(&host, "\n");
+    str_add(&host, "    return tc_main_wrapper(argc, argv);\n");
     str_add(&host, "}\n");
 
     *hot_c_out = hot.data;

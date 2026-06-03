@@ -1,0 +1,14 @@
+
+fn void main:
+{
+    ->i8 str = "hello"
+    print(str[0]) // prints 'h'
+    // no length information
+
+    =>i8 str2 = "world"
+    i32 len = str2.len 
+    printi(len)
+
+    =>i32 slice = str2[1:4]
+    print(slice)
+}

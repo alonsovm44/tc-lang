@@ -370,7 +370,7 @@ int main(int argc, char **argv) {
 #ifdef _WIN32
             snprintf(host_cmd, sizeof(host_cmd), "%s \"%s\" -std=c11 -lm -L. -l%s_1 -o \"%s\"", cc, host_c, hot_lib, compile_out);
 #else
-            snprintf(host_cmd, sizeof(host_cmd), "%s \"%s\" -std=c11 -lm -L. -l%s_1 -o \"%s\"", cc, host_c, hot_lib, compile_out);
+            snprintf(host_cmd, sizeof(host_cmd), "%s \"%s\" -std=c11 -lm -lpthread -L. -l%s_1 -o \"%s\"", cc, host_c, hot_lib, compile_out);
 #endif
             printf("  %s\n", host_cmd);
             int host_ret = system(host_cmd);

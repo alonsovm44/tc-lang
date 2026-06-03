@@ -5,8 +5,7 @@ extern "C" {
 }
 
 fn i32 add: i32 x, i32 y {
-    ret x + y   // this can be modified during runtime 
-    // update with: tightc hot.tc -H hotlib --hot-rebuild
+    ret x * y   // CHANGED: now multiplies!
 }
 
 fn void main: {
