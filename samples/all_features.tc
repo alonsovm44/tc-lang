@@ -1,7 +1,7 @@
 use "stdlib/io.tc"
 
 // Struct declaration
-struct Point {
+strun Point {
     i32 x,
     i32 y
 }
