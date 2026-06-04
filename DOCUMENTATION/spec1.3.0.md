@@ -289,7 +289,32 @@ fn void main: {
 
 ---
 
-## Complete Example
+## Complete Example & Design Solutions
+
+### The Loop Concurrency Challenge
+
+When launching async tasks in a loop, we face two main issues with a strict single-ownership model:
+1. **Loop Index Mutation**: If we pin `i` to share it, we cannot increment `i++`. If we move `i` with `@i`, it becomes dead and we cannot continue the loop.
+2. **Channel Sharing**: If passing a channel transfers its ownership, the channel is dead after the first iteration and cannot be reused.
+
+### The Elegant Solution: Value-Types vs Reference-Types
+
+To solve this beautifully without introducing data races or memory unsafety, Tight-C v1.3.0 establishes three clear type categories:
+
+1. **Value (Copy) Types** (Primitives: `i8`, `i16`, `i32`, `i64`, `u8`, `u16`, `u32`, `u64`, `f32`, `f64`):
+   - Passed by value (implicitly copied) to both sync and async functions.
+   - Since a copy is created on the new thread's stack, there is no ownership transfer and no data race.
+   - Therefore, `i` does not need `@` or `pin`, and can be mutated normally in the loop.
+
+2. **Reference (Shared) Types** (Channels: `chan T`):
+   - Channels are thread-safe concurrent queues.
+   - Passing a channel copies its reference handle, not its unique ownership.
+   - Therefore, a channel can be safely passed to multiple async functions in a loop without being consumed or killed.
+
+3. **Owned (Move/Pin) Types** (Pointers: `->T`, `=>T`, or structs containing them):
+   - These are unique resources. They MUST be explicitly moved with `@` (making them dead in the parent scope) or imutably shared with `pin`. This completely eliminates shared mutable heap state and data races!
+
+### Valid Loop Example
 
 ```tc
 use "stdlib/io.tc"
@@ -299,20 +324,20 @@ async fn void worker: i32 id, chan i32 out {
 }
 
 fn void main: {
-    chan i32 results
+    chan i32 results // Shared channel (copied handle)
 
-    pin i32 i = 0
+    i32 i = 0        // Primitive type (automatically copied)
     loop if (i < 5) {
-        async worker(i, results)
-        i = i + 1
+        worker(i, results) // i is copied, results handle is copied. Safe!
+        i++
     }
 
-    pin i32 j = 0
+    i32 j = 0
     loop if (j < 5) {
         i32 result = <-results
         printi(result)
         print("\n")
-        j = j + 1
+        j++
     }
 }
 ```
@@ -385,7 +410,7 @@ None - async features are opt-in.
 
 ---
 
-## Future Plans (1.4+)
+## Future Plans (1.5+)
 
 1. Struct migration for hot reload with async
 2. Networked channels

@@ -1,0 +1,11 @@
+use "stdlib/io.tc"
+
+fn i32 increase: ->i32 x {
+    ->x = (->x) + 3
+    ret ->x
+}
+fn void main: {
+    i32 x = 10
+    increase(&x)
+    printi(x) // should print 13
+}

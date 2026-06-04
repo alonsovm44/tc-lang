@@ -1,6 +1,6 @@
 # Tig v1.2.3
 Objective:
-> Polish Hot reloading and make it bullet proof and stable
+> Polish Hot reloading and make it bullet proof and stable [DONE]
 
 # Hot Reloading Architecture
 
@@ -39,14 +39,5 @@ Generate stubs and function pointers in the host for all functions except `main`
 ## 4. Automatic Cleanup of Old Versions
 When a new DLL version is loaded, clean up/delete the old version files to keep the workspace clean.
 Hot reloading is meant for development time, not production use.
-
-# TODO
-
-## Changing struns
-
-## Functions
-
-## Enums
-
 
 

@@ -32,7 +32,7 @@ The `size` parameter specifies the arena capacity in bytes and may be:
 **Constant-sized arena:**
 ```tig
 arena[32 * 1024] {  // 32KB arena
-    i32[] buffer = alloc(1024)  // Allocated from arena
+    =>i32 buffer = alloc(1024)  // Allocated from arena
     // ... buffer usage ...
 }  // All arena memory freed here
 ```
@@ -134,6 +134,25 @@ i32 y = <-ch  // y is now manually managed
 fn(i32)i32 fn_y = <-fn_ch
 i32 z = fn_y(10)  // Execute transferred function
 ```
+
+#### Scope-Escape Rules for Transferred Functions & Closures
+
+To guarantee that executing an escaped function/closure (`fn_y`) outside of its origin environment never causes a segfault or undefined behavior (from referencing a torn-down GC block or Arena), the compiler enforces a compile-time **Scope-Escape Rule** based on the closure's capture environment:
+
+1. **Pure Functions (Zero Capture)**:
+   - If a function (like `foo` above) captures no variables from its outer lexical scope, it is transpiled to a raw C function pointer.
+   - **Rule**: Pure functions can escape any memory scope (GC or Arena) freely since they carry no state.
+
+2. **Value-Type Closures (Value Capture)**:
+   - If a function captures only primitive value types (`i8`, `i32`, `f32`, etc.), the compiler generates a closure environment structure and copies those values directly by value.
+   - **Rule**: Value-type closures can escape freely because they hold independent copies, ensuring no references point back to the collected memory scope.
+
+3. **Reference-Type Closures (Pointer Capture)**:
+   - If a function captures any reference type, pointer (`->T`), slice (`=>T`), or object allocated inside the GC or Arena block, the environment contains pointers to resources that will be reclaimed when the block exits.
+   - **Rule**: Reference-type closures **cannot escape** the scope. The compiler's escape analysis tracks references, and calling `@` on such a closure triggers a compile-time error:
+     ```
+     error[E040]: closure captures GC-managed references and cannot escape this scope.
+     ```
 
 ### Arena to Manual Transfer
 
