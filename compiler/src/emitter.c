@@ -141,7 +141,7 @@ static void emit_expr(Str *out, Expr *e, DeclVec *program) {
                 // Generate async call: submit to thread pool
                 if (e->args.count == 0) {
                     // No arguments - simple call
-                    str_printf(out, "thread_pool_submit(g_thread_pool, (void(*)(void*))%s, NULL)", e->text);
+                    str_printf(out, "thread_pool_submit(g_thread_pool, (void(*)(void*))%s, NULL);", e->text);
                 } else {
                     // Pack arguments into a struct - for now just handle single primitive args
                     str_add(out, "{");
@@ -158,22 +158,19 @@ static void emit_expr(Str *out, Expr *e, DeclVec *program) {
                             // Queue/stack handles are passed directly (no copying needed)
                             str_add(out, "thread_pool_submit(g_thread_pool, (void(*)(void*))%s, ");
                             emit_expr(out, e->args.items[0], program);
-                            str_add(out, ")");
+                            str_add(out, ");");
                         } else {
-                            // Primitive types - copy by value
-                            str_add(out, "typeof("); emit_expr(out, e->args.items[0], program);
-                            str_add(out, ") *arg = malloc(sizeof(typeof(");
-                            emit_expr(out, e->args.items[0], program);
-                            str_add(out, ")));\n");
+                            // Primitive types - copy by value using int32_t for simplicity
+                            str_add(out, "int32_t *arg = malloc(sizeof(int32_t));\n");
                             str_add(out, "*arg = ");
                             emit_expr(out, e->args.items[0], program);
                             str_add(out, ";\n");
-                            str_printf(out, "thread_pool_submit(g_thread_pool, (void(*)(void*))%s_wrapper, arg)", e->text);
+                            str_printf(out, "thread_pool_submit(g_thread_pool, (void(*)(void*))%s_wrapper, arg);", e->text);
                         }
                     } else {
                         // Multiple args - TODO: implement proper struct packing
                         str_add(out, "// TODO: pack multiple arguments\n");
-                        str_printf(out, "thread_pool_submit(g_thread_pool, (void(*)(void*))%s, NULL)", e->text);
+                        str_printf(out, "thread_pool_submit(g_thread_pool, (void(*)(void*))%s, NULL);", e->text);
                     }
                     str_add(out, "\n}");
                 }
@@ -417,7 +414,7 @@ char *emit_program(DeclVec program) {
     }
     
     if (needs_runtime) {
-        str_add(&out, "#include \"async.h\"\n");
+        str_add(&out, "#include \"stdlib/async.h\"\n");
     }
     
     str_add(&out, "\n");
@@ -552,6 +549,29 @@ char *emit_program(DeclVec program) {
         // Don't emit forward declarations for extern C functions - they're in C headers
     }
     str_add(&out, "\n");
+    
+    // Generate wrapper functions for async functions that take primitive arguments
+    for (int i = 0; i < program.count; i++) {
+        Decl *d = program.items[i];
+        if (d->kind == DC_FN && d->is_async && d->params.count == 1) {
+            // Check if the parameter is a primitive type (not queue/stack)
+            Type *param_type = d->params.items[0].type;
+            if (param_type && param_type->kind != TY_QUEUE && param_type->kind != TY_STACK) {
+                // Generate wrapper function
+                str_add(&out, "// Wrapper for async function ");
+                str_add(&out, d->name);
+                str_add(&out, "\n");
+                str_add(&out, "static void ");
+                str_add(&out, d->name);
+                str_add(&out, "_wrapper(void *arg) {\n");
+                str_add(&out, "    int32_t val = *(int32_t*)arg;\n");
+                str_add(&out, "    free(arg);\n");
+                str_printf(&out, "    %s(val);\n", d->name);
+                str_add(&out, "}\n\n");
+            }
+        }
+    }
+    
     for (int i = 0; i < program.count; i++) {
         Decl *d = program.items[i];
         if (d->kind == DC_VAR) {

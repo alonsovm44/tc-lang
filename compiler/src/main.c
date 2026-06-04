@@ -277,6 +277,16 @@ int main(int argc, char **argv) {
     TokenVec tokens = lex_source(source);
     DeclVec program = parse_program(tokens.items);
     check_program(&program);
+    
+    // Check if program contains async functions
+    bool has_async = false;
+    for (int i = 0; i < program.count; i++) {
+        Decl *d = program.items[i];
+        if (d->kind == DC_FN && d->is_async) {
+            has_async = true;
+            break;
+        }
+    }
 
     char *c_code = NULL;
     char *hot_c = NULL;
@@ -396,7 +406,11 @@ int main(int argc, char **argv) {
             }
 
             char cmd[1024];
-            snprintf(cmd, sizeof(cmd), "%s \"%s\" -std=c11 -lm -o \"%s\"", cc, tmp_c, compile_out);
+            if (has_async) {
+                snprintf(cmd, sizeof(cmd), "%s \"%s\" -std=c11 -lm -o \"%s\" \"compiler/src/runtime.o\"", cc, tmp_c, compile_out);
+            } else {
+                snprintf(cmd, sizeof(cmd), "%s \"%s\" -std=c11 -lm -o \"%s\"", cc, tmp_c, compile_out);
+            }
             printf("  %s\n", cmd);
             int ret = system(cmd);
 

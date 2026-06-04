@@ -1,3 +1,30 @@
+## v1.3.0 2026-06-04
+
+Added:
+
+- added runtime async.tc to stdlib
+- added async functions with automatic runtime initialization
+- added async module with thread pool management
+- added wrapper function generation for async calls with arguments
+- added automatic runtime linking for async programs
+- added proper stdlib organization (async.h in stdlib/)
+- added automatic cleanup using atexit() for async resources
+
+Removed:
+
+- removed need for manual async_init() and async_shutdown() calls
+- removed debug print statements from runtime stub functions
+- removed async.h from current working directory
+
+Improved/Fixed:
+
+- fixed async function call code generation (removed typeof, added semicolons)
+- fixed compiler -c flag to auto-link runtime when async functions detected
+- fixed async module integration with proper header includes
+- fixed runtime to use lazy initialization instead of manual setup
+- improved async programming experience - zero boilerplate needed
+- improved code generation for async calls with primitive arguments
+- improved stdlib organization and module structure
 ## v1.2.2 2026-06-02
 
 Added:

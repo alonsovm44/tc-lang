@@ -1,26 +1,15 @@
 use "stdlib/async.tc"
 use "stdlib/io.tc"
 
-fn void inc: ->i32 x {
-    (->x) = (->x) + 1
-}
-
-async fn void async_worker: {
-    printi(42)
+async fn void worker: i32 x {
+    printi(x)
 }
 
 fn void main: {
     // Initialize async runtime
     async_init()
-    
-    // Test regular function
-    i32 x = 15
-    inc(&x)
-    printi(x)
-    
+    defer {async_shutdown()}
     // Test async function
-    async_worker()
+    worker(42)
     
-    // Cleanup
-    async_shutdown()
 }
