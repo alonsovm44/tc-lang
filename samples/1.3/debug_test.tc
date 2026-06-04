@@ -1,0 +1,6 @@
+use "stdlib/io.tc"
+
+fn void main: {
+    i32 q = queue_create(10)
+    printi(q)
+}

@@ -1,0 +1,10 @@
+use "stdlib/io.tc"
+use "stdlib/async.tc"
+
+async fn void worker: {
+    print("Worker started\n")
+}
+
+fn void main: { 
+    worker()
+}

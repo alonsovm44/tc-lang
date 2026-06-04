@@ -1,0 +1,32 @@
+use "stdlib/async.tc"
+use "stdlib/io.tc"
+
+async fn void producer: queue<i32> q {
+    q.push(100)
+    q.push(200)
+}
+
+async fn void consumer: queue<i32> q {
+    i32 value1 = q.pop()
+    i32 value2 = q.pop()
+    printi(value1)
+    printi(value2)
+}
+
+async fn void worker: {
+    print("Worker completed\n")
+}
+
+fn void main: {
+    // Test queue operations
+    queue<i32> q = queue_create(10)
+    
+    // Test async function calls
+    producer(q)
+    consumer(q)
+    
+    // Test simple async function
+    worker()
+    
+    print("All tests completed\n")
+}

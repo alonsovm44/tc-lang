@@ -1,0 +1,8 @@
+
+fn void main:
+{
+    queue<i32> q = {0, 1, 2, 3}
+    q.push(4)
+
+    printi(q.pop())
+}
