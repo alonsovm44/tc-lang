@@ -4,7 +4,7 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/version-1.2.3-blue?style=flat-square" alt="Version">
+  <img src="https://img.shields.io/badge/version-1.3.0-blue?style=flat-square" alt="Version">
   <img src="https://img.shields.io/badge/language-C11-orange?style=flat-square" alt="Language">
   <img src="https://img.shields.io/badge/license-MIT-green?style=flat-square" alt="License">
   <img src="https://img.shields.io/badge/platform-Windows%20%7C%20Linux%20%7C%20macOS-lightgrey?style=flat-square" alt="Platform">
@@ -15,16 +15,27 @@
 
 Tig is a minimalistic systems programming language.
 
+## What's New in v1.3.0 🚀
+
+- **🎯 Zero-Boilerplate Async** — Write concurrent code with zero setup! No manual `async_init()` or `async_shutdown()` needed. Runtime initializes automatically on first async call.
+- **⚡ Async Functions** — Simple async syntax: `async fn void worker: i32 x { printi(x) }` and call with `worker(42)`
+- **🔗 Thread Pool Management** — Built-in thread pool with automatic resource management and cleanup
+- **📦 Smart Compilation** — Runtime automatically linked only when async functions are used (zero overhead for sync programs)
+- **🧹 Clean Output** — No debug noise, just your program output
+- **📚 Stdlib Module** — `use "stdlib/async.tc"` for async functionality
+- **🔄 Ownership Transfer** — `@` operator for transferring ownership of resources between async tasks
+- **📋 Select Statements** — Wait on multiple async operations with `select`
+- **🏗️ Queue & Stack Types** — Built-in concurrent data structures with `queue<i32>` and `stack<i32>`
+- **📌 Pin Keyword** — Keep variables alive across async boundaries with `pin`
+
 ## What's New in v1.2.3
 
 - **Better Hot Reloading** — No special `hot` keyword needed anymore. Every function, structure (`strun`), and enum layout can be live-updated on-the-fly. The infinite driver loop resides in the Host while the logic runs inside versioned libraries, allowing zero-restart hot-reloading with automatic old DLL cleanup!
-> Note: if you find bugs, (which will be found) please report them, open an issue.
 - **Simplified Keywords** — Removed the `hot` keyword completely. Tig now has only 13 keywords.
 - **Varargs support** — Functions can now declare and use variadic arguments with `...`
 - **Expanded I/O stdlib** — Added file I/O functions (fopen, fclose, fgetc, fputs, fprintf, fscanf, feof, etc.)
 - **Else if statements** — Added `else if` and `else` for chained conditionals.
 - **Match statements** — Pattern matching with wildcard support
-- **Much more** - See the Changelog
 
 ## Project Goals
 > Make the first mainstream systems langauge from Mexico.
@@ -32,7 +43,13 @@ Tig is a minimalistic systems programming language.
 
 ## Features
 
-- **13 keywords** — `if`, `loop`, `break`, `defer`, `ret`, `strun`, `fn`, `use`, `pub`, `pin`, `match`, `else`, `enum`
+- **15 keywords** — `if`, `loop`, `break`, `defer`, `ret`, `strun`, `fn`, `use`, `pub`, `pin`, `match`, `else`, `enum`, `async`, `select`
+- **🎯 Zero-Boilerplate Async** — Automatic runtime initialization, no manual setup needed
+- **⚡ Async Functions** — Simple concurrent programming with `async fn`
+- **🏗️ Concurrent Data Structures** — Built-in `queue<T>` and `stack<T>` types
+- **🔄 Ownership Transfer** — `@` operator for safe resource transfer
+- **📋 Select Statements** — Multi-operation waiting with `select`
+- **📌 Pin Keyword** — Keep variables alive across async boundaries
 - **No hidden magic** — no GC, no type inference, no shadowing, no aliasing
 - **Raw pointers** (`->`) and **fat pointers** (`=>`) with built-in slicing
 - **Manual memory** — `alloc()` / `free()` with `defer` for cleanup
@@ -43,6 +60,61 @@ Tig is a minimalistic systems programming language.
 - **Inline imports** — `@use "lib.tc"` inlines another `.tc` file at compile time
 - **CLI args** — `i32 fn main: =>->i8 args { ... }` for command-line tools
 
+## Quick Examples
+
+### 🎯 Zero-Boilerplate Async
+
+```tig
+use "stdlib/async.tc"
+use "stdlib/io.tc"
+
+async fn void worker: i32 x {
+    printi(x)
+}
+
+fn void main: {
+    // No async_init() or async_shutdown() needed!
+    worker(42)  // Automatically initializes runtime
+}
+```
+
+### 🏗️ Concurrent Data Structures
+
+```tig
+use "stdlib/async.tc"
+use "stdlib/io.tc"
+
+async fn void producer: queue<i32> q {
+    q.push(100)
+}
+
+async fn void consumer: queue<i32> q {
+    i32 value = q.pop()
+    printi(value)
+}
+
+fn void main: {
+    queue<i32> q = queue_create(10)
+    producer(q)
+    consumer(q)
+}
+```
+
+### 📋 Select Statements
+
+```tig
+async fn void task1: { printi(1) }
+async fn void task2: { printi(2) }
+
+fn void main: {
+    select {
+        case task1():
+            printi("Task 1 completed")
+        case task2():
+            printi("Task 2 completed")
+    }
+}
+```
 
 ## Philosophy
 
