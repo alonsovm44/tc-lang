@@ -13,12 +13,12 @@ fn i32 apply: fn(i32, i32)i32 op, i32 a, i32 b {
 }
 
 fn void main: {
-    fn(i32, i32)i32 fp = @add
+    fn(i32, i32)i32 fp = &add
     printi(fp(3, 4))       // 7
 
-    fp = @mul
+    fp = &mul
     printi(fp(3, 4))       // 12
 
-    printi(apply(@add, 10, 5))  // 15
-    printi(apply(@mul, 10, 5))  // 50
+    printi(apply(&add, 10, 5))  // 15
+    printi(apply(&mul, 10, 5))  // 50
 }

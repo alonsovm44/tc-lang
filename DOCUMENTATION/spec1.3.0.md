@@ -1,8 +1,8 @@
-# Tight-C 1.3.0 Specification: Concurrency and Ownership
+# Tig 1.3.0 Specification: Concurrency and Ownership
 
 ## Overview
 
-Tight-C 1.3.0 introduces a comprehensive concurrency and ownership model designed to prevent data races while maintaining simplicity. The core principles are:
+Tig 1.3.0 introduces a comprehensive concurrency and ownership model designed to prevent data races while maintaining simplicity. The core principles are:
 
 1. **Single ownership** - Data is owned by one thread at a time
 2. **Explicit transfer** - The `@` operator explicitly moves data between threads
@@ -25,7 +25,7 @@ async fn void foo: {
 
 ### Calling Async Functions
 
-- **Calling an async function**: Just call it normally - it spawns a goroutine
+- **Calling an async function**: Just call it normally, it spawns a goroutine
 - **Calling a sync function asyncly**: Use the `async` keyword before the call
 
 ```tc
@@ -47,26 +47,46 @@ fn void main: {
 
 ## Ownership Model
 
-By default, data is owned by the thread that created it. Async goroutines cannot borrow data - they must explicitly receive ownership.
+By default, data is owned by the thread that created it. Tig's ownership system prevents data races by ensuring that mutable data is never shared between threads without explicit synchronization.
+
+### Type Categories and Ownership Rules
+
+Tig v1.3.0 classifies types into three categories with different ownership semantics:
+
+1. **Value Types** (Primitives: `i8`, `i16`, `i32`, `i64`, `u8`, `u16`, `u32`, `u64`, `f32`, `f64`, `bool`):
+   - Passed by value (implicitly copied) to both sync and async functions
+   - No ownership transfer needed - each copy is independent
+   - Safe to pass without `@` or `pin`
+
+2. **Reference Types** (Channels: `chan T`):
+   - Thread-safe concurrent queues with internal synchronization
+   - Passing a channel copies its reference handle, not its ownership
+   - Safe to pass to multiple async functions without `@` or `pin`
+
+3. **Owned Types** (Pointers: `->T`, `=>T`, and structs containing pointers):
+   - Unique resources that must be explicitly managed
+   - MUST be moved with `@` (transfer ownership) or shared with `pin` (immutable sharing)
+   - This prevents shared mutable state and data races
 
 ### The `@` Operator (Give)
 
-The `@` operator transfers ownership of data to an async function. After giving, the data is dead in the current scope.
+The `@` operator transfers ownership of owned types to an async function. After giving, the data is dead in the current scope and cannot be accessed.
 
 ```tc
-async fn void process: i32 value {
-    printi(value)
+async fn void process: ->i32 data {
+    printi(->data)
 }
 
 fn void main: {
     i32 x = 42
-    async process(@x)  // x is given to process
-    // x is now dead here
-    printi(x)         // ERROR: x is dead in this scope
+    ->i32 ptr = &x
+    async process(@ptr)  // ptr ownership moved to process
+    // ptr is now dead here
+    printi(->ptr)         // ERROR: ptr is dead in this scope
 }
 ```
 
-### Error: Giving Without `@`
+**Note**: For value types (primitives), `@` is not needed since they are copied automatically:
 
 ```tc
 async fn void process: i32 value {
@@ -75,7 +95,22 @@ async fn void process: i32 value {
 
 fn void main: {
     i32 x = 42
-    async process(x)  // ERROR: x is owned by main, use @ to give
+    async process(x)  // OK: x is copied (value type)
+    printi(x)         // OK: x still available
+}
+```
+
+### Error: Giving Owned Type Without `@`
+
+```tc
+async fn void process: ->i32 data {
+    printi(->data)
+}
+
+fn void main: {
+    i32 x = 42
+    ->i32 ptr = &x
+    async process(ptr)  // ERROR: ptr is owned by main, use @ to give
 }
 ```
 
@@ -83,31 +118,35 @@ fn void main: {
 
 ## Pinning (Immutable Sharing)
 
-The `pin` keyword makes data read-only in the current scope, allowing it to be safely shared across multiple async functions without transferring ownership.
+The `pin` keyword makes data read-only in the current scope, allowing it to be safely shared across multiple async functions without transferring ownership. This is primarily useful for owned types (pointers and structs with pointers).
 
 ### Syntax
 
 ```tc
 fn void main: {
     i32 x = 100
-    pin x
-    // x is now read-only in this scope
+    ->i32 ptr = &x
+    pin ptr
+    // ptr is now read-only in this scope
     // and can be shared with other threads
-    async worker1(x)
-    async worker2(x)
-    async worker3(x)
+    async worker1(ptr)
+    async worker2(ptr)
+    async worker3(ptr)
 
-    x = 12  // ERROR: x is pinned and read-only
+    ptr = &x  // ERROR: ptr is pinned and read-only
 }
 ```
 
+**Note**: For value types (primitives), `pin` is not needed since they are copied automatically when passed to async functions.
+
 ### Pinning vs Giving
 
-| Operation | Ownership | Mutability | Reusable in Scope |
-|-----------|-----------|------------|------------------|
-| `async foo(x)` | ❌ Error | N/A | N/A |
-| `async foo(@x)` | Moved | Mutable | ❌ No |
-| `pin x; async foo(x)` | Shared | Immutable | ✅ Yes |
+| Operation | Ownership | Mutability | Reusable in Scope | Type Applicability |
+|-----------|-----------|------------|------------------|-------------------|
+| `async foo(x)` (value type) | Copied | Mutable | ✅ Yes | Value types only |
+| `async foo(x)` (owned type) | ❌ Error | N/A | N/A | Error for owned types |
+| `async foo(@x)` | Moved | Mutable | ❌ No | Owned types only |
+| `pin x; async foo(x)` | Shared | Immutable | ✅ Yes | Owned types only |
 
 ---
 
@@ -147,9 +186,9 @@ fn void main: {
 
 ## Sharing Data Patterns
 
-### Pattern 1: Single Transfer (Give)
+### Pattern 1: Value Type Sharing (Automatic Copy)
 
-Use when you want to move data to another thread permanently:
+For primitives, data is automatically copied when passed to async functions:
 
 ```tc
 async fn void consumer: i32 data {
@@ -158,43 +197,62 @@ async fn void consumer: i32 data {
 
 fn void main: {
     i32 x = 42
-    async consumer(@x)  // x moved to consumer
-    // x is dead here
+    async consumer(x)  // x is copied, no @ needed
+    printi(x)          // OK: x still available
 }
 ```
 
-### Pattern 2: Multiple Consumers (Pin)
+### Pattern 2: Owned Type Transfer (Give)
 
-Use when multiple threads need read-only access:
+Use when you want to move owned data (pointers) to another thread permanently:
 
 ```tc
-async fn void reader1: i32 data {
-    printi(data)
-}
-
-async fn void reader2: i32 data {
-    printi(data)
+async fn void consumer: ->i32 data {
+    printi(->data)
 }
 
 fn void main: {
     i32 x = 42
-    pin x
-    async reader1(x)  // Shared read-only
-    async reader2(x)  // Shared read-only
-    // x still available, read-only
+    ->i32 ptr = &x
+    async consumer(@ptr)  // ptr moved to consumer
+    // ptr is dead here
 }
 ```
 
-### Pattern 3: Error - Double Give
+### Pattern 3: Owned Type Sharing (Pin)
+
+Use when multiple threads need read-only access to owned data:
 
 ```tc
-async fn void worker1: i32 data {}
-async fn void worker2: i32 data {}
+async fn void reader1: ->i32 data {
+    printi(->data)
+}
+
+async fn void reader2: ->i32 data {
+    printi(->data)
+}
 
 fn void main: {
     i32 x = 42
-    async worker1(@x)  // x moved, compiler copies x to heap, worker gets pointer
-    async worker2(@x)  // ERROR: x is already dead
+    ->i32 ptr = &x
+    pin ptr
+    async reader1(ptr)  // Shared read-only
+    async reader2(ptr)  // Shared read-only
+    // ptr still available, read-only
+}
+```
+
+### Pattern 4: Error - Double Give
+
+```tc
+async fn void worker1: ->i32 data {}
+async fn void worker2: ->i32 data {}
+
+fn void main: {
+    i32 x = 42
+    ->i32 ptr = &x
+    async worker1(@ptr)  // ptr moved
+    async worker2(@ptr)  // ERROR: ptr is already dead
 }
 ```
 
@@ -220,10 +278,10 @@ async fn void worker: {
 }
 ```
 
-### Giving data in async calls
+### Giving Owned Data in Async Calls
 
 ```tc
-async fn void worker1: i32 data {
+async fn void worker1: ->i32 data {
     async worker2(@data) // data is moved to worker2 and dead in this scope
 }
 ```
@@ -297,22 +355,24 @@ When launching async tasks in a loop, we face two main issues with a strict sing
 1. **Loop Index Mutation**: If we pin `i` to share it, we cannot increment `i++`. If we move `i` with `@i`, it becomes dead and we cannot continue the loop.
 2. **Channel Sharing**: If passing a channel transfers its ownership, the channel is dead after the first iteration and cannot be reused.
 
-### The Elegant Solution: Value-Types vs Reference-Types
+### The Elegant Solution: Type-Based Ownership
 
-To solve this beautifully without introducing data races or memory unsafety, Tight-C v1.3.0 establishes three clear type categories:
+The loop concurrency challenge is solved elegantly by Tig's type-based ownership system:
 
-1. **Value (Copy) Types** (Primitives: `i8`, `i16`, `i32`, `i64`, `u8`, `u16`, `u32`, `u64`, `f32`, `f64`):
-   - Passed by value (implicitly copied) to both sync and async functions.
-   - Since a copy is created on the new thread's stack, there is no ownership transfer and no data race.
-   - Therefore, `i` does not need `@` or `pin`, and can be mutated normally in the loop.
+1. **Value Types** (Primitives: `i8`, `i16`, `i32`, `i64`, `u8`, `u16`, `u32`, `u64`, `f32`, `f64`, `bool`):
+   - Passed by value (implicitly copied) to both sync and async functions
+   - Since a copy is created on the new thread's stack, there is no ownership transfer and no data race
+   - Therefore, loop indices like `i` do not need `@` or `pin`, and can be mutated normally
 
-2. **Reference (Shared) Types** (Channels: `chan T`):
-   - Channels are thread-safe concurrent queues.
-   - Passing a channel copies its reference handle, not its unique ownership.
-   - Therefore, a channel can be safely passed to multiple async functions in a loop without being consumed or killed.
+2. **Reference Types** (Channels: `chan T`):
+   - Channels are thread-safe concurrent queues with internal synchronization
+   - Passing a channel copies its reference handle, not its ownership
+   - Therefore, a channel can be safely passed to multiple async functions in a loop without being consumed
 
-3. **Owned (Move/Pin) Types** (Pointers: `->T`, `=>T`, or structs containing them):
-   - These are unique resources. They MUST be explicitly moved with `@` (making them dead in the parent scope) or imutably shared with `pin`. This completely eliminates shared mutable heap state and data races!
+3. **Owned Types** (Pointers: `->T`, `=>T`, and structs containing pointers):
+   - These are unique resources that must be explicitly managed
+   - MUST be moved with `@` (transfer ownership) or shared with `pin` (immutable sharing)
+   - This prevents shared mutable heap state and data races
 
 ### Valid Loop Example
 
@@ -348,11 +408,11 @@ fn void main: {
 
 ### E010: Cannot access dead variable
 ```
-error[E010]: cannot access dead variable 'x'
+error[E010]: cannot access dead variable 'ptr'
  --> main.tc:10:5
    |
-10 |     printi(x)
-   |         ^ cannot access dead variable 'x'
+10 |     printi(->ptr)
+   |         ^ cannot access dead variable 'ptr'
 ```
 
 ### E011: Cannot give owned variable without @
@@ -360,8 +420,8 @@ error[E010]: cannot access dead variable 'x'
 error[E011]: cannot give owned variable without '@'
  --> main.tc:8:12
    |
-8 |     async foo(x)
-   |            ^ use '@x' to give ownership
+8 |     async foo(ptr)
+   |            ^ use '@ptr' to give ownership
 ```
 
 ### E012: Async functions cannot return values
