@@ -1,0 +1,74 @@
+// Test file for queue and stack operations
+use "stdio.h"
+
+fn i32 main() {
+    printf("Testing queue and stack operations\n");
+    
+    // Test 1: Basic queue operations
+    queue i32 q = queue_create(5);
+    printf("Created queue\n");
+    
+    q.push(10);
+    q.push(20);
+    q.push(30);
+    printf("Pushed 3 values to queue\n");
+    
+    i32 val1 = q.pop();
+    i32 val2 = q.pop();
+    printf("Popped from queue: %d, %d\n", val1, val2);
+    
+    // Test 2: Basic stack operations
+    stack i32 s = stack_create(5);
+    printf("Created stack\n");
+    
+    s.push(100);
+    s.push(200);
+    s.push(300);
+    printf("Pushed 3 values to stack\n");
+    
+    i32 stack_val1 = s.pop();
+    i32 stack_val2 = s.pop();
+    printf("Popped from stack: %d, %d\n", stack_val1, stack_val2);
+    
+    // Test 3: Buffered queue
+    queue i32(10) buffered_q = queue_create(10);
+    printf("Created buffered queue with capacity 10\n");
+    
+    buffered_q.push(1);
+    buffered_q.push(2);
+    buffered_q.push(3);
+    printf("Pushed to buffered queue\n");
+    
+    i32 buf_val = buffered_q.pop();
+    printf("Popped from buffered queue: %d\n", buf_val);
+    
+    // Test 4: Different types in queues/stacks
+    queue f64 float_queue = queue_create(5);
+    float_queue.push(3.14);
+    float_queue.push(2.71);
+    
+    f64 f1 = float_queue.pop();
+    f64 f2 = float_queue.pop();
+    printf("Float queue values: %f, %f\n", f1, f2);
+    
+    stack i8 char_stack = stack_create(5);
+    char_stack.push('A');
+    char_stack.push('B');
+    
+    i8 c1 = char_stack.pop();
+    i8 c2 = char_stack.pop();
+    printf("Char stack values: %c, %c\n", c1, c2);
+    
+    // Test 5: Queue/stack with async functions
+    async fn void queue_consumer(queue i32 q) {
+        i32 item = q.pop();
+        printf("Async consumer got: %d\n", item);
+    }
+    
+    queue i32 work_q = queue_create(10);
+    work_q.push(999);
+    queue_consumer(work_q);
+    
+    printf("Queue and stack tests completed\n");
+    ret 0;
+}

@@ -27,6 +27,7 @@ typedef struct {
     int depth;
     int cap;
     DeclVec *program;
+    Decl *current_fn;  // Current function being checked
 } ScopeStack;
 
 static void push_scope(ScopeStack *s) {
@@ -266,7 +267,11 @@ static void check_stmts(StmtVec *body, ScopeStack *s) {
                 break;
             case ST_RET:
                 check_expr(st->expr, s);
-                // TODO: Check if we're in an async function and returning a value
+                // Check if we're in an async function and returning a value
+                if (s->current_fn && s->current_fn->is_async && st->expr) {
+                    tc_error("E012", st->line, st->col, 4, 
+                        "Async functions cannot return values");
+                }
                 break;
             case ST_BREAK:
                 break;
@@ -316,6 +321,7 @@ void check_program(DeclVec *program) {
 
         ScopeStack s = {0};
         s.program = program;
+        s.current_fn = d;  // Set current function context
 
         push_scope(&s);
         // Declare function parameters in scope

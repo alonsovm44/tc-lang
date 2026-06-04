@@ -114,19 +114,85 @@ static void emit_expr(Str *out, Expr *e, DeclVec *program) {
                 str_add(out, "TC_LENOF("); emit_expr(out, e->args.items[0], program); str_add(out, ")");
                 break;
             }
-            str_printf(out, "%s(", e->text);
-            for (int i = 0; i < e->args.count; i++) {
-                if (e->args.items[i]->kind == EX_VARARGS) continue;  // Skip varargs marker in calls
-                if (i) str_add(out, ", ");
-                // Check for pass-by-reference marker
-                if (e->args.items[i]->kind == EX_UNARY && !strcmp(e->args.items[i]->text, "&ref")) {
-                    str_add(out, "&");
-                    emit_expr(out, e->args.items[i]->left, program);
-                } else {
-                    emit_expr(out, e->args.items[i], program);
+            // Check if this is an async function call
+            bool is_async_call = false;
+            for (int i = 0; i < program->count; i++) {
+                Decl *d = program->items[i];
+                if (d->kind == DC_FN && strcmp(d->name, e->text) == 0 && d->is_async) {
+                    is_async_call = true;
+                    break;
                 }
             }
-            str_add(out, ")");
+            
+            if (is_async_call) {
+                // Generate async call: submit to thread pool
+                if (e->args.count == 0) {
+                    // No arguments - simple call
+                    str_printf(out, "thread_pool_submit(g_thread_pool, (void(*)(void*))%s, NULL)", e->text);
+                } else {
+                    // Pack arguments into a struct - for now just handle single primitive args
+                    str_add(out, "{");
+                    str_add(out, "// Pack arguments for async call\n");
+                    if (e->args.count == 1) {
+                        // Check if argument is a queue or stack type
+                        bool is_queue_stack = false;
+                        if (e->args.items[0]->type) {
+                            is_queue_stack = (e->args.items[0]->type->kind == TY_QUEUE || 
+                                             e->args.items[0]->type->kind == TY_STACK);
+                        }
+                        
+                        if (is_queue_stack) {
+                            // Queue/stack handles are passed directly (no copying needed)
+                            str_add(out, "thread_pool_submit(g_thread_pool, (void(*)(void*))%s, ");
+                            emit_expr(out, e->args.items[0], program);
+                            str_add(out, ")");
+                        } else {
+                            // Primitive types - copy by value
+                            str_add(out, "typeof("); emit_expr(out, e->args.items[0], program);
+                            str_add(out, ") *arg = malloc(sizeof(typeof(");
+                            emit_expr(out, e->args.items[0], program);
+                            str_add(out, ")));\n");
+                            str_add(out, "*arg = ");
+                            emit_expr(out, e->args.items[0], program);
+                            str_add(out, ";\n");
+                            str_printf(out, "thread_pool_submit(g_thread_pool, (void(*)(void*))%s_wrapper, arg)", e->text);
+                        }
+                    } else {
+                        // Multiple args - TODO: implement proper struct packing
+                        str_add(out, "// TODO: pack multiple arguments\n");
+                        str_printf(out, "thread_pool_submit(g_thread_pool, (void(*)(void*))%s, NULL)", e->text);
+                    }
+                    str_add(out, "\n}");
+                }
+            } else {
+                str_printf(out, "%s(", e->text);
+                for (int i = 0; i < e->args.count; i++) {
+                    if (e->args.items[i]->kind == EX_VARARGS) continue;  // Skip varargs marker in calls
+                    if (i) str_add(out, ", ");
+                    // Check for pass-by-reference marker
+                    if (e->args.items[i]->kind == EX_UNARY && !strcmp(e->args.items[i]->text, "&ref")) {
+                        str_add(out, "&");
+                        emit_expr(out, e->args.items[i]->left, program);
+                    } else {
+                        emit_expr(out, e->args.items[i], program);
+                    }
+                }
+                str_add(out, ")");
+            }
+            break;
+        case EX_QUEUE_METHOD:
+            // Generate queue/stack method calls
+            if (!strcmp(e->text, "push")) {
+                str_add(out, "queue_push(");
+                emit_expr(out, e->left, program);
+                str_add(out, ", ");
+                emit_expr(out, e->args.items[0], program);
+                str_add(out, ")");
+            } else if (!strcmp(e->text, "pop")) {
+                str_add(out, "queue_pop(");
+                emit_expr(out, e->left, program);
+                str_add(out, ")");
+            }
             break;
         case EX_INDEX: emit_expr(out, e->left, program); str_add(out, "["); emit_expr(out, e->right, program); str_add(out, "]"); break;
         case EX_FIELD: emit_expr(out, e->left, program); str_printf(out, ".%s", e->text); break;
@@ -226,7 +292,25 @@ static void emit_stmt(Str *out, Stmt *s, StmtVec *scope, DeclVec *program, int i
             str_add(out, "\n"); emit_defers(out, scope, program, indent); emit_indent(out, indent); str_add(out, "return"); if (s->expr) { str_add(out, " "); emit_expr(out, s->expr, program); } str_add(out, ";\n");
             break;
         case ST_BREAK: str_add(out, "break;\n"); break;
-        case ST_PIN: break;
+        case ST_PIN:
+            // Pin statement - no runtime code needed, just a comment for debugging
+            str_add(out, "/* pin "); emit_expr(out, s->expr, program); str_add(out, " */\n");
+            break;
+        case ST_SELECT:
+            // Generate select statement as a simple switch for now
+            str_add(out, "// TODO: Implement proper select statement\n");
+            str_add(out, "switch (0) {\n");
+            // For now, just emit the first case as default
+            if (s->body.count > 0) {
+                emit_indent(out, indent + 1);
+                str_add(out, "default:\n");
+                emit_stmt_vec(out, &s->body, program, indent + 2);
+                emit_indent(out, indent + 2);
+                str_add(out, "break;\n");
+            }
+            emit_indent(out, indent);
+            str_add(out, "}\n");
+            break;
         case ST_EXPR: emit_expr(out, s->expr, program); str_add(out, ";\n"); break;
         case ST_INLINE_C:
             // Emit inline C code directly

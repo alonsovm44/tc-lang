@@ -1,0 +1,39 @@
+// Test file for pin keyword functionality
+use "stdio.h"
+
+fn void read_value(i32 x) {
+    printf("Reading pinned value: %d\n", x);
+}
+
+fn i32 main() {
+    printf("Testing pin keyword\n");
+    
+    // Test 1: Basic pin usage
+    i32 x = 42;
+    pin x;
+    read_value(x);
+    
+    // Test 2: Pin with different types
+    i8 ch = 'A';
+    pin ch;
+    printf("Pinned character: %c\n", ch);
+    
+    f64 pi = 3.14159;
+    pin pi;
+    printf("Pinned float: %f\n", pi);
+    
+    // Test 3: Pin in scope
+    {
+        i32 scoped = 100;
+        pin scoped;
+        printf("Pinned scoped value: %d\n", scoped);
+    } // scoped goes out of scope here
+    
+    // Test 4: Multiple pinned variables
+    i32 a = 1, b = 2, c = 3;
+    pin a, b, c;
+    printf("Multiple pinned: %d, %d, %d\n", a, b, c);
+    
+    printf("Pin tests completed\n");
+    ret 0;
+}
