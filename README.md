@@ -27,16 +27,6 @@ Tig is a minimalistic systems programming language.
 - **Select Statements** — Wait on multiple async operations with `select`
 - **Queue & Stack Types** — Built-in concurrent data structures with `queue<i32>` and `stack<i32>` (still buggy)
 - **Pin Keyword** — Keep variables alive across async boundaries with `pin`
-
-## What's New in v1.2.3
-
-- **Better Hot Reloading** — No special `hot` keyword needed anymore. Every function, structure (`strun`), and enum layout can be live-updated on-the-fly. The infinite driver loop resides in the Host while the logic runs inside versioned libraries, allowing zero-restart hot-reloading with automatic old DLL cleanup!
-- **Simplified Keywords** — Removed the `hot` keyword completely. Tig now has only 13 keywords.
-- **Varargs support** — Functions can now declare and use variadic arguments with `...`
-- **Expanded I/O stdlib** — Added file I/O functions (fopen, fclose, fgetc, fputs, fprintf, fscanf, feof, etc.)
-- **Else if statements** — Added `else if` and `else` for chained conditionals.
-- **Match statements** — Pattern matching with wildcard support
-
 ## Project Goals
 > Make the first mainstream systems langauge from Mexico.
 > Explore the bare minimum of what a systems language must have to be usable, modern and ergonomic
