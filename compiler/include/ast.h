@@ -13,7 +13,9 @@ typedef enum {
     TY_RAWPTR,
     TY_FATPTR,
     TY_ARRAY,
-    TY_FNPTR
+    TY_FNPTR,
+    TY_QUEUE,
+    TY_STACK
 } TypeKind;
 
 typedef struct {
@@ -83,6 +85,7 @@ typedef enum {
     EX_TYPE,
     EX_VARARGS,
     EX_METHOD_CALL,
+    EX_QUEUE_METHOD,
     EX_SIZEOF
 } ExprKind;
 
@@ -171,6 +174,7 @@ struct Decl {
     DeclKind kind;
     bool public;
     bool is_hot;  // For hot reload: function is in shared library
+    bool is_async;  // For 1.3: async function
     char *name;
     char *path;
     Type *type;

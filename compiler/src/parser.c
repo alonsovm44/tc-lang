@@ -143,6 +143,19 @@ static Type *parse_type(Parser *p) {
     } else if (match(p, "=>")) {
         t = new_type(TY_FATPTR);
         t->inner = parse_type(p);
+    } else if (match(p, "queue")) {
+        // Queue type: queue T or queue T(N)
+        t = new_type(TY_QUEUE);
+        t->inner = parse_type(p);
+        // Check for buffered queue syntax: queue T(N)
+        if (match(p, "(")) {
+            t->size = parse_expr(p);
+            expect(p, ")");
+        }
+    } else if (match(p, "stack")) {
+        // Stack type: stack T
+        t = new_type(TY_STACK);
+        t->inner = parse_type(p);
     } else if (match(p, "fn")) {
         // Function pointer type: fn(type, type, ...)rettype
         t = new_type(TY_FNPTR);
@@ -289,15 +302,26 @@ static Expr *parse_postfix(Parser *p) {
                 // Check if this is a method call: expr.method(...)
                 char *field_name = expect_ident(p);
                 if (match(p, "(")) {
-                    // Method call
-                    Expr *method_call = new_expr(EX_METHOD_CALL);
+                    // Check if this is a queue/stack method call
+                    bool is_queue_method = (!strcmp(field_name, "push") || !strcmp(field_name, "pop")) &&
+                                         (e->type && (e->type->kind == TY_QUEUE || e->type->kind == TY_STACK));
+                    
+                    Expr *method_call;
+                    if (is_queue_method) {
+                        method_call = new_expr(EX_QUEUE_METHOD);
+                    } else {
+                        method_call = new_expr(EX_METHOD_CALL);
+                    }
+                    
                     method_call->left = e;
                     method_call->text = field_name;
+                    
                     // Store struct name in type->name for emitter to use
                     if (e->type && e->type->name) {
                         method_call->type = new_type(TY_NAME);
                         method_call->type->name = xstrdup(e->type->name);
                     }
+                    
                     // Parse arguments
                     while (!match(p, ")")) {
                         expr_push(&method_call->args, parse_expr(p));
@@ -702,12 +726,18 @@ DeclVec parse_program(Token *tokens) {
             decl_push(&p.decls, parse_enum(&p, public));
             continue;
         }
-        // Check for new fn syntax first
+        // Check for async fn syntax first
+        bool is_async = false;
+        if (match(&p, "async")) {
+            is_async = true;
+        }
+        
         if (match(&p, "fn")) {
-            // New syntax: fn <type> <name>: <type> arg1, <type> arg2, ...
+            // New syntax: [async] fn <type> <name>: <type> arg1, <type> arg2, ...
             Type *ret_type = parse_type(&p);
             Decl *d = new_decl(DC_FN);
             d->public = public;
+            d->is_async = is_async;
             d->type = ret_type;
             d->name = expect_ident(&p);
             expect(&p, ":");
@@ -725,10 +755,19 @@ DeclVec parse_program(Token *tokens) {
             d->body = parse_block(&p);
             decl_push(&p.decls, d);
         } else {
-            // Old syntax: type fn name: ... or variable declaration
+            // Old syntax: [async] type fn name: ... or variable declaration
+            bool old_async = false;
+            if (is_async && !match(&p, "fn")) {
+                // If we saw async but it's not followed by fn, it's a variable declaration
+                // Reset is_async for the next iteration
+                is_async = false;
+            }
+            
             Type *type = parse_type(&p);
             if (match(&p, "fn")) {
-                decl_push(&p.decls, parse_fn(&p, DC_FN, public, type));
+                Decl *fn_decl = parse_fn(&p, DC_FN, public, type);
+                fn_decl->is_async = is_async;
+                decl_push(&p.decls, fn_decl);
             } else {
                 Decl *d = new_decl(DC_VAR);
                 d->public = public;
