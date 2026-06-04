@@ -1,0 +1,6 @@
+use "stdlib/io.tc"
+
+fn void main: {
+    i32 x;
+    printi(42)
+}

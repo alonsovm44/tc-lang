@@ -59,6 +59,16 @@ static void emit_type(Str *out, Type *t, const char *name, DeclVec *program) {
         emit_type(out, t->inner, arr.data, program);
         return;
     }
+    if (t->kind == TY_QUEUE) {
+        str_add(out, "Queue");
+        if (name && name[0]) str_printf(out, " %s", name);
+        return;
+    }
+    if (t->kind == TY_STACK) {
+        str_add(out, "Stack");
+        if (name && name[0]) str_printf(out, " %s", name);
+        return;
+    }
     const char *base = t->name;
     if (!strcmp(base, "void")) base = "void";
     else if (!strcmp(base, "i2") || !strcmp(base, "i4")) base = "int8_t";
