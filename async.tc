@@ -1,0 +1,10 @@
+use "stdlib/io.tc"
+
+async fn void foo:{
+    print("foo")
+}
+
+fn void main: {
+    foo()
+    print("\nasync test done\n")
+}

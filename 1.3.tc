@@ -1,0 +1,81 @@
+// testing async functions, stack and queue primitives
+use "stdlib/io.tc"
+use "stdlib/async.tc"
+
+async fn void asyncfn: queue<i32> result, i32 value{
+    result.push(value*2)
+    // async functions dont return values, use stacks and queues to transfer data
+}
+
+fn stack<i32> multiple: stack<i32> result, i32 val{ // sync function returns a stack of integers
+    i32 x = val+val
+    i32 y = val*val
+
+    result.push(x)
+    result.push(y)
+
+    ret result
+}
+
+fn void main: {
+    queue<i32> q = {0, 1, 2}
+    q.push(3)
+    i32 x = q.pop() 
+    i32 y = q.pop() 
+    printi(x)
+    printi(y)
+
+    stack<i32> s = {0, 2, 4, 6}
+    i32 a = s.pop()
+    i32 b = s.pop()
+    printi(a)
+    printi(b)
+    
+    queue<i32> q2 = {}
+    asyncfn(q2, 5)
+    printi(q2.pop())
+    printi("\nqueue and stack test done\n")
+
+
+    // multiple return values test
+
+    stack<i32> st // defaults to 0
+    multiple(st, 5)
+
+    i32 value1 = st.pop()
+    i32 value2 = st.pop()
+    printi(value1)
+    printi(value2)
+
+    // buffered stacks and queues
+    stack<i32>(10) buffered_stack = {1,2,3,4,5,6,7,8,9,10}
+    queue<i32>(10) buffered_queue = {1,2,3,4,5,6,7,8,9,10}
+
+    stack<f32> nonbuffered_stack = {}
+    queue<f32> nonbuffered_queue = {}
+
+    // buffered stacks and queues have a fixed size, while non-buffered ones can grow dynamically
+    buffered_stack.push(11) // block, buffer is full
+    buffered_queue.push(11) // block, buffer is full
+
+    // pointers to stacks and queues
+
+    queue<i32> q = {0, 1, 2, 3, 5}
+    stack<i32> s = {0, 1, 2, 3, 4}
+
+    ->queue<i32> q_ptr = &q
+    ->stack<i32> s_ptr = &s
+    
+    //fat ptr to queue and stack
+    // a fat ptr is a slice
+    =>queue<i32> q_fat_ptr = q{0:2}
+    =>stack<i32> s_fat_ptr = s{0:2}
+
+    q_ptr.>push(10)
+    s_ptr.>push(12)
+
+    //or
+
+    (->q_ptr).push(10)
+    (->s_ptr).push(12)
+}

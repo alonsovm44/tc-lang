@@ -1,0 +1,6 @@
+Do you prefer implicit dereferencing for pointers (so q_ptr.push(val) just works) or explicit q_ptr.>push(val)?
+- Explicit
+
+Should the queue slice {0:2} be a read-only live view (Solution 2) or should it copy into a standard array slice =>i32 (Solution 1)?
+
+- Read-only live view
