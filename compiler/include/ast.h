@@ -144,6 +144,7 @@ typedef enum {
     ST_PIN,
     ST_EXPR,
     ST_MATCH,
+    ST_SELECT,
     ST_INLINE_C
 } StmtKind;
 

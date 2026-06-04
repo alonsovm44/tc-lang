@@ -10,6 +10,9 @@
 typedef struct {
     char *name;
     Type *type;
+    bool is_owned;     // Variable ownership status
+    bool is_dead;       // Variable is dead (ownership transferred)
+    bool is_pinned;     // Variable is pinned (immutable)
 } VarInfo;
 
 // Scope stack entry
@@ -52,7 +55,35 @@ static void declare_var(ScopeStack *s, const char *name, Type *type) {
         top->cap = top->cap ? top->cap * 2 : 8;
         top->vars = xrealloc(top->vars, sizeof(VarInfo) * (size_t)top->cap);
     }
-    top->vars[top->count++] = (VarInfo){(char *)name, type};
+    // Determine if this is an owned type (pointer)
+    bool is_owned = (type && (type->kind == TY_RAWPTR || type->kind == TY_FATPTR));
+    top->vars[top->count++] = (VarInfo){(char *)name, type, is_owned, false, false};
+}
+
+static VarInfo *get_var_info(ScopeStack *s, const char *name) {
+    for (int i = s->depth - 1; i >= 0; i--) {
+        for (int j = 0; j < s->scopes[i].count; j++) {
+            if (strcmp(s->scopes[i].vars[j].name, name) == 0) {
+                return &s->scopes[i].vars[j];
+            }
+        }
+    }
+    return NULL;
+}
+
+static void mark_var_dead(ScopeStack *s, const char *name) {
+    VarInfo *var = get_var_info(s, name);
+    if (var) {
+        var->is_dead = true;
+    }
+}
+
+static void check_var_access(ScopeStack *s, const char *name, int line, int col) {
+    VarInfo *var = get_var_info(s, name);
+    if (var && var->is_dead) {
+        tc_error("E010", line, col, (int)strlen(name), 
+            "Cannot access dead variable '%s'", name);
+    }
 }
 
 static bool var_in_scope(ScopeStack *s, const char *name) {
@@ -93,6 +124,8 @@ static void check_expr(Expr *e, ScopeStack *s) {
                 tc_error("E014", e->line, e->col, (int)strlen(e->text),
                     "undefined variable '%s'", e->text);
             }
+            // Check for dead variable access
+            check_var_access(s, e->text, e->line, e->col);
             // Set type for variable expressions by looking up the variable
             e->type = get_var_type(s, e->text);
             break;
@@ -102,9 +135,33 @@ static void check_expr(Expr *e, ScopeStack *s) {
         case EX_BINARY:
             check_expr(e->left, s);
             check_expr(e->right, s);
+            // Check for assignment to pinned variable
+            if (is_assignment(e->text) && e->left->kind == EX_NAME) {
+                VarInfo *var = get_var_info(s, e->left->text);
+                if (var && var->is_pinned) {
+                    tc_error("E013", e->line, e->col, (int)strlen(e->left->text),
+                        "Cannot assign to pinned variable '%s'", e->left->text);
+                }
+            }
             break;
         case EX_UNARY:
             check_expr(e->left, s);
+            // Handle ownership transfer with @ operator
+            if (strcmp(e->text, "@") == 0 && e->left->kind == EX_NAME) {
+                VarInfo *var = get_var_info(s, e->left->text);
+                if (var) {
+                    if (!var->is_owned) {
+                        tc_error("E011", e->line, e->col, (int)strlen(e->left->text),
+                            "Cannot give owned variable without @ - '%s' is not an owned type", e->left->text);
+                    }
+                    if (var->is_dead) {
+                        tc_error("E010", e->line, e->col, (int)strlen(e->left->text),
+                            "Cannot access dead variable '%s'", e->left->text);
+                    }
+                    // Mark variable as dead after ownership transfer
+                    mark_var_dead(s, e->left->text);
+                }
+            }
             break;
         case EX_INDEX:
             check_expr(e->left, s);
@@ -115,6 +172,21 @@ static void check_expr(Expr *e, ScopeStack *s) {
             // Set the method call type from the left expression (struct instance)
             if (e->left->type) {
                 e->type = e->left->type;
+            }
+            for (int i = 0; i < e->args.count; i++) check_expr(e->args.items[i], s);
+            break;
+        case EX_QUEUE_METHOD:
+            check_expr(e->left, s);
+            // For push/pop methods, set appropriate return type
+            if (strcmp(e->text, "pop") == 0) {
+                // pop() returns the inner type of the queue/stack
+                if (e->left->type && e->left->type->inner) {
+                    e->type = e->left->type->inner;
+                }
+            } else {
+                // push() returns void
+                e->type = new_type(TY_NAME);
+                e->type->name = xstrdup("void");
             }
             for (int i = 0; i < e->args.count; i++) check_expr(e->args.items[i], s);
             break;
@@ -194,9 +266,19 @@ static void check_stmts(StmtVec *body, ScopeStack *s) {
                 break;
             case ST_RET:
                 check_expr(st->expr, s);
+                // TODO: Check if we're in an async function and returning a value
                 break;
             case ST_BREAK:
+                break;
             case ST_PIN:
+                // Pin statement: pin variable
+                if (st->expr && st->expr->kind == EX_NAME) {
+                    VarInfo *var = get_var_info(s, st->expr->text);
+                    if (var) {
+                        var->is_pinned = true;
+                    }
+                }
+                check_expr(st->expr, s);
                 break;
             case ST_INLINE_C:
                 // Inline C code doesn't need type checking

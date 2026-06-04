@@ -404,6 +404,29 @@ static Expr *parse_initializer(Parser *p) {
 static StmtVec parse_block(Parser *p);
 
 static Stmt *parse_stmt(Parser *p) {
+    if (match(p, "select")) {
+        Stmt *s = new_stmt(ST_SELECT);
+        expect(p, "{");
+        while (!match(p, "}")) {
+            // Parse select case: operation => { body }
+            Expr *operation = parse_expr(p);
+            expect(p, "=>");
+            StmtVec case_body = {0};
+            if (match(p, "{")) {
+                while (!match(p, "}")) {
+                    stmt_push(&case_body, parse_stmt(p));
+                }
+            } else {
+                // Single statement case
+                stmt_push(&case_body, parse_stmt(p));
+            }
+            // Add case to select statement
+            // We'll store cases in the body vector for now
+            stmt_push(&s->body, new_stmt(ST_EXPR));  // Placeholder
+            match(p, ",");
+        }
+        return s;
+    }
     if (match(p, "if")) {
         Stmt *s = new_stmt(ST_IF);
         expect(p, "("); s->expr = parse_expr(p); expect(p, ")");

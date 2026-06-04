@@ -1,5 +1,5 @@
 <p align="center">
-  <h1 align="center">Tight-C</h1>
+  <h1 align="center">Tig</h1>
   <p align="center">Simplest possible, usable systems language</p>
 </p>
 
@@ -13,13 +13,13 @@
 
 ---
 
-Tight-C is a minimalistic systems programming language.
+Tig is a minimalistic systems programming language.
 
 ## What's New in v1.2.3
 
 - **Better Hot Reloading** — No special `hot` keyword needed anymore. Every function, structure (`strun`), and enum layout can be live-updated on-the-fly. The infinite driver loop resides in the Host while the logic runs inside versioned libraries, allowing zero-restart hot-reloading with automatic old DLL cleanup!
 > Note: if you find bugs, (which will be found) please report them, open an issue.
-- **Simplified Keywords** — Removed the `hot` keyword completely. Tight-C now has only 13 keywords.
+- **Simplified Keywords** — Removed the `hot` keyword completely. Tig now has only 13 keywords.
 - **Varargs support** — Functions can now declare and use variadic arguments with `...`
 - **Expanded I/O stdlib** — Added file I/O functions (fopen, fclose, fgetc, fputs, fprintf, fscanf, feof, etc.)
 - **Else if statements** — Added `else if` and `else` for chained conditionals.
@@ -81,7 +81,7 @@ gcc fizzbuzz.c -std=c11 -o fizzbuzz
 
 ## How It Works
 
-Tight-C is a **source-to-source compiler** (transpiler) written in ~1800 lines of C. It reads `.tc` files and outputs portable C11.
+Tig is a **source-to-source compiler** (transpiler) written in ~1800 lines of C. It reads `.tc` files and outputs portable C11.
 
 ```
 source.tc → [Lexer] → [Parser] → [AST] → [Emitter] → output.c → gcc/clang → binary
@@ -93,7 +93,7 @@ source.tc → [Lexer] → [Parser] → [AST] → [Emitter] → output.c → gcc/
 2. **Parser** (`parser.c`) — Builds an AST from tokens. Handles operator precedence, scope-level `pin` enforcement, and `@use` file inlining (recursive parse + splice).
 3. **Emitter** (`emitter.c`) — Walks the AST and outputs C11. Most constructs are 1:1 with targeted transforms:
 
-| Tight-C | Emitted C |
+| Tig | Emitted C |
 |---------|-----------|
 | `=>i32 s` | `tc_fat_i32 s` (struct with `.ptr` + `.len`) |
 | `defer { free(p) }` | Scope-exit statements emitted in reverse order before `}` and `return` |
@@ -116,7 +116,7 @@ There is no optimizer, no IR, no type inference pass, and no code generation bey
 | **Safety without runtime cost** | Fat pointers carry length at zero overhead (struct field). `pin` catches mutation bugs at compile time. `defer` prevents resource leaks. |
 | **Interop** | `extern "C"` blocks let you call any C library directly. `use` includes `.h` files. The generated code is linkable from C. |
 
-### What Tight-C is good for
+### What Tig is good for
 
 - **CLI tools** — parse args, process files, call system APIs
 - **Embedded / bare-metal** — no runtime, no allocator required, predictable memory layout (packed structs)
@@ -334,7 +334,7 @@ match (n) {
 
 ## Types
 
-| Tight-C | C Equivalent |
+| Tig | C Equivalent |
 |---------|-------------|
 | `i8`    | `char`      |
 | `i16`   | `int16_t`   |
@@ -364,7 +364,7 @@ Combine both: `tightc app.tc -o app.c -c app` keeps the `.c` and builds the bina
 
 ## Hot Reloading
 
-Tight-C supports global, bulletproof hot reloading. This allows you to modify functions, structs (`strun` definitions), and enums, and recompile shared libraries *completely on-the-fly* without restarting your running application.
+Tig supports global, bulletproof hot reloading. This allows you to modify functions, structs (`strun` definitions), and enums, and recompile shared libraries *completely on-the-fly* without restarting your running application.
 
 ### Basic Usage
 
@@ -383,7 +383,7 @@ The running application will automatically detect the changes, unload the old li
 
 ### How It Works
 
-Tight-C uses a robust Host/DLL splitting architecture to avoid Windows file locking issues and guarantee clean reloads during loops:
+Tig uses a robust Host/DLL splitting architecture to avoid Windows file locking issues and guarantee clean reloads during loops:
 
 - **Host (The Driver)**: The `main` function is compiled directly into the host executable. This ensures the main driver/application loop resides safely outside the shared library, avoiding trapped call stacks. The host manages loading/unloading and resolves stubs.
 - **Library (The Engine)**: All other functions, structs, and enums are compiled into the shared library (`hotlib_N.dll` on Windows / `hotlib_N.so` on Unix). Every function is exported automatically.
@@ -426,7 +426,7 @@ Running this prints `17` every 2 seconds. If you edit `ret x + y + 10` to `ret x
 
 See the `demos/HOTSWAPPING/` folder for a complete working example with documentation, including the demo output showing hot reload in action.
 
-This feature demonstrates Tight-C's capability for advanced systems programming patterns, using the industry-standard approach to hot reload on Windows (versioned libraries).
+This feature demonstrates Tig's capability for advanced systems programming patterns, using the industry-standard approach to hot reload on Windows (versioned libraries).
 
 ## Project Structure
 
