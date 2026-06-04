@@ -17,16 +17,16 @@ Tig is a minimalistic systems programming language.
 
 ## What's New in v1.3.0 🚀
 
-- **🎯 Zero-Boilerplate Async** — Write concurrent code with zero setup! No manual `async_init()` or `async_shutdown()` needed. Runtime initializes automatically on first async call.
-- **⚡ Async Functions** — Simple async syntax: `async fn void worker: i32 x { printi(x) }` and call with `worker(42)`
-- **🔗 Thread Pool Management** — Built-in thread pool with automatic resource management and cleanup
-- **📦 Smart Compilation** — Runtime automatically linked only when async functions are used (zero overhead for sync programs)
-- **🧹 Clean Output** — No debug noise, just your program output
-- **📚 Stdlib Module** — `use "stdlib/async.tc"` for async functionality
-- **🔄 Ownership Transfer** — `@` operator for transferring ownership of resources between async tasks
-- **📋 Select Statements** — Wait on multiple async operations with `select`
-- **🏗️ Queue & Stack Types** — Built-in concurrent data structures with `queue<i32>` and `stack<i32>`
-- **📌 Pin Keyword** — Keep variables alive across async boundaries with `pin`
+- **Zero-Boilerplate Async** — Write concurrent code with zero setup! No manual `async_init()` or `async_shutdown()` needed. Runtime initializes automatically on first async call.
+- **Async Functions** — Simple async syntax: `async fn void worker: i32 x { printi(x) }` and call with `worker(42)`
+- **Thread Pool Management** — Built-in thread pool with automatic resource management and cleanup
+- **Smart Compilation** — Runtime automatically linked only when async functions are used (zero overhead for sync programs)
+- **Clean Output** — No debug noise, just your program output
+- **Stdlib Module** — `use "stdlib/async.tc"` for async functionality
+- **Ownership Transfer** — `@` operator for transferring ownership of resources between async tasks
+- **Select Statements** — Wait on multiple async operations with `select`
+- **Queue & Stack Types** — Built-in concurrent data structures with `queue<i32>` and `stack<i32>` (still buggy)
+- **Pin Keyword** — Keep variables alive across async boundaries with `pin`
 
 ## What's New in v1.2.3
 
