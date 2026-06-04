@@ -1,0 +1,4 @@
+i32 fn main: {
+    queue i32 q
+    ret 0
+}

@@ -504,7 +504,7 @@ static Stmt *parse_stmt(Parser *p) {
     }
     int mark = p->pos;
     bool is_fn_type = at(p, "fn");
-    bool type_start = is_type_name(cur(p)->text) || at(p, "->") || at(p, "=>") || is_fn_type || is_struct(p, cur(p)->text) || is_enum(p, cur(p)->text);
+    bool type_start = is_type_name(cur(p)->text) || at(p, "->") || at(p, "=>") || is_fn_type || is_struct(p, cur(p)->text) || is_enum(p, cur(p)->text) || at(p, "queue") || at(p, "stack");
     if (type_start) {
         Type *type = parse_type(p);
         if (cur(p)->kind == TOK_IDENT) {

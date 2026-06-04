@@ -1,0 +1,33 @@
+use "stdlib/io.tc"
+
+// Test 1: Async function
+async fn void async_worker: {
+    printi(42)
+}
+
+// Test 2: Regular function with pointer parameter
+fn void increment: ->i32 x {
+    (->x) = (->x) + 1
+}
+
+// Test 3: Pin keyword test
+fn void test_pin: {
+    i32 x = 100
+    pin x
+    printi(x)
+}
+
+i32 fn main: {
+    // Test regular function call
+    i32 value = 15
+    increment(&value)
+    printi(value)
+    
+    // Test async function call
+    async_worker()
+    
+    // Test pin keyword
+    test_pin()
+    
+    ret 0
+}

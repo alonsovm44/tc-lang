@@ -1,0 +1,7 @@
+i32 fn main: {
+    queue i32 q
+    q = queue_create(5)
+    q.push(42)
+    i32 val = q.pop()
+    ret 0
+}

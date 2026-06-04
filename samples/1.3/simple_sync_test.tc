@@ -1,0 +1,8 @@
+fn void simple_func: {
+    // Simple sync function
+}
+
+i32 fn main: {
+    simple_func()
+    ret 0
+}

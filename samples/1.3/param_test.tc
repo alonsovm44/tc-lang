@@ -1,0 +1,9 @@
+fn void test_func: ->i32 x {
+    (->x) = (->x) + 1
+}
+
+i32 fn main: {
+    i32 x = 15
+    test_func(&x)
+    ret 0
+}

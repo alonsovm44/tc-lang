@@ -1,0 +1,49 @@
+// Async runtime module for Tig 1.3
+// Provides concurrency primitives and thread pool management
+
+// Runtime initialization and cleanup
+extern "C" {
+    fn void runtime_init: {}
+    fn void runtime_shutdown: {}
+}
+
+// Thread pool operations
+extern "C" {
+    fn ->ThreadPool thread_pool_create: i32 thread_count {}
+    fn void thread_pool_destroy: ->ThreadPool pool {}
+    fn void thread_pool_submit: ->ThreadPool pool, void (*func)(void *), void *arg {}
+}
+
+// Queue operations
+extern "C" {
+    fn ->Queue queue_create: i32 capacity {}
+    fn void queue_destroy: ->Queue q {}
+    fn void queue_push: ->Queue q, void *item {}
+    fn ->void queue_pop: ->Queue q {}
+}
+
+// Stack operations
+extern "C" {
+    fn ->Stack stack_create: i32 capacity {}
+    fn void stack_destroy: ->Stack s {}
+    fn void stack_push: ->Stack s, void *item {}
+    fn ->void stack_pop: ->Stack s {}
+}
+
+// Global thread pool instance
+extern "C" {
+    ->ThreadPool g_thread_pool
+}
+
+// Convenience functions for common operations
+fn void async_init: {
+    runtime_init()
+}
+
+fn void async_shutdown: {
+    runtime_shutdown()
+}
+
+fn void spawn: void (*func)(void *), void *arg {
+    thread_pool_submit(g_thread_pool, func, arg)
+}

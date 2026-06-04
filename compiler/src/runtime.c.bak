@@ -1,0 +1,333 @@
+#include "runtime.h"
+#include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
+
+// Windows-compatible simplified runtime
+#include <windows.h>
+
+// Simplified thread pool for Windows
+typedef struct {
+    void (*func)(void *arg);
+    void *arg;
+} WinTask;
+
+// Simplified queue for Windows
+typedef struct {
+    void **items;
+    int capacity;
+    int head;
+    int tail;
+    int count;
+    CRITICAL_SECTION mutex;
+    HANDLE not_empty;
+    HANDLE not_full;
+} WinQueue;
+
+typedef struct {
+    void **items;
+    int capacity;
+    int top;
+    CRITICAL_SECTION mutex;
+    HANDLE not_empty;
+    HANDLE not_full;
+} WinStack;
+
+// Global runtime state
+ThreadPool *g_thread_pool = NULL;
+
+// Thread worker function
+static void *worker_thread(void *arg) {
+    ThreadPool *pool = (ThreadPool *)arg;
+    
+    while (1) {
+        pthread_mutex_lock(&pool->queue_mutex);
+        
+        // Wait for a task or shutdown signal
+        while (pool->queue_size == 0 && !pool->shutdown) {
+            pthread_cond_wait(&pool->queue_cond, &pool->queue_mutex);
+        }
+        
+        if (pool->shutdown) {
+            pthread_mutex_unlock(&pool->queue_mutex);
+            break;
+        }
+        
+        // Get next task
+        Task *task = pool->task_queue;
+        pool->task_queue = task->next;
+        pool->queue_size--;
+        
+        // Note: No need to signal queue not full for thread pool tasks
+        
+        // Signal that queue might be empty
+        if (pool->queue_size == 0) {
+            pthread_cond_signal(&pool->queue_empty);
+        }
+        
+        pthread_mutex_unlock(&pool->queue_mutex);
+        
+        // Execute task
+        task->func(task->arg);
+        free(task);
+    }
+    
+    return NULL;
+}
+
+ThreadPool *thread_pool_create(int thread_count) {
+    ThreadPool *pool = malloc(sizeof(ThreadPool));
+    if (!pool) return NULL;
+    
+    memset(pool, 0, sizeof(ThreadPool));
+    pool->thread_count = thread_count;
+    pool->queue_capacity = 1024; // Default queue capacity
+    
+    // Initialize synchronization primitives
+    pthread_mutex_init(&pool->queue_mutex, NULL);
+    pthread_cond_init(&pool->queue_cond, NULL);
+    pthread_cond_init(&pool->queue_empty, NULL);
+    
+    // Create worker threads
+    pool->threads = malloc(sizeof(pthread_t) * thread_count);
+    if (!pool->threads) {
+        free(pool);
+        return NULL;
+    }
+    
+    for (int i = 0; i < thread_count; i++) {
+        if (pthread_create(&pool->threads[i], NULL, worker_thread, pool) != 0) {
+            // Cleanup on failure
+            for (int j = 0; j < i; j++) {
+                pthread_cancel(pool->threads[j]);
+            }
+            free(pool->threads);
+            free(pool);
+            return NULL;
+        }
+    }
+    
+    return pool;
+}
+
+void thread_pool_destroy(ThreadPool *pool) {
+    if (!pool) return;
+    
+    // Signal shutdown
+    pthread_mutex_lock(&pool->queue_mutex);
+    pool->shutdown = 1;
+    pthread_cond_broadcast(&pool->queue_cond);
+    pthread_mutex_unlock(&pool->queue_mutex);
+    
+    // Wait for all threads to finish
+    for (int i = 0; i < pool->thread_count; i++) {
+        pthread_join(pool->threads[i], NULL);
+    }
+    
+    // Cleanup remaining tasks
+    while (pool->task_queue) {
+        Task *task = pool->task_queue;
+        pool->task_queue = task->next;
+        free(task);
+    }
+    
+    // Cleanup synchronization primitives
+    pthread_mutex_destroy(&pool->queue_mutex);
+    pthread_cond_destroy(&pool->queue_cond);
+    pthread_cond_destroy(&pool->queue_empty);
+    
+    free(pool->threads);
+    free(pool);
+}
+
+void thread_pool_submit(ThreadPool *pool, void (*func)(void *), void *arg) {
+    if (!pool || !func) return;
+    
+    Task *task = malloc(sizeof(Task));
+    if (!task) return;
+    
+    task->func = func;
+    task->arg = arg;
+    task->next = NULL;
+    
+    pthread_mutex_lock(&pool->queue_mutex);
+    
+    // Add task to queue
+    if (pool->task_queue) {
+        Task *current = pool->task_queue;
+        while (current->next) {
+            current = current->next;
+        }
+        current->next = task;
+    } else {
+        pool->task_queue = task;
+    }
+    pool->queue_size++;
+    
+    // Signal worker thread
+    pthread_cond_signal(&pool->queue_cond);
+    
+    pthread_mutex_unlock(&pool->queue_mutex);
+}
+
+// Queue implementation
+Queue *queue_create(int capacity) {
+    Queue *q = malloc(sizeof(Queue));
+    if (!q) return NULL;
+    
+    memset(q, 0, sizeof(Queue));
+    q->capacity = capacity;
+    q->items = malloc(sizeof(void *) * capacity);
+    
+    if (!q->items) {
+        free(q);
+        return NULL;
+    }
+    
+    pthread_mutex_init(&q->mutex, NULL);
+    pthread_cond_init(&q->not_empty, NULL);
+    pthread_cond_init(&q->not_full, NULL);
+    
+    return q;
+}
+
+void queue_destroy(Queue *q) {
+    if (!q) return;
+    
+    pthread_mutex_destroy(&q->mutex);
+    pthread_cond_destroy(&q->not_empty);
+    pthread_cond_destroy(&q->not_full);
+    
+    free(q->items);
+    free(q);
+}
+
+void queue_push(Queue *q, void *item) {
+    if (!q || !item) return;
+    
+    pthread_mutex_lock(&q->mutex);
+    
+    // Wait if queue is full
+    while (q->count >= q->capacity) {
+        pthread_cond_wait(&q->not_full, &q->mutex);
+    }
+    
+    // Add item
+    q->items[q->tail] = item;
+    q->tail = (q->tail + 1) % q->capacity;
+    q->count++;
+    
+    // Signal that queue is not empty
+    pthread_cond_signal(&q->not_empty);
+    
+    pthread_mutex_unlock(&q->mutex);
+}
+
+void *queue_pop(Queue *q) {
+    if (!q) return NULL;
+    
+    pthread_mutex_lock(&q->mutex);
+    
+    // Wait if queue is empty
+    while (q->count == 0) {
+        pthread_cond_wait(&q->not_empty, &q->mutex);
+    }
+    
+    // Remove item
+    void *item = q->items[q->head];
+    q->head = (q->head + 1) % q->capacity;
+    q->count--;
+    
+    // Signal that queue is not full
+    pthread_cond_signal(&q->not_full);
+    
+    pthread_mutex_unlock(&q->mutex);
+    
+    return item;
+}
+
+// Stack implementation
+Stack *stack_create(int capacity) {
+    Stack *s = malloc(sizeof(Stack));
+    if (!s) return NULL;
+    
+    memset(s, 0, sizeof(Stack));
+    s->capacity = capacity;
+    s->items = malloc(sizeof(void *) * capacity);
+    
+    if (!s->items) {
+        free(s);
+        return NULL;
+    }
+    
+    pthread_mutex_init(&s->mutex, NULL);
+    pthread_cond_init(&s->not_empty, NULL);
+    pthread_cond_init(&s->not_full, NULL);
+    
+    return s;
+}
+
+void stack_destroy(Stack *s) {
+    if (!s) return;
+    
+    pthread_mutex_destroy(&s->mutex);
+    pthread_cond_destroy(&s->not_empty);
+    pthread_cond_destroy(&s->not_full);
+    
+    free(s->items);
+    free(s);
+}
+
+void stack_push(Stack *s, void *item) {
+    if (!s || !item) return;
+    
+    pthread_mutex_lock(&s->mutex);
+    
+    // Wait if stack is full
+    while (s->top >= s->capacity) {
+        pthread_cond_wait(&s->not_full, &s->mutex);
+    }
+    
+    // Add item
+    s->items[s->top++] = item;
+    
+    // Signal that stack is not empty
+    pthread_cond_signal(&s->not_empty);
+    
+    pthread_mutex_unlock(&s->mutex);
+}
+
+void *stack_pop(Stack *s) {
+    if (!s) return NULL;
+    
+    pthread_mutex_lock(&s->mutex);
+    
+    // Wait if stack is empty
+    while (s->top == 0) {
+        pthread_cond_wait(&s->not_empty, &s->mutex);
+    }
+    
+    // Remove item
+    void *item = s->items[--s->top];
+    
+    // Signal that stack is not full
+    pthread_cond_signal(&s->not_full);
+    
+    pthread_mutex_unlock(&s->mutex);
+    
+    return item;
+}
+
+// Runtime initialization
+void runtime_init(void) {
+    if (!g_thread_pool) {
+        g_thread_pool = thread_pool_create(4); // Default to 4 worker threads
+    }
+}
+
+void runtime_shutdown(void) {
+    if (g_thread_pool) {
+        thread_pool_destroy(g_thread_pool);
+        g_thread_pool = NULL;
+    }
+}

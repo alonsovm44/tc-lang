@@ -124,6 +124,19 @@ static void emit_expr(Str *out, Expr *e, DeclVec *program) {
                 }
             }
             
+            // Additional check: ensure we have the right function signature
+            if (is_async_call) {
+                // Double-check this is really an async function
+                is_async_call = false;
+                for (int i = 0; i < program->count; i++) {
+                    Decl *d = program->items[i];
+                    if (d->kind == DC_FN && strcmp(d->name, e->text) == 0 && d->is_async) {
+                        is_async_call = true;
+                        break;
+                    }
+                }
+            }
+            
             if (is_async_call) {
                 // Generate async call: submit to thread pool
                 if (e->args.count == 0) {
@@ -392,6 +405,21 @@ char *emit_program(DeclVec program) {
     str_add(&out, "#define TC_ALLOC(type, count) ((type *)calloc((count), sizeof(type)))\n");
     str_add(&out, "#define TC_LENOF(x) (sizeof(x) / sizeof((x)[0]))\n");
     str_add(&out, "#define TC_FAT_LENOF(x) ((x).len)\n");
+    
+    // Check if we need runtime support (async functions)
+    bool needs_runtime = false;
+    for (int i = 0; i < program.count; i++) {
+        Decl *d = program.items[i];
+        if (d->kind == DC_FN && d->is_async) {
+            needs_runtime = true;
+            break;
+        }
+    }
+    
+    if (needs_runtime) {
+        str_add(&out, "#include \"async.h\"\n");
+    }
+    
     str_add(&out, "\n");
     // Emit global inline C code (for #include statements, etc.)
     for (int i = 0; i < program.count; i++) {

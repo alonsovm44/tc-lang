@@ -115,6 +115,11 @@ static bool fn_exists(DeclVec *program, const char *name) {
     return false;
 }
 
+static bool is_assignment(const char *op) {
+    return !strcmp(op, "=") || !strcmp(op, "+=") || !strcmp(op, "-=") || 
+           !strcmp(op, "*=") || !strcmp(op, "/=") || !strcmp(op, "%=");
+}
+
 static void check_expr(Expr *e, ScopeStack *s);
 
 static void check_expr(Expr *e, ScopeStack *s) {
@@ -269,9 +274,12 @@ static void check_stmts(StmtVec *body, ScopeStack *s) {
                 check_expr(st->expr, s);
                 // Check if we're in an async function and returning a value
                 if (s->current_fn && s->current_fn->is_async && st->expr) {
-                    tc_error("E012", st->line, st->col, 4, 
+                    tc_error("E012", 0, 0, 4, 
                         "Async functions cannot return values");
                 }
+                break;
+            case ST_SELECT:
+                // TODO: Implement select statement checking
                 break;
             case ST_BREAK:
                 break;

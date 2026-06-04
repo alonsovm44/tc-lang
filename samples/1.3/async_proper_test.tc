@@ -1,0 +1,10 @@
+use "stdlib/io.tc"
+
+async fn void async_worker: {
+    printi(42)
+}
+
+i32 fn main: {
+    async_worker()
+    ret 0
+}

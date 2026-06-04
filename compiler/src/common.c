@@ -155,7 +155,8 @@ bool is_keyword(const char *text) {
 
 bool is_type_name(const char *text) {
     static const char *types[] = {
-        "void", "i2", "i4", "i8", "i16", "i32", "i64", "u2", "u4", "u8", "u16", "u32", "u64", "f32", "f64", NULL
+        "void", "i2", "i4", "i8", "i16", "i32", "i64", "u2", "u4", "u8", "u16", "u32", "u64", "f32", "f64",
+        "queue", "stack", NULL
     };
     for (int i = 0; types[i]; i++) {
         if (strcmp(text, types[i]) == 0) return true;
