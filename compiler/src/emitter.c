@@ -11,6 +11,58 @@ static bool struct_exists(DeclVec *program, const char *name) {
     return false;
 }
 
+static bool type_needs_runtime(Type *t) {
+    if (!t) return false;
+    if (t->kind == TY_QUEUE || t->kind == TY_STACK) return true;
+    if (t->kind == TY_RAWPTR || t->kind == TY_FATPTR || t->kind == TY_ARRAY || t->kind == TY_FNPTR) {
+        if (type_needs_runtime(t->inner)) return true;
+    }
+    if (t->kind == TY_FNPTR) {
+        for (int i = 0; i < t->params.count; i++) {
+            if (type_needs_runtime(t->params.items[i].type)) return true;
+        }
+    }
+    return false;
+}
+
+static bool expr_needs_runtime(Expr *e) {
+    if (!e) return false;
+    if (e->kind == EX_QUEUE_METHOD) return true;
+    if (e->kind == EX_METHOD_CALL && e->left && e->left->type && (e->left->type->kind == TY_QUEUE || e->left->type->kind == TY_STACK)) {
+        if (!strcmp(e->text, "push") || !strcmp(e->text, "enq") || !strcmp(e->text, "pop") || !strcmp(e->text, "deq") || !strcmp(e->text, "peek")) return true;
+    }
+    if (e->kind == EX_CALL && (!strcmp(e->text, "queue_create") || !strcmp(e->text, "stack_create"))) return true;
+    if (expr_needs_runtime(e->left)) return true;
+    if (expr_needs_runtime(e->right)) return true;
+    if (expr_needs_runtime(e->third)) return true;
+    for (int i = 0; i < e->args.count; i++) if (expr_needs_runtime(e->args.items[i])) return true;
+    return false;
+}
+
+static bool stmt_needs_runtime(Stmt *s) {
+    if (!s) return false;
+    if (s->type && type_needs_runtime(s->type)) return true;
+    if (s->expr && expr_needs_runtime(s->expr)) return true;
+    if (s->expr2 && expr_needs_runtime(s->expr2)) return true;
+    for (int i = 0; i < s->body.count; i++) if (stmt_needs_runtime(s->body.items[i])) return true;
+    for (int i = 0; i < s->elseifs.count; i++) {
+        if (expr_needs_runtime(s->elseifs.items[i].cond)) return true;
+        for (int j = 0; j < s->elseifs.items[i].body.count; j++) if (stmt_needs_runtime(s->elseifs.items[i].body.items[j])) return true;
+    }
+    for (int i = 0; i < s->else_body.count; i++) if (stmt_needs_runtime(s->else_body.items[i])) return true;
+    return false;
+}
+
+static bool decl_needs_runtime(Decl *d) {
+    if (!d) return false;
+    if (d->type && type_needs_runtime(d->type)) return true;
+    if (d->kind == DC_FN) {
+        for (int i = 0; i < d->params.count; i++) if (type_needs_runtime(d->params.items[i].type)) return true;
+        for (int i = 0; i < d->body.count; i++) if (stmt_needs_runtime(d->body.items[i])) return true;
+    }
+    return false;
+}
+
 static const char *fat_type_tag(Type *inner) {
     if (inner->kind == TY_NAME) return inner->name;
     if (inner->kind == TY_RAWPTR) return "ptr";
@@ -200,20 +252,39 @@ static void emit_expr(Str *out, Expr *e, DeclVec *program) {
                 str_add(out, ")");
             }
             break;
-        case EX_QUEUE_METHOD:
+        case EX_QUEUE_METHOD: {
             // Generate queue/stack method calls
-            if (!strcmp(e->text, "push")) {
-                str_add(out, "queue_push(");
+            Type *inner = e->left && e->left->type ? e->left->type->inner : NULL;
+            bool is_stack = e->left && e->left->type && e->left->type->kind == TY_STACK;
+            Str item_type = {0};
+            if (inner) emit_type(&item_type, inner, "", program);
+            else str_add(&item_type, "void");
+
+            if (!strcmp(e->text, "push") || !strcmp(e->text, "enq")) {
+                str_printf(out, "%s_push(&", is_stack ? "stack" : "queue");
                 emit_expr(out, e->left, program);
-                str_add(out, ", ");
+                str_add(out, ", &(");
+                str_add(out, item_type.data);
+                str_add(out, "){ ");
                 emit_expr(out, e->args.items[0], program);
-                str_add(out, ")");
-            } else if (!strcmp(e->text, "pop")) {
-                str_add(out, "queue_pop(");
+                str_add(out, " }, sizeof(");
+                str_add(out, item_type.data);
+                str_add(out, "))");
+            } else if (!strcmp(e->text, "pop") || !strcmp(e->text, "deq") || !strcmp(e->text, "peek")) {
+                str_add(out, "*(");
+                str_add(out, item_type.data);
+                str_add(out, "*)");
+                if (!strcmp(e->text, "peek")) {
+                    str_printf(out, "%s_peek(&", is_stack ? "stack" : "queue");
+                } else {
+                    str_printf(out, "%s_pop(&", is_stack ? "stack" : "queue");
+                }
                 emit_expr(out, e->left, program);
                 str_add(out, ")");
             }
+            free(item_type.data);
             break;
+        }
         case EX_INDEX: emit_expr(out, e->left, program); str_add(out, "["); emit_expr(out, e->right, program); str_add(out, "]"); break;
         case EX_FIELD: emit_expr(out, e->left, program); str_printf(out, ".%s", e->text); break;
         case EX_PTR_FIELD: emit_expr(out, e->left, program); str_printf(out, "->%s", e->text); break;
@@ -413,11 +484,11 @@ char *emit_program(DeclVec program) {
     str_add(&out, "#define TC_LENOF(x) (sizeof(x) / sizeof((x)[0]))\n");
     str_add(&out, "#define TC_FAT_LENOF(x) ((x).len)\n");
     
-    // Check if we need runtime support (async functions)
+    // Check if we need runtime support (async functions, queue/stack types, or queue/stack methods)
     bool needs_runtime = false;
     for (int i = 0; i < program.count; i++) {
         Decl *d = program.items[i];
-        if (d->kind == DC_FN && d->is_async) {
+        if ((d->kind == DC_FN && d->is_async) || decl_needs_runtime(d)) {
             needs_runtime = true;
             break;
         }

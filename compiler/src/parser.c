@@ -316,17 +316,7 @@ static Expr *parse_postfix(Parser *p) {
                 // Check if this is a method call: expr.method(...)
                 char *field_name = expect_ident(p);
                 if (match(p, "(")) {
-                    // Check if this is a queue/stack method call
-                    bool is_queue_method = (!strcmp(field_name, "push") || !strcmp(field_name, "pop")) &&
-                                         (e->type && (e->type->kind == TY_QUEUE || e->type->kind == TY_STACK));
-                    
-                    Expr *method_call;
-                    if (is_queue_method) {
-                        method_call = new_expr(EX_QUEUE_METHOD);
-                    } else {
-                        method_call = new_expr(EX_METHOD_CALL);
-                    }
-                    
+                    Expr *method_call = new_expr(EX_METHOD_CALL);
                     method_call->left = e;
                     method_call->text = field_name;
                     
@@ -423,7 +413,7 @@ static Stmt *parse_stmt(Parser *p) {
         expect(p, "{");
         while (!match(p, "}")) {
             // Parse select case: operation => { body }
-            Expr *operation = parse_expr(p);
+            parse_expr(p);
             expect(p, "=>");
             StmtVec case_body = {0};
             if (match(p, "{")) {
@@ -526,7 +516,7 @@ static Stmt *parse_stmt(Parser *p) {
             s->type = type;
             s->name = expect_ident(p);
             if (match(p, "=")) s->expr = parse_initializer(p);
-            expect(p, ";");  // Expect semicolon after variable declaration
+            match(p, ";");  // Semicolon is optional after variable declaration
             return s;
         }
         if (!is_fn_type) p->pos = mark;
@@ -535,6 +525,7 @@ static Stmt *parse_stmt(Parser *p) {
     p->pos = mark;
     Stmt *s = new_stmt(ST_EXPR);
     s->expr = parse_expr(p);
+    match(p, ";");  // Semicolon is optional after expressions
     if (s->expr->kind == EX_BINARY && is_assignment(s->expr->text) && s->expr->left) {
         const char *target = NULL;
         if (s->expr->left->kind == EX_NAME) target = s->expr->left->text;

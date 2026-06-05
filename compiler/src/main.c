@@ -212,6 +212,44 @@ static const char *find_cc(void) {
     return NULL;
 }
 
+static bool is_runtime_type(Type *t) {
+    if (!t) return false;
+    if (t->kind == TY_QUEUE || t->kind == TY_STACK) return true;
+    if (t->kind == TY_RAWPTR || t->kind == TY_FATPTR || t->kind == TY_ARRAY || t->kind == TY_FNPTR) {
+        if (is_runtime_type(t->inner)) return true;
+    }
+    if (t->kind == TY_FNPTR) {
+        for (int i = 0; i < t->params.count; i++) {
+            if (is_runtime_type(t->params.items[i].type)) return true;
+        }
+    }
+    return false;
+}
+
+static bool stmt_uses_runtime(Stmt *s) {
+    if (!s) return false;
+    if (s->type && is_runtime_type(s->type)) return true;
+    if (s->expr && s->expr->type && is_runtime_type(s->expr->type)) return true;
+    if (s->expr2 && s->expr2->type && is_runtime_type(s->expr2->type)) return true;
+    for (int i = 0; i < s->body.count; i++) if (stmt_uses_runtime(s->body.items[i])) return true;
+    for (int i = 0; i < s->elseifs.count; i++) {
+        if (s->elseifs.items[i].cond && s->elseifs.items[i].cond->type && is_runtime_type(s->elseifs.items[i].cond->type)) return true;
+        for (int j = 0; j < s->elseifs.items[i].body.count; j++) if (stmt_uses_runtime(s->elseifs.items[i].body.items[j])) return true;
+    }
+    for (int i = 0; i < s->else_body.count; i++) if (stmt_uses_runtime(s->else_body.items[i])) return true;
+    return false;
+}
+
+static bool decl_uses_runtime(Decl *d) {
+    if (!d) return false;
+    if (d->type && is_runtime_type(d->type)) return true;
+    if (d->kind == DC_FN) {
+        for (int i = 0; i < d->params.count; i++) if (is_runtime_type(d->params.items[i].type)) return true;
+        for (int i = 0; i < d->body.count; i++) if (stmt_uses_runtime(d->body.items[i])) return true;
+    }
+    return false;
+}
+
 int main(int argc, char **argv) {
     const char *input = NULL;
     const char *output = NULL;
@@ -279,11 +317,11 @@ int main(int argc, char **argv) {
     check_program(&program);
     
     // Check if program contains async functions
-    bool has_async = false;
+    bool needs_runtime = false;
     for (int i = 0; i < program.count; i++) {
         Decl *d = program.items[i];
-        if (d->kind == DC_FN && d->is_async) {
-            has_async = true;
+        if ((d->kind == DC_FN && d->is_async) || decl_uses_runtime(d)) {
+            needs_runtime = true;
             break;
         }
     }
@@ -406,7 +444,7 @@ int main(int argc, char **argv) {
             }
 
             char cmd[1024];
-            if (has_async) {
+            if (needs_runtime) {
                 snprintf(cmd, sizeof(cmd), "%s \"%s\" -std=c11 -lm -o \"%s\" \"compiler/src/runtime.o\"", cc, tmp_c, compile_out);
             } else {
                 snprintf(cmd, sizeof(cmd), "%s \"%s\" -std=c11 -lm -o \"%s\"", cc, tmp_c, compile_out);

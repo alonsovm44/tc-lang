@@ -175,11 +175,21 @@ static void check_expr(Expr *e, ScopeStack *s) {
             break;
         case EX_METHOD_CALL:
             check_expr(e->left, s);
-            // Set the method call type from the left expression (struct instance)
-            if (e->left->type) {
+            for (int i = 0; i < e->args.count; i++) check_expr(e->args.items[i], s);
+            if (e->left->type && (e->left->type->kind == TY_QUEUE || e->left->type->kind == TY_STACK) &&
+                (!strcmp(e->text, "push") || !strcmp(e->text, "enq") || !strcmp(e->text, "pop") || !strcmp(e->text, "deq") || !strcmp(e->text, "peek"))) {
+                e->kind = EX_QUEUE_METHOD;
+                if (!strcmp(e->text, "pop") || !strcmp(e->text, "deq") || !strcmp(e->text, "peek")) {
+                    if (e->left->type && e->left->type->inner) {
+                        e->type = e->left->type->inner;
+                    }
+                } else {
+                    e->type = new_type(TY_NAME);
+                    e->type->name = xstrdup("void");
+                }
+            } else if (e->left->type) {
                 e->type = e->left->type;
             }
-            for (int i = 0; i < e->args.count; i++) check_expr(e->args.items[i], s);
             break;
         case EX_QUEUE_METHOD:
             check_expr(e->left, s);
