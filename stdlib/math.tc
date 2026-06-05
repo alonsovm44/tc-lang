@@ -49,6 +49,6 @@ f64 fn sqrt64: f64 x {
 }
 
 // power
-f64 fn pow64: f64 base, f64 exp {
+f64 fn powf64: f64 base, f64 exp {
     ret pow(base, exp)
 }

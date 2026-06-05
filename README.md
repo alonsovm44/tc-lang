@@ -371,7 +371,7 @@ async fn void consumer: queue<i32> q {
 }
 
 fn void main: {
-    queue<i32> q = queue_create(10)
+    queue<i32> q = {}
     producer(q)
     consumer(q)
 }

@@ -6,7 +6,7 @@ Tig is a systems programming language designed to be as simple as possible while
 
 ### Design Philosophy
 
-- **No GC** — Manual memory management only
+- **No GC** — Manual memory management only (for now)
 - **No complex safety** — Safety through explicitness, not hidden checks
 - **No type inference** — Everything is explicit and clear
 - **No shadowing** — Pick names well and avoid confusion
@@ -126,12 +126,12 @@ async
 ### Function Pointer Types
 
 ```tc
-fn(param_types) return_type
+fn(param_types)return_type
 ```
 
 Example:
 ```tc
-fn(i32, i32) i32  // Function pointer taking two i32, returning i32
+fn(i32, i32)i32  // Function pointer taking two i32, returning i32
 ```
 
 ### Enum Types
@@ -216,7 +216,7 @@ Inner scopes can access variables from outer scopes, but not vice versa.
 ### Function Declaration
 
 ```tc
-[pub] [hot] fn <return_type> <name>: <type> <arg>, ... {
+[pub] [async] fn <return_type> <name>: <type> <arg>, ... {
     // body
     ret <value>
 }
@@ -276,7 +276,7 @@ fn i32 add: i32 a, i32 b {
     ret a + b
 }
 
-fn i32 callback: fn(i32, i32) i32 fptr, i32 a, i32 b {
+fn i32 callback: fn(i32, i32)i32 fptr, i32 a, i32 b {
     ret fptr(a, b)
 }
 
@@ -336,7 +336,7 @@ fn void check_grade: i32 score {
 
 ```tc
 loop {
-    // infinite loop
+    // infinite loop unless break
     break
 }
 
@@ -512,14 +512,14 @@ arr[1] = 42
 
 ```tc
 -><type>    // pointer type
-@<var>      // address-of
+&<var>      // address-of
 -><ptr>     // dereference
 ```
 
 Example:
 ```tc
 i32 x = 10
-->i32 ptr = @x
+->i32 ptr = &x
 i32 value = ->ptr  // value is 10
 ```
 

@@ -9,20 +9,45 @@
 #define TC_LENOF(x) (sizeof(x) / sizeof((x)[0]))
 #define TC_FAT_LENOF(x) ((x).len)
 
+
+FILE *open_file(char *file, char *mode);
+int32_t fclose(FILE *f);
+int32_t fgetc(FILE *stream);
 void print(char *s);
+void printflt(double n);
 void printn(char *s);
 void printi(int64_t n);
 void printin(int64_t n);
-int64_t readi(void);
 int32_t readc(void);
 int32_t unreadc(int32_t c, FILE *stream);
 int32_t write_file(char *s, FILE *stream);
 int32_t eof(FILE *stream);
 
 
+FILE *open_file(char *file, char *mode) {
+    
+    return fopen(file, mode);
+}
+
+int32_t fclose(FILE *f) {
+    
+    return fclose(f);
+}
+
+int32_t fgetc(FILE *stream) {
+    
+    return fgetc(stream);
+}
+
 void print(char *s) {
     printf(s);
     putchar(10);
+    
+    return;
+}
+
+void printflt(double n) {
+    printf("%f\n", n);
     
     return;
 }
@@ -43,13 +68,6 @@ void printin(int64_t n) {
     printf("%lld", n);
     
     return;
-}
-
-int64_t readi(void) {
-    int64_t n = {0};
-    scanf("%lld", (&n));
-    
-    return n;
 }
 
 int32_t readc(void) {

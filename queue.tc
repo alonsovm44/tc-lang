@@ -1,0 +1,10 @@
+use "stdlib.tc"
+
+fn void main: {
+    queue<i32> q = {};
+
+    q.push(1)
+
+    i32 x = q.pop();
+    printi(x)
+}

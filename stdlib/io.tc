@@ -16,10 +16,29 @@ extern "C" {
 
 }
 
+->FILE fn open_file: ->i8 file, ->i8 mode {
+    ret fopen(file, mode)
+}
+
+fn i32 fclose: ->FILE f {
+    ret fclose(f)
+}
+
+fn i32 fgetc: ->FILE stream {
+    ret fgetc(stream)
+}
+
+
 // print a string with newline
 void fn print: ->i8 s {
     printf(s)
     putchar(10)
+    ret
+}
+
+// print a float with newline
+void fn printflt: f64 n {
+    printf("%f\n", n)
     ret
 }
 
@@ -42,12 +61,13 @@ void fn printin: i64 n {
 }
 
 // read an integer from stdin
+/*
 i64 fn readi: {
     i64 n
-    scanf("%lld", @n)
+    scanf("%lld", &n)
     ret n
 }
-
+*/
 // read a single character from stdin
 i32 fn readc: {
     ret getchar()

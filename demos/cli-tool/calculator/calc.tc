@@ -1,0 +1,53 @@
+use "stdlib/io.tc"
+use "stdlib/str.tc"
+// a simple CLI calculator
+
+fn i32 main: =>->i8 args {
+    if(args.len < 4){
+        print("Usage: calc <operation> <operand1> <operand2>\n")
+        print("Operations: add, sub, mul, div\n")
+        ret 1
+    }
+    print("Welcome to the calculator!")
+    print("Enter a command: ")
+     
+    printn("args len: ") 
+    printi(args.len)
+    ->i8 op = args.ptr[1]; 
+    //print(op)
+    //print("\n")
+
+    i32 op1 = atoi(args.ptr[2]);
+    i32 op2 = atoi(args.ptr[3]);
+
+    if (strcmp(op, "add") == 0){
+        i32 sum = op1 + op2;
+        printn("Sum is: ")
+        printi(sum)
+    }
+    else if (strcmp(op, "sub") == 0){
+        i32 sub = op1 - op2;
+        printn("Sub is: ")
+        printi(sub)
+    }
+    else if (strcmp(op, "mul") == 0){
+        i32 mul = op1 * op2;
+        printn("Mul is: ")
+        printi(mul)
+    }
+    else if(strcmp(op, "div") == 0){
+        if (op2 == 0){
+            printn("Error, division by 0")
+            ret 1
+        }else {
+            f64 div = (f64)op1 / (f64)op2; // need casting operation
+            printn("Div is: ")
+            printf("%f\n", div)
+        }
+    }else {
+        printn("Invalid operation.")
+        ret 1
+    }
+
+    ret 0
+}

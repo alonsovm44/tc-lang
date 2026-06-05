@@ -1,7 +1,7 @@
 use "stdlib/io.tc"
 
 fn void main: {
-    queue<i32> q = queue_create(10);
-    q.push(100);
-    printi(42);
+    queue<i32> q = queue_create(10)
+    q.push(100)
+    printi(42)
 }
