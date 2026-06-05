@@ -462,7 +462,7 @@ static TokenVec lex_source_with_depth(const char *src, int depth) {
             continue;
         }
         
-        if (strchr("{}()[],:.=+-*/%<>!&|^@", src[i])) {
+        if (strchr("{}()[],:.;=+-*/%<>!&|^@", src[i])) {
             token_push(&out, (Token){TOK_SYMBOL, xstrndup(src + i, 1), start_line, start_col});
             i++; col++;
             continue;

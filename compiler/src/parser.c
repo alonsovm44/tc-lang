@@ -144,18 +144,32 @@ static Type *parse_type(Parser *p) {
         t = new_type(TY_FATPTR);
         t->inner = parse_type(p);
     } else if (match(p, "queue")) {
-        // Queue type: queue T or queue T(N)
+        // Queue type: queue T, queue<T>, or queue T(N)
         t = new_type(TY_QUEUE);
-        t->inner = parse_type(p);
-        // Check for buffered queue syntax: queue T(N)
+        if (match(p, "<")) {
+            // Generic syntax: queue<T>
+            t->inner = parse_type(p);
+            expect(p, ">");
+        } else {
+            // Space syntax: queue T
+            t->inner = parse_type(p);
+        }
+        // Check for buffered queue syntax: queue T(N) or queue<T>(N)
         if (match(p, "(")) {
             t->size = parse_expr(p);
             expect(p, ")");
         }
     } else if (match(p, "stack")) {
-        // Stack type: stack T
+        // Stack type: stack T or stack<T>
         t = new_type(TY_STACK);
-        t->inner = parse_type(p);
+        if (match(p, "<")) {
+            // Generic syntax: stack<T>
+            t->inner = parse_type(p);
+            expect(p, ">");
+        } else {
+            // Space syntax: stack T
+            t->inner = parse_type(p);
+        }
     } else if (match(p, "fn")) {
         // Function pointer type: fn(type, type, ...)rettype
         t = new_type(TY_FNPTR);
@@ -512,6 +526,7 @@ static Stmt *parse_stmt(Parser *p) {
             s->type = type;
             s->name = expect_ident(p);
             if (match(p, "=")) s->expr = parse_initializer(p);
+            expect(p, ";");  // Expect semicolon after variable declaration
             return s;
         }
         if (!is_fn_type) p->pos = mark;

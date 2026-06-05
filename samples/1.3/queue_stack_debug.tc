@@ -1,0 +1,12 @@
+use "stdlib/async.tc"
+use "stdlib/io.tc"
+
+fn void main: {
+    // Test queue declaration
+    queue<i32> q = queue_create(10)
+    
+    // Test stack declaration  
+    stack<i32> s = stack_create(10)
+    
+    printi(42)
+}

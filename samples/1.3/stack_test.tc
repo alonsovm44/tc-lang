@@ -1,0 +1,6 @@
+use "stdlib/io.tc"
+
+fn void main: {
+    stack<i32> s;
+    printi(42)
+}

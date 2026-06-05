@@ -1,0 +1,7 @@
+use "stdlib/io.tc"
+
+fn void main: {
+    queue<i32> q;
+    stack<i32> s;
+    printi(42)
+}
