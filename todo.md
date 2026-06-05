@@ -16,7 +16,7 @@ Should the queue slice {0:2} be a read-only live view (Solution 2) or should it 
 
 - [x] Implement async functions [DONE]
 
-- [ ] casting
+- [ ] explicit casting
 ```
 i32 x = 5
 f64 y = (f64)x

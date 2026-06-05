@@ -1,0 +1,12 @@
+use "stdlib/io.tc"
+use "stdlib/async.tc"
+
+async fn void foo: ->i32 x {    
+    ->x = ->x + 1
+}
+
+fn i32 main: {
+    i32 x = 10;
+    foo(&x)
+    printi(x) // should print 11
+}
