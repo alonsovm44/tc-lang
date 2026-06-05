@@ -1,3 +1,0 @@
-fn void main: {
-    i32 size = sizeof(i64)
-}

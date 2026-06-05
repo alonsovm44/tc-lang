@@ -55,7 +55,7 @@ arena[required_size] {
 ## Garbage Collection
 
 ### Thesis
-Tig provides an optional, scoped garbage collection mechanism for scenarios where manual memory management would be impractical. The GC is opt-in and scoped, allowing developers to selectively apply automatic memory management to specific code regions while maintaining manual control elsewhere.
+Tig provides an optional, scoped garbage collection mechanism for scenarios where manual memory management would be impractical or would make DX bad. The GC is opt-in and scoped, allowing developers to selectively apply automatic memory management to specific code regions while maintaining manual control elsewhere.
 
 ### When to Use GC
 Garbage collection is recommended for:
@@ -91,30 +91,34 @@ use gc {
 ## Data Movement and Ownership Transfer
 
 ### Thesis
-Tig introduces channel-based ownership transfer to safely move data between memory scopes. This mechanism enables data to flow from GC or arena blocks into manual memory zones, and between async blocks, while maintaining clear ownership semantics and preventing use-after-free errors.
+Tig extends queues to support ownership transfer for moving data between memory scopes. This mechanism enables data to flow from GC or arena blocks into manual memory zones, and between async blocks, while maintaining clear ownership semantics and preventing use-after-free errors.
 
-### Channel Syntax
+### Queue-Based Ownership Transfer
 
-- **Send operator (`@`)**: Transfers ownership of a value into a channel
-- **Receive operator (`<-`)**: Receives ownership from a channel
+- **`queue.push(@value)`**: Transfers ownership of a value into a queue
+- **`queue.pop()`**: Receives ownership from a queue
 
 ### Basic Scope Transfer
 
 ```tig
 { // Scope 1
     i32 x = 10
-    chan i32 ch = @x  // Ownership of x transferred to channel
+    queue<i32> q = {}
+    q.push(@x)  // Ownership of x transferred to queue
 }  // x is no longer accessible here
 
 { // Scope 2
-    i32 y = <-ch  // Ownership received from channel
-    // y is now available in this scope
+    i32 y = q.pop()  // Ownership received from queue
+    // y is available in this scope, and has the value of x
 }
 ```
 ### GC to Manual Transfer
 
 ```tig
 // Global scope (manual memory management)
+queue<i32> ch = {}
+queue<fn(i32)i32> fn_ch = {}
+
 use gc {
     fn i32 foo(i32 x) {
         ret x * 2
@@ -123,15 +127,15 @@ use gc {
     i32 x = foo(5)  // x is GC-managed
     // x is available within this GC block only
 
-    // Transfer ownership to channels
-    chan i32 ch = @x
-    chan fn(i32)i32 fn_ch = @foo
+    // Transfer ownership to queues
+    ch.push(@x)
+    fn_ch.push(@foo)
     // x and foo cannot be reused here—ownership transferred
 }
 // Manual memory zone
 
-i32 y = <-ch  // y is now manually managed
-fn(i32)i32 fn_y = <-fn_ch
+i32 y = ch.pop()  // y is now manually managed
+fn(i32)i32 fn_y = fn_ch.pop()
 i32 z = fn_y(10)  // Execute transferred function
 ```
 
@@ -149,7 +153,7 @@ To guarantee that executing an escaped function/closure (`fn_y`) outside of its 
 
 3. **Reference-Type Closures (Pointer Capture)**:
    - If a function captures any reference type, pointer (`->T`), slice (`=>T`), or object allocated inside the GC or Arena block, the environment contains pointers to resources that will be reclaimed when the block exits.
-   - **Rule**: Reference-type closures **cannot escape** the scope. The compiler's escape analysis tracks references, and calling `@` on such a closure triggers a compile-time error:
+   - **Rule**: Reference-type closures **cannot escape** the scope. The compiler's escape analysis tracks references, and calling `push(@...)` on such a closure triggers a compile-time error:
      ```
      error[E040]: closure captures GC-managed references and cannot escape this scope.
      ```
@@ -157,14 +161,16 @@ To guarantee that executing an escaped function/closure (`fn_y`) outside of its 
 ### Arena to Manual Transfer
 
 ```tig
+queue<i32> ch = {}
+
 arena[1024] {
     i32 x = 10  // x is arena-allocated
     // x is available within this arena block only
 
-    chan i32 ch = @x  // Transfer ownership to channel
+    ch.push(@x)  // Transfer ownership to queue
 }
 
-i32 y = <-ch  // y is now manually managed
+i32 y = ch.pop()  // y is now manually managed
 // y is available in the outer scope
 ```
 
@@ -193,7 +199,8 @@ arena[1024] {
 }
 // x is no longer accessible in outer scope
 ```
-** Pinning to share data to multiple scopes**
+
+**Pinning to share data to multiple scopes**
 ```tig
 pin i32 x = 10  // x is in outer scope
 
@@ -298,12 +305,12 @@ if (data_size > LARGE_DATA_THRESHOLD) {
 - **Predictability**: Runtime selection makes behavior dependent on execution environment
 - **Testing**: Multiple code paths require testing each memory management strategy
 
-**Design Philosophy**: The unpredictability introduced by conditional memory management is intentional—it provides a mechanism for adaptive software that can optimize for different deployment scenarios rather than being locked into a single strategy.
+**Design Philosophy**: The unpredictability introduced by conditional memory management is intentional, it provides a mechanism for adaptive software that can optimize for different deployment scenarios rather than being locked into a single strategy.
 
 ## Asynchronous Execution
 
 ### Thesis
-Async blocks provide concurrent execution by default. Data isolation between async blocks is enforced, and channels enable safe data movement between concurrent contexts.
+Async blocks provide concurrent execution by default. Data isolation between async blocks is enforced, and queues/stacks enable safe data movement between concurrent contexts.
 
 ### Syntax
 
@@ -321,20 +328,22 @@ async {
 ### Data Movement Between Async Blocks
 
 ```tig
+queue<i32> ch = {}
+
 async {
     i32 x = 10
-    chan i32 ch = @x  // Send x to channel
+    ch.push(@x)  // Send x to queue
 }
 
 async {
-    i32 y = <-ch  // Receive from channel
+    i32 y = ch.pop()  // Receive from queue
     // Process y
 }
 ```
 
 ### Synchronization
 
-While async blocks run concurrently, synchronization mechanisms (channels, barriers, or explicit wait primitives) should be used to coordinate access to shared resources and ensure deterministic program behavior.
+While async blocks run concurrently, synchronization mechanisms (queues, barriers, or explicit wait primitives) should be used to coordinate access to shared resources and ensure deterministic program behavior.
 
 ## Language Additions in 1.4.0
 
@@ -343,8 +352,7 @@ While async blocks run concurrently, synchronization mechanisms (channels, barri
 2. **`gc`** - Enables garbage collection scope via `use gc`
 
 ### New Operators
-1. **`@`** - Channel send operator (ownership transfer)
-2. **`<-`** - Channel receive operator (ownership acquisition)
+1. **`@`** - Ownership transfer operator introdued in 1.3 (used with queue.push for sending) with new semantics for 1.4
 
 ### New Block Types
 1. **`arena[size] { }`** - Arena allocation block
@@ -356,7 +364,7 @@ While async blocks run concurrently, synchronization mechanisms (channels, barri
 ### From 1.3 to 1.4
 - Existing code using manual memory management remains unchanged
 - Arena and GC features are opt-in; no migration required for existing codebases
-- Channel-based ownership transfer is additive; existing pointer patterns continue to work
+- Queue-based ownership transfer is additive; existing pointer patterns continue to work
 
 ### Recommended Adoption Path
 1. **Start with arenas** for performance-critical sections with known allocation patterns
