@@ -7,6 +7,9 @@
   <img src="https://img.shields.io/badge/version-1.3.0-blue?style=flat-square" alt="Version">
   <img src="https://img.shields.io/badge/language-C11-orange?style=flat-square" alt="Language">
   <img src="https://img.shields.io/badge/license-MIT-green?style=flat-square" alt="License">
+  <a href="https://ko-fi.com/alonsovm" target="_blank" rel="noopener noreferrer">
+    <img src="https://img.shields.io/badge/Sponsor%20on-Ko--fi-29abe0?style=flat-square&logo=kofi&logoColor=white" alt="Sponsor on Ko-fi">
+  </a>
   <img src="https://img.shields.io/badge/platform-Windows%20%7C%20Linux%20%7C%20macOS-lightgrey?style=flat-square" alt="Platform">
 </p>
 
