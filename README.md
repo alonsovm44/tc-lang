@@ -50,62 +50,6 @@ Tig is a minimalistic systems programming language.
 - **Inline imports** — `@use "lib.tc"` inlines another `.tc` file at compile time
 - **CLI args** — `i32 fn main: =>->i8 args { ... }` for command-line tools
 
-## Quick Examples
-
-### 🎯 Zero-Boilerplate Async
-
-```tig
-use "stdlib/async.tc"
-use "stdlib/io.tc"
-
-async fn void worker: i32 x {
-    printi(x)
-}
-
-fn void main: {
-    // No async_init() or async_shutdown() needed!
-    worker(42)  // Automatically initializes runtime
-}
-```
-
-### 🏗️ Concurrent Data Structures
-
-```tig
-use "stdlib/async.tc"
-use "stdlib/io.tc"
-
-async fn void producer: queue<i32> q {
-    q.push(100)
-}
-
-async fn void consumer: queue<i32> q {
-    i32 value = q.pop()
-    printi(value)
-}
-
-fn void main: {
-    queue<i32> q = queue_create(10)
-    producer(q)
-    consumer(q)
-}
-```
-
-### 📋 Select Statements
-
-```tig
-async fn void task1: { printi(1) }
-async fn void task2: { printi(2) }
-
-fn void main: {
-    select {
-        case task1():
-            printi("Task 1 completed")
-        case task2():
-            printi("Task 2 completed")
-    }
-}
-```
-
 ## Philosophy
 
 **Why it was made**: I wanted a simple systems language with less keywords than Go, without GC and without heavy runtime overhead.
@@ -125,25 +69,26 @@ fn void main: {
 
 ## Quick Start
 
+Clone the repo and build the compiler:
 ```bash
 # Build the compiler
-make
+make # requires make
 
 # Compile stdlib headers (only needed once)
-./tightc stdlib/io.tc -o stdlib/io.h
+./tigc stdlib/io.tc -o stdlib/io.h
 
 # One-step: transpile + compile to binary
-./tightc samples/fizzbuzz.tc -c fizzbuzz
+./tigc samples/fizzbuzz.tc -c fizzbuzz
 ./fizzbuzz
 
 # Or two-step: transpile to C, then compile yourself
-./tightc samples/fizzbuzz.tc -o fizzbuzz.c
+./tigc samples/fizzbuzz.tc -o fizzbuzz.c
 gcc fizzbuzz.c -std=c11 -o fizzbuzz
 ```
 
 ## How It Works
 
-Tig is a **source-to-source compiler** (transpiler) written in ~1800 lines of C. It reads `.tc` files and outputs portable C11.
+Tig is a **source-to-source compiler** (transpiler) written in ~4000 lines of C. It reads `.tc` files and outputs portable C11.
 
 ```
 source.tc → [Lexer] → [Parser] → [AST] → [Emitter] → output.c → gcc/clang → binary
@@ -393,6 +338,59 @@ match (n) {
     }
 
 ```
+### Zero-Boilerplate Async
+
+```tig
+use "stdlib/async.tc"
+use "stdlib/io.tc"
+
+async fn void worker: i32 x {
+    printi(x)
+}
+
+fn void main: {
+    // No async_init() or async_shutdown() needed!
+    worker(42)  // Automatically initializes runtime
+}
+```
+
+### Concurrent Data Structures
+
+```tig
+use "stdlib/async.tc"
+use "stdlib/io.tc"
+
+async fn void producer: queue<i32> q {
+    q.push(100)
+}
+
+async fn void consumer: queue<i32> q {
+    i32 value = q.pop()
+    printi(value)
+}
+
+fn void main: {
+    queue<i32> q = queue_create(10)
+    producer(q)
+    consumer(q)
+}
+```
+
+### Select Statements
+
+```tig
+async fn void task1: { printi(1) }
+async fn void task2: { printi(2) }
+
+fn void main: {
+    select {
+        case task1():
+            printi("Task 1 completed")
+        case task2():
+            printi("Task 2 completed")
+    }
+}
+```
 
 ## Types
 
@@ -413,20 +411,21 @@ match (n) {
 ## Compiler Usage
 
 ```bash
-tightc <input.tc> [-o output.c] [-c binary]
+tigc <input.tc> [-o output.c] [-c binary] [-t]
 ```
 
 | Flag | Description |
 |------|-------------|
 | `-o file.c` | Emit transpiled C to file (`.h` gets `#pragma once`) |
 | `-c binary` | Transpile + compile to binary (auto-detects gcc/clang) |
+| `-t` | Keep temporal files|
 | (none) | Print transpiled C to stdout |
 
 Combine both: `tightc app.tc -o app.c -c app` keeps the `.c` and builds the binary.
 
 ## Hot Reloading
 
-Tig supports global, bulletproof hot reloading. This allows you to modify functions, structs (`strun` definitions), and enums, and recompile shared libraries *completely on-the-fly* without restarting your running application.
+Tig supports global hot reloading. This allows you to modify functions, structs (`strun` definitions), and enums, and recompile shared libraries *completely on-the-fly* without restarting your running application.
 
 ### Basic Usage
 
@@ -577,15 +576,6 @@ tc-lang/
 | `stof(s)`             | String to f64                     |
 | `itos(n, buf, size)`  | i64 to string (into buffer)       |
 | `ftos(n, buf, size)`  | f64 to string (into buffer)       |
-
-## Building the Compiler
-
-Requires `gcc` (or `clang`) and `make`.
-
-```bash
-make          # Build tightc
-make clean    # Remove build artifacts
-```
 
 ---
 
