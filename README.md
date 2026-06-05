@@ -34,12 +34,12 @@ Tig is a minimalistic systems programming language.
 ## Features
 
 - **15 keywords** — `if`, `loop`, `break`, `defer`, `ret`, `strun`, `fn`, `use`, `pub`, `pin`, `match`, `else`, `enum`, `async`, `select`
-- **🎯 Zero-Boilerplate Async** — Automatic runtime initialization, no manual setup needed
-- **⚡ Async Functions** — Simple concurrent programming with `async fn`
-- **🏗️ Concurrent Data Structures** — Built-in `queue<T>` and `stack<T>` types
-- **🔄 Ownership Transfer** — `@` operator for safe resource transfer
-- **📋 Select Statements** — Multi-operation waiting with `select`
-- **📌 Pin Keyword** — Keep variables alive across async boundaries
+- **Zero-Boilerplate Async** — Automatic runtime initialization, no manual setup needed
+- **Async Functions** — Simple concurrent programming with `async fn`
+- **Concurrent Data Structures** — Built-in `queue<T>` and `stack<T>` types
+- **Ownership Transfer** — `@` operator for safe resource transfer
+- **Select Statements** — Multi-operation waiting with `select`
+- **Pin Keyword** — Keep variables alive across async boundaries
 - **No hidden magic** — no GC, no type inference, no shadowing, no aliasing
 - **Raw pointers** (`->`) and **fat pointers** (`=>`) with built-in slicing
 - **Manual memory** — `alloc()` / `free()` with `defer` for cleanup
