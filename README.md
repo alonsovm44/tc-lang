@@ -54,9 +54,7 @@ Tig is a minimalistic systems programming language.
 
 **Why it was made**: I wanted a simple systems language with less keywords than Go, without GC and without heavy runtime overhead.
 **Backend**: For now it is C11 
-**Concurrency and Safety?**: I've been toying around with ideas, the concept is in docs/spec1.3.0.md. The model is basically a dumbed down version of Rust + Pony + Go features.
-
-**Core Ideal**: Tigc has to be able to fit in a single man's head. Small but powerful.
+**Core Ideal**: Tig has to be able to fit in a single man's head. Small but powerful.
 
 ### Inspiration
 - Pony
