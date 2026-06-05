@@ -6,7 +6,7 @@ Tig is a systems programming language designed to be as simple as possible while
 
 ### Design Philosophy
 
-- **No GC by default** — Manual memory management with optional GC and arena allocation
+- **No GC** — Manual memory management only
 - **No complex safety** — Safety through explicitness, not hidden checks
 - **No type inference** — Everything is explicit and clear
 - **No shadowing** — Pick names well and avoid confusion
@@ -41,17 +41,16 @@ Tig is a systems programming language designed to be as simple as possible while
 7. [Pointers and Memory](#pointers-and-memory)
 8. [Queues and Stacks](#queues-and-stacks)
 9. [Concurrency](#concurrency)
-10. [Memory Management Strategies](#memory-management-strategies)
-11. [Hot Reloading](#hot-reloading)
-12. [C FFI and Inline Code](#c-ffi-and-inline-code)
-13. [Macros](#macros)
-14. [Modularity](#modularity)
-15. [Methods](#methods)
-16. [Built-in Functions](#built-in-functions)
-17. [Operators](#operators)
-18. [Error Messages](#error-messages)
-19. [Compiler Usage](#compiler-usage)
-20. [Migration Guide](#migration-guide)
+10. [Hot Reloading](#hot-reloading)
+11. [C FFI and Inline Code](#c-ffi-and-inline-code)
+12. [Macros](#macros)
+13. [Modularity](#modularity)
+14. [Methods](#methods)
+15. [Built-in Functions](#built-in-functions)
+16. [Operators](#operators)
+17. [Error Messages](#error-messages)
+18. [Compiler Usage](#compiler-usage)
+19. [Migration Guide](#migration-guide)
 
 ---
 
@@ -79,7 +78,7 @@ MAX_VALUE
 
 ```
 if, else, loop, break, defer, ret, strun, fn, use, pub, pin, match,
-async, arena, gc
+async
 ```
 
 ---
@@ -762,83 +761,6 @@ async {
 
 ---
 
-## Memory Management Strategies
-
-### Manual Memory Management (Default)
-
-Standard C-like manual allocation:
-
-```tc
-->i32 ptr = alloc(i32, 100)
-defer { free(ptr) }
-```
-
-### Arena Allocation
-
-Scoped, bulk memory management with deterministic cleanup:
-
-```tc
-arena[size] {
-    // Allocations use arena memory
-}
-```
-
-Example:
-```tc
-arena[32 * 1024] {  // 32KB arena
-    =>i32 buffer = alloc(1024)
-    // ... buffer usage ...
-}  // All arena memory freed here
-```
-
-Semantics:
-- Scope-bound lifetime
-- No individual deallocation needed
-- Runtime panic if capacity exhausted
-- Nestable arenas
-
-### Garbage Collection
-
-Optional scoped garbage collection:
-
-```tc
-use gc {
-    // Code uses GC-managed memory
-}
-```
-
-Semantics:
-- Data allocated within GC block is tracked
-- GC-tracked data cannot escape the block
-- GC runs automatically on memory pressure or block exit
-
-### Channel-Based Ownership Transfer
-
-Move data between memory scopes:
-
-```tc
-chan i32 ch = @x  // Send ownership
-i32 y = <-ch     // Receive ownership
-```
-
-### Conditional Memory Management
-
-Runtime selection of memory strategy:
-
-```tc
-if (condition) {
-    use gc {
-        // GC-managed path
-    }
-} else {
-    arena[size] {
-        // Arena-managed path
-    }
-}
-```
-
----
-
 ## Hot Reloading
 
 ### Global Hot Reloading
@@ -1407,11 +1329,6 @@ fn void main: {
     counter.init()
     counter.increment()
     printi(counter.getValue())
-
-    // Arena allocation
-    arena[1024] {
-        =>i32 buffer = alloc(100)
-    }
 
     // Inline C
     "C"{
