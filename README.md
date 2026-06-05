@@ -256,12 +256,13 @@ fn void printP: ->Point p {
     printi((->p).y)
 }
 
-
 ```
 
 ### Control Flow
 ```
 if (x > 0) { ... }
+else if (x < 0) { ... }
+else { ... }
 
 loop { ... break }          // infinite loop unless break
 
@@ -319,21 +320,6 @@ Bad:
     x = 11       // error: cannot assign to pinned variable
 
 Fix: remove the `pin` or avoid reassigning the variable.
-```
-### Else if stmts
-Note, _if syntax is destined to change for v1.2.1 for something more ergonomic
-
-```
-if(condition){
-  // code
-}
-_if(condition){ 
-  // code
-}
-_ { // "_" is the tC wildcard for otherwise/else
-  // code
-}
-
 ```
 ### Match stmts
 ```
