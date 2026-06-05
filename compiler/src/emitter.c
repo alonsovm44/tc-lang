@@ -341,20 +341,42 @@ static void emit_stmt(Str *out, Stmt *s, StmtVec *scope, DeclVec *program, int i
     emit_indent(out, indent);
     switch (s->kind) {
         case ST_VAR: {
-            emit_type(out, s->type, s->name, program);
-            if (s->expr) {
-                if (s->type->kind == TY_FATPTR && s->expr->kind == EX_UNARY && !strcmp(s->expr->text, "@")) {
-                    str_add(out, " = { .ptr = ");
-                    emit_expr(out, s->expr->left, program);
-                    str_add(out, ", .len = TC_LENOF(");
-                    emit_expr(out, s->expr->left, program);
-                    str_add(out, ") }");
-                } else {
-                    str_add(out, " = "); emit_expr(out, s->expr, program);
+            if ((s->type->kind == TY_QUEUE || s->type->kind == TY_STACK) && s->expr && s->expr->kind == EX_INIT_LIST) {
+                Type *inner = s->type->inner;
+                Str item_type = {0};
+                if (inner) emit_type(&item_type, inner, "", program);
+                else str_add(&item_type, "void");
+
+                bool is_stack = s->type->kind == TY_STACK;
+                const char *container = is_stack ? "stack" : "queue";
+                str_printf(out, "%s %s = %s_create(%d);\n", is_stack ? "Stack" : "Queue", s->name, container, s->expr->args.count);
+                for (int i = 0; i < s->expr->args.count; i++) {
+                    emit_indent(out, indent);
+                    str_printf(out, "%s_push(&%s, &(", container, s->name);
+                    str_add(out, item_type.data);
+                    str_add(out, "){ ");
+                    emit_expr(out, s->expr->args.items[i], program);
+                    str_add(out, " }, sizeof(");
+                    str_add(out, item_type.data);
+                    str_add(out, "));\n");
                 }
+                free(item_type.data);
+            } else {
+                emit_type(out, s->type, s->name, program);
+                if (s->expr) {
+                    if (s->type->kind == TY_FATPTR && s->expr->kind == EX_UNARY && !strcmp(s->expr->text, "@")) {
+                        str_add(out, " = { .ptr = ");
+                        emit_expr(out, s->expr->left, program);
+                        str_add(out, ", .len = TC_LENOF(");
+                        emit_expr(out, s->expr->left, program);
+                        str_add(out, ") }");
+                    } else {
+                        str_add(out, " = "); emit_expr(out, s->expr, program);
+                    }
+                }
+                else str_add(out, " = {0}");
+                str_add(out, ";\n");
             }
-            else str_add(out, " = {0}");
-            str_add(out, ";\n");
             break;
         }
         case ST_IF:
