@@ -63,6 +63,10 @@ static bool decl_needs_runtime(Decl *d) {
     return false;
 }
 
+static bool type_is_pointer_like(Type *t) {
+    return t && (t->kind == TY_RAWPTR || t->kind == TY_FATPTR);
+}
+
 static const char *fat_type_tag(Type *inner) {
     if (inner->kind == TY_NAME) return inner->name;
     if (inner->kind == TY_RAWPTR) return "ptr";
@@ -153,6 +157,7 @@ static void emit_expr(Str *out, Expr *e, DeclVec *program) {
         case EX_UNARY:
             if (!strcmp(e->text, "p++")) { str_add(out, "("); emit_expr(out, e->left, program); str_add(out, "++)"); }
             else if (!strcmp(e->text, "p--")) { str_add(out, "("); emit_expr(out, e->left, program); str_add(out, "--)"); }
+            else if (!strcmp(e->text, "&ref")) { str_add(out, "&"); emit_expr(out, e->left, program); }
             else { str_printf(out, "(%s", !strcmp(e->text, "->") ? "*" : !strcmp(e->text, "@") ? "&" : e->text); emit_expr(out, e->left, program); str_add(out, ")"); }
             break;
         case EX_CALL:
@@ -209,18 +214,24 @@ static void emit_expr(Str *out, Expr *e, DeclVec *program) {
                     str_add(out, "{");
                     str_add(out, "// Pack arguments for async call\n");
                     if (e->args.count == 1) {
-                        // Check if argument is a queue or stack type
-                        bool is_queue_stack = false;
-                        if (e->args.items[0]->type) {
-                            is_queue_stack = (e->args.items[0]->type->kind == TY_QUEUE || 
-                                             e->args.items[0]->type->kind == TY_STACK);
+                        Type *arg_type = e->args.items[0]->type;
+                        if (!arg_type) {
+                            for (int j = 0; j < program->count; j++) {
+                                Decl *d2 = program->items[j];
+                                if (d2->kind == DC_FN && strcmp(d2->name, e->text) == 0 && d2->is_async && d2->params.count == 1) {
+                                    arg_type = d2->params.items[0].type;
+                                    break;
+                                }
+                            }
                         }
-                        
-                        if (is_queue_stack) {
-                            // Queue/stack handles are passed directly (no copying needed)
-                            str_add(out, "thread_pool_submit(g_thread_pool, (void(*)(void*))%s, ");
+                        bool is_queue_stack = arg_type && (arg_type->kind == TY_QUEUE || arg_type->kind == TY_STACK);
+                        bool is_pointer = type_is_pointer_like(arg_type);
+
+                        if (is_queue_stack || is_pointer) {
+                            // Queue/stack handles and raw pointers may be passed directly
+                            str_printf(out, "thread_pool_submit(g_thread_pool, (void(*)(void*))%s, ", e->text);
                             emit_expr(out, e->args.items[0], program);
-                            str_add(out, ");");
+                            str_add(out, ");\n");
                         } else {
                             // Primitive types - copy by value using int32_t for simplicity
                             str_add(out, "int32_t *arg = malloc(sizeof(int32_t));\n");
@@ -667,9 +678,22 @@ char *emit_program(DeclVec program) {
                 str_add(&out, "static void ");
                 str_add(&out, d->name);
                 str_add(&out, "_wrapper(void *arg) {\n");
-                str_add(&out, "    int32_t val = *(int32_t*)arg;\n");
-                str_add(&out, "    free(arg);\n");
-                str_printf(&out, "    %s(val);\n", d->name);
+                if (type_is_pointer_like(param_type)) {
+                    str_add(&out, "    ");
+                    emit_type(&out, param_type, "val", &program);
+                    str_add(&out, " = (");
+                    emit_type(&out, param_type, "", &program);
+                    str_add(&out, ")arg;\n");
+                    str_printf(&out, "    %s(val);\n", d->name);
+                } else {
+                    str_add(&out, "    ");
+                    emit_type(&out, param_type, "val", &program);
+                    str_add(&out, " = *(");
+                    emit_type(&out, param_type, "", &program);
+                    str_add(&out, "*)arg;\n");
+                    str_add(&out, "    free(arg);\n");
+                    str_printf(&out, "    %s(val);\n", d->name);
+                }
                 str_add(&out, "}\n\n");
             }
         }

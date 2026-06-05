@@ -1,11 +1,15 @@
 use "stdlib/io.tc"
 
-async fn void foo: ->i8 c{
-    (->c) = (->c) + 1    
+async fn void foo: ->i32 c, queue<i32> q{
+    (->c) = (->c) + 1   
+    q.push(->c) 
 }
 
-fn void main: {
+
+fn i32 main: {
     i32 x = 10
-    foo(&x)
-    printi(x)  // Should print 11
+    queue<i32> q
+    foo(&x, q)
+    printi(q.peek())  // Should print 11
+    ret 0
 }

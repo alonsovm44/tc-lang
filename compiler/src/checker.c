@@ -152,6 +152,10 @@ static void check_expr(Expr *e, ScopeStack *s) {
             break;
         case EX_UNARY:
             check_expr(e->left, s);
+            if (!strcmp(e->text, "&ref") || !strcmp(e->text, "&")) {
+                e->type = new_type(TY_RAWPTR);
+                e->type->inner = e->left->type;
+            }
             // Handle ownership transfer with @ operator
             if (strcmp(e->text, "@") == 0 && e->left->kind == EX_NAME) {
                 VarInfo *var = get_var_info(s, e->left->text);
