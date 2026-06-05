@@ -8,7 +8,6 @@
   <img src="https://img.shields.io/badge/language-C11-orange?style=flat-square" alt="Language">
   <img src="https://img.shields.io/badge/license-MIT-green?style=flat-square" alt="License">
   <img src="https://img.shields.io/badge/platform-Windows%20%7C%20Linux%20%7C%20macOS-lightgrey?style=flat-square" alt="Platform">
-  <img src="https://img.shields.io/github/repo-size/alonsovm44/tc-lang?style=flat-square" alt="Repo Size">
 </p>
 
 ---
@@ -58,12 +57,17 @@ Tig is a minimalistic systems programming language.
 
 ### Inspiration
 - Pony
+- Nim
 - Go
 - C
 - Rust
 
 ### Core principle:
 > Everything that can be built with libraries has to be built with libraries. The core language is small.
+> Explicit is better than implicit, but exceptions can be made...
+> Flexibility over rigidity.
+> Anything C can run, we run: Anywhere C has ran, we will run
+
 
 ## Quick Start
 
@@ -72,7 +76,7 @@ Clone the repo and build the compiler:
 # Build the compiler
 make # requires make
 
-# Compile stdlib headers (only needed once)
+# Compile stdlib headers in the stdlib folder (only needed once)
 ./tigc stdlib/io.tc -o stdlib/io.h
 
 # One-step: transpile + compile to binary
@@ -86,7 +90,7 @@ gcc fizzbuzz.c -std=c11 -o fizzbuzz
 
 ## How It Works
 
-Tig is a **source-to-source compiler** (transpiler) written in ~4000 lines of C. It reads `.tc` files and outputs portable C11.
+Tig is a **source-to-source compiler** (transpiler) written in ~4156 lines of C. It reads `.tc` files and outputs portable C11.
 
 ```
 source.tc → [Lexer] → [Parser] → [AST] → [Emitter] → output.c → gcc/clang → binary
@@ -128,15 +132,6 @@ There is no optimizer, no IR, no type inference pass, and no code generation bey
 - **Game engine internals** — manual memory, no GC pauses, direct pointer control
 - **Learning compilers** — small enough to read in an afternoon, real enough to produce working binaries
 - **C codebases that want better ergonomics** — fat pointers, defer, slicing, without leaving the C ecosystem
-
-### What is intentionally skipped (for now)
-
-- **Generics / templates** — explicitness over abstraction
-- **OOP / inheritance** — composition via structs
-- **Garbage collection** — manual memory is the point
-- **Type inference** — all types are visible at declaration
-- **Exceptions** — return error codes, check them
-- **Runtime reflection** — if you need it, you're in the wrong language
 
 ## Hello World
 
@@ -240,6 +235,28 @@ printi(slice.ptr[0])     // access elements
 =>->i32 fps = @ptrs      // fat pointer of raw pointers
 ->=>i32 pslice = @slice  // raw pointer to fat pointer
 =>=> sslice = @slice     // fat pointer to fat pointer
+```
+
+
+### Strun pointers
+```
+strun Point{
+    i32 x,
+    i32 y
+}
+
+Point p = {1, 2}
+
+fn void printP: ->Point p {
+    printi(p.>x)
+    printi(p.>y)
+
+    // or this can be done too
+    printi((->p).x)
+    printi((->p).y)
+}
+
+
 ```
 
 ### Control Flow
