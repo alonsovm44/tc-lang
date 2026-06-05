@@ -1,4 +1,4 @@
-## v1.3.0 2026-06-04
+## v1.3.0/1.3.1 2026-06-04
 
 Added:
 
@@ -18,6 +18,7 @@ Removed:
 
 Improved/Fixed:
 
+- fixed queues and async not working together
 - fixed async function call code generation (removed typeof, added semicolons)
 - fixed compiler -c flag to auto-link runtime when async functions detected
 - fixed async module integration with proper header includes

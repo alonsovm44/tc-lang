@@ -67,10 +67,37 @@ static bool type_is_pointer_like(Type *t) {
     return t && (t->kind == TY_RAWPTR || t->kind == TY_FATPTR);
 }
 
+static Decl *current_fn = NULL;
+
+static bool async_param_is_queue_or_stack(const char *name, bool *is_stack) {
+    if (!current_fn || !current_fn->is_async || !name) return false;
+    for (int i = 0; i < current_fn->params.count; i++) {
+        Param *param = &current_fn->params.items[i];
+        if (param->name && !strcmp(param->name, name) && param->type &&
+            (param->type->kind == TY_QUEUE || param->type->kind == TY_STACK)) {
+            if (is_stack) *is_stack = param->type->kind == TY_STACK;
+            return true;
+        }
+    }
+    return false;
+}
+
 static const char *fat_type_tag(Type *inner) {
     if (inner->kind == TY_NAME) return inner->name;
     if (inner->kind == TY_RAWPTR) return "ptr";
     return "x";
+}
+
+static void emit_expr(Str *out, Expr *e, DeclVec *program);
+static void emit_type(Str *out, Type *t, const char *name, DeclVec *program);
+
+static void emit_type_for_async_param(Str *out, Type *t, const char *name, DeclVec *program) {
+    if (t && (t->kind == TY_QUEUE || t->kind == TY_STACK)) {
+        emit_type(out, t, NULL, program);
+        if (name && name[0]) str_printf(out, " *%s", name);
+        return;
+    }
+    emit_type(out, t, name, program);
 }
 
 static void emit_expr(Str *out, Expr *e, DeclVec *program);
@@ -210,9 +237,7 @@ static void emit_expr(Str *out, Expr *e, DeclVec *program) {
                     // No arguments - simple call
                     str_printf(out, "thread_pool_submit(g_thread_pool, (void(*)(void*))%s, NULL);", e->text);
                 } else {
-                    // Pack arguments into a struct - for now just handle single primitive args
-                    str_add(out, "{");
-                    str_add(out, "// Pack arguments for async call\n");
+                    // Pack arguments into a struct if needed
                     if (e->args.count == 1) {
                         Type *arg_type = e->args.items[0]->type;
                         if (!arg_type) {
@@ -230,6 +255,9 @@ static void emit_expr(Str *out, Expr *e, DeclVec *program) {
                         if (is_queue_stack || is_pointer) {
                             // Queue/stack handles and raw pointers may be passed directly
                             str_printf(out, "thread_pool_submit(g_thread_pool, (void(*)(void*))%s, ", e->text);
+                            if (is_queue_stack) {
+                                str_add(out, "&");
+                            }
                             emit_expr(out, e->args.items[0], program);
                             str_add(out, ");\n");
                         } else {
@@ -241,11 +269,44 @@ static void emit_expr(Str *out, Expr *e, DeclVec *program) {
                             str_printf(out, "thread_pool_submit(g_thread_pool, (void(*)(void*))%s_wrapper, arg);", e->text);
                         }
                     } else {
-                        // Multiple args - TODO: implement proper struct packing
-                        str_add(out, "// TODO: pack multiple arguments\n");
-                        str_printf(out, "thread_pool_submit(g_thread_pool, (void(*)(void*))%s, NULL);", e->text);
+                        // Multiple args - pack them into an allocated struct and submit the wrapper
+                        Decl *async_decl = NULL;
+                        for (int k = 0; k < program->count; k++) {
+                            Decl *d2 = program->items[k];
+                            if (d2->kind == DC_FN && strcmp(d2->name, e->text) == 0 && d2->is_async) {
+                                async_decl = d2;
+                                break;
+                            }
+                        }
+                        str_printf(out, "struct %s_args {", e->text);
+                        for (int j = 0; j < e->args.count; j++) {
+                            Type *arg_type = e->args.items[j]->type;
+                            if (!arg_type && async_decl && j < async_decl->params.count) arg_type = async_decl->params.items[j].type;
+                            char field_name[16];
+                            sprintf(field_name, "arg%d", j);
+                            if (arg_type) {
+                                emit_type_for_async_param(out, arg_type, field_name, program);
+                            } else {
+                                str_printf(out, "int32_t %s", field_name);
+                            }
+                            str_add(out, "; ");
+                        }
+                        str_add(out, "};\n");
+                        str_printf(out, "struct %s_args *arg = malloc(sizeof(struct %s_args));\n", e->text, e->text);
+                        for (int j = 0; j < e->args.count; j++) {
+                            Type *arg_type = e->args.items[j]->type;
+                            if (!arg_type && async_decl && j < async_decl->params.count) arg_type = async_decl->params.items[j].type;
+                            char field_name[16];
+                            sprintf(field_name, "arg%d", j);
+                            str_printf(out, "arg->%s = ", field_name);
+                            if (arg_type && (arg_type->kind == TY_QUEUE || arg_type->kind == TY_STACK)) {
+                                str_add(out, "&");
+                            }
+                            emit_expr(out, e->args.items[j], program);
+                            str_add(out, ";\n");
+                        }
+                        str_printf(out, "thread_pool_submit(g_thread_pool, (void(*)(void*))%s_wrapper, arg);", e->text);
                     }
-                    str_add(out, "\n}");
                 }
             } else {
                 str_printf(out, "%s(", e->text);
@@ -266,13 +327,21 @@ static void emit_expr(Str *out, Expr *e, DeclVec *program) {
         case EX_QUEUE_METHOD: {
             // Generate queue/stack method calls
             Type *inner = e->left && e->left->type ? e->left->type->inner : NULL;
-            bool is_stack = e->left && e->left->type && e->left->type->kind == TY_STACK;
+            bool is_stack = e->left && e->left->type && (e->left->type->kind == TY_STACK || (e->left->type->kind == TY_RAWPTR && e->left->type->inner && e->left->type->inner->kind == TY_STACK));
             Str item_type = {0};
             if (inner) emit_type(&item_type, inner, "", program);
             else str_add(&item_type, "void");
 
+            bool left_is_ptr = e->left && e->left->type && e->left->type->kind == TY_RAWPTR && e->left->type->inner && (e->left->type->inner->kind == TY_QUEUE || e->left->type->inner->kind == TY_STACK);
+            if (!left_is_ptr && e->left && e->left->kind == EX_NAME) {
+                bool async_stack = false;
+                if (async_param_is_queue_or_stack(e->left->text, &async_stack)) {
+                    left_is_ptr = true;
+                    if (async_stack) is_stack = true;
+                }
+            }
             if (!strcmp(e->text, "push") || !strcmp(e->text, "enq")) {
-                str_printf(out, "%s_push(&", is_stack ? "stack" : "queue");
+                str_printf(out, "%s_push(%s", is_stack ? "stack" : "queue", left_is_ptr ? "" : "&");
                 emit_expr(out, e->left, program);
                 str_add(out, ", &(");
                 str_add(out, item_type.data);
@@ -286,9 +355,9 @@ static void emit_expr(Str *out, Expr *e, DeclVec *program) {
                 str_add(out, item_type.data);
                 str_add(out, "*)");
                 if (!strcmp(e->text, "peek")) {
-                    str_printf(out, "%s_peek(&", is_stack ? "stack" : "queue");
+                    str_printf(out, "%s_peek(%s", is_stack ? "stack" : "queue", left_is_ptr ? "" : "&");
                 } else {
-                    str_printf(out, "%s_pop(&", is_stack ? "stack" : "queue");
+                    str_printf(out, "%s_pop(%s", is_stack ? "stack" : "queue", left_is_ptr ? "" : "&");
                 }
                 emit_expr(out, e->left, program);
                 str_add(out, ")");
@@ -384,8 +453,12 @@ static void emit_stmt(Str *out, Stmt *s, StmtVec *scope, DeclVec *program, int i
                     } else {
                         str_add(out, " = "); emit_expr(out, s->expr, program);
                     }
+                } else if (s->type->kind == TY_QUEUE || s->type->kind == TY_STACK) {
+                    const char *container = s->type->kind == TY_STACK ? "stack" : "queue";
+                    str_printf(out, " = %s_create(0)", container);
+                } else {
+                    str_add(out, " = {0}");
                 }
-                else str_add(out, " = {0}");
                 str_add(out, ";\n");
             }
             break;
@@ -655,7 +728,10 @@ char *emit_program(DeclVec program) {
             } else {
                 emit_type(&out, d->type, d->name, &program); str_add(&out, "(");
                 if (!d->params.count && !d->varargs) str_add(&out, "void");
-                for (int j = 0; j < d->params.count; j++) { if (j) str_add(&out, ", "); emit_type(&out, d->params.items[j].type, d->params.items[j].name, &program); }
+                for (int j = 0; j < d->params.count; j++) {
+                    if (j) str_add(&out, ", ");
+                    emit_type_for_async_param(&out, d->params.items[j].type, d->params.items[j].name, &program);
+                }
                 if (d->varargs) str_add(&out, d->params.count ? ", ..." : "...");
                 str_add(&out, ");\n");
             }
@@ -664,36 +740,73 @@ char *emit_program(DeclVec program) {
     }
     str_add(&out, "\n");
     
-    // Generate wrapper functions for async functions that take primitive arguments
+    // Generate wrapper functions for async functions that take primitive or multiple arguments
     for (int i = 0; i < program.count; i++) {
         Decl *d = program.items[i];
-        if (d->kind == DC_FN && d->is_async && d->params.count == 1) {
-            // Check if the parameter is a primitive type (not queue/stack)
-            Type *param_type = d->params.items[0].type;
-            if (param_type && param_type->kind != TY_QUEUE && param_type->kind != TY_STACK) {
-                // Generate wrapper function
+        if (d->kind == DC_FN && d->is_async) {
+            if (d->params.count == 1) {
+                Type *param_type = d->params.items[0].type;
+                if (param_type && param_type->kind != TY_QUEUE && param_type->kind != TY_STACK) {
+                    // Generate wrapper function for single primitive arg
+                    str_add(&out, "// Wrapper for async function ");
+                    str_add(&out, d->name);
+                    str_add(&out, "\n");
+                    str_add(&out, "static void ");
+                    str_add(&out, d->name);
+                    str_add(&out, "_wrapper(void *arg) {\n");
+                    if (type_is_pointer_like(param_type)) {
+                        str_add(&out, "    ");
+                        emit_type(&out, param_type, "val", &program);
+                        str_add(&out, " = (");
+                        emit_type(&out, param_type, "", &program);
+                        str_add(&out, ")arg;\n");
+                        str_printf(&out, "    %s(val);\n", d->name);
+                    } else {
+                        str_add(&out, "    ");
+                        emit_type(&out, param_type, "val", &program);
+                        str_add(&out, " = *(");
+                        emit_type(&out, param_type, "", &program);
+                        str_add(&out, "*)arg;\n");
+                        str_add(&out, "    free(arg);\n");
+                        str_printf(&out, "    %s(val);\n", d->name);
+                    }
+                    str_add(&out, "}\n\n");
+                }
+            } else if (d->params.count > 1) {
+                // Generate wrapper function for multiple arguments
                 str_add(&out, "// Wrapper for async function ");
                 str_add(&out, d->name);
                 str_add(&out, "\n");
+                str_printf(&out, "struct %s_args {", d->name);
+                for (int j = 0; j < d->params.count; j++) {
+                    char field_name[16];
+                    sprintf(field_name, "arg%d", j);
+                    Type *param_type = d->params.items[j].type;
+                    if (param_type) {
+                        emit_type_for_async_param(&out, param_type, field_name, &program);
+                    } else {
+                        str_printf(&out, "int32_t %s", field_name);
+                    }
+                    str_add(&out, "; ");
+                }
+                str_add(&out, "};\n");
                 str_add(&out, "static void ");
                 str_add(&out, d->name);
                 str_add(&out, "_wrapper(void *arg) {\n");
-                if (type_is_pointer_like(param_type)) {
-                    str_add(&out, "    ");
-                    emit_type(&out, param_type, "val", &program);
-                    str_add(&out, " = (");
-                    emit_type(&out, param_type, "", &program);
-                    str_add(&out, ")arg;\n");
-                    str_printf(&out, "    %s(val);\n", d->name);
-                } else {
-                    str_add(&out, "    ");
-                    emit_type(&out, param_type, "val", &program);
-                    str_add(&out, " = *(");
-                    emit_type(&out, param_type, "", &program);
-                    str_add(&out, "*)arg;\n");
-                    str_add(&out, "    free(arg);\n");
-                    str_printf(&out, "    %s(val);\n", d->name);
+                str_add(&out, "    struct ");
+                str_add(&out, d->name);
+                str_add(&out, "_args *data = arg;\n");
+                str_add(&out, "    ");
+                str_add(&out, d->name);
+                str_add(&out, "(");
+                for (int j = 0; j < d->params.count; j++) {
+                    if (j) str_add(&out, ", ");
+                    char field_name[16];
+                    sprintf(field_name, "arg%d", j);
+                    str_printf(&out, "data->%s", field_name);
                 }
+                str_add(&out, ");\n");
+                str_add(&out, "    free(arg);\n");
                 str_add(&out, "}\n\n");
             }
         }
@@ -720,11 +833,16 @@ char *emit_program(DeclVec program) {
             } else {
                 str_add(&out, "\n"); emit_type(&out, d->type, d->name, &program); str_add(&out, "(");
                 if (!d->params.count && !d->varargs) str_add(&out, "void");
-                for (int j = 0; j < d->params.count; j++) { if (j) str_add(&out, ", "); emit_type(&out, d->params.items[j].type, d->params.items[j].name, &program); }
+                for (int j = 0; j < d->params.count; j++) {
+                    if (j) str_add(&out, ", ");
+                    emit_type_for_async_param(&out, d->params.items[j].type, d->params.items[j].name, &program);
+                }
                 if (d->varargs) str_add(&out, d->params.count ? ", ..." : "...");
                 str_add(&out, ") {\n");
             }
+            current_fn = d;
             emit_stmt_vec_with_defers(&out, &d->body, &program, 1);
+            current_fn = NULL;
             str_add(&out, "}\n");
         }
         // Don't emit bodies for extern C functions - they're already in the C library
