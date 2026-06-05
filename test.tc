@@ -1,12 +1,14 @@
 use "stdlib/io.tc"
 use "stdlib/async.tc"
 
-async fn void foo: ->i32 x {    
-    ->x = ->x + 1
+async fn void foo: i32 x, queue<i32> q{
+    q.push(x*x)
 }
 
-fn i32 main: {
-    i32 x = 10;
-    foo(&x)
-    printi(x) // should print 11
+fn void main: {
+    queue<i32> q = {};
+
+    foo(3, q)
+    i32 y = q.pop();
+    printi(y) // should print 9
 }

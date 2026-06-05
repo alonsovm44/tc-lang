@@ -14,7 +14,8 @@ Should the queue slice {0:2} be a read-only live view (Solution 2) or should it 
     - [ ] Queue operations (enq, deq, peek)
     - [ ] Pointer operations for stack and queue types
 
-- [x] Implement async functions [DONE]
+- [x] Implement async functions [DONE]?
+- [ ] Fix async functions 
 
 - [ ] explicit casting
 ```
@@ -27,3 +28,17 @@ f64 y = (f64)x
 ```tc
 a; b; c;
 ```
+- [ ] Fix emmiter to handle this case:
+```
+i32 x = 10
+async foo(&x) // it produces bad code
+```
+
+- [ ] fix the emitter to handle this case
+```
+i32 x = 110
+->i32 ptr = &x
+foo(ptr)
+
+```
+This compiles but hangs when ran
