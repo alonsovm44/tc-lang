@@ -7,3 +7,5 @@ For the rest of the day i wont add new features to Tig, only focus on making mor
 I ran out of AI, i will use the time left i have with internet to document edge cases and errors in Tig.
 Someone gave me the idea of using public WiFi in libraries. I didn't think about it and it would work for when I no longer have connection at home. 
 
+Queues were not working for some reason, i patched it. 
+

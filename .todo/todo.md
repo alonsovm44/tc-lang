@@ -7,15 +7,15 @@ Should the queue slice {0:2} be a read-only live view (Solution 2) or should it 
 
 # todo
 
-- [ ] Implement stack and queue primitives
+- [x] Implement stack and queue primitives
 - [ ] Implement pointers to stacks and queues
-- [ ] Implement basic stack and pointer features
-    - [ ] Stack operations (push, pop, peek)
-    - [ ] Queue operations (enq, deq, peek)
+- [x] Implement basic stack and pointer features
+    - [x] Stack operations (push, pop, peek)
+    - [x] Queue operations (enq, deq, peek)
     - [ ] Pointer operations for stack and queue types
 
-- [x] Implement async functions [DONE]?
-- [ ] Fix async functions 
+- [x] Implement async functions
+- [ ] Fix async functions
 
 - [ ] explicit casting
 ```
