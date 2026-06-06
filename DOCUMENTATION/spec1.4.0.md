@@ -1,7 +1,7 @@
 # Tig version 1.4.0 Specification
 
 ## Overview
-Tig 1.4.0 introduces a comprehensive memory management evolution, building upon the manual memory model established in versions 1.2 and 1.3. This release provides developers with multiple memory management strategies—arena allocation, optional garbage collection, and enhanced ownership semantics—while maintaining backward compatibility with existing manual memory management patterns.
+Tig 1.4.0 introduces a comprehensive memory management evolution, building upon the manual memory model established in versions 1.2 and 1.3. This release provides developers with multiple memory management strategies—arena allocation, and enhanced ownership semantics—while maintaining backward compatibility with existing manual memory management patterns.
 
 ## Current Memory Model (Pre-1.4)
 Prior to version 1.4, Tig employs a C-like manual memory management model:
@@ -51,44 +51,6 @@ arena[required_size] {
 - **Allocation failure**: If arena capacity is exhausted, allocation results in a runtime panic
 - **Nesting**: Arena blocks may be nested; inner arenas are independent of outer arenas
 - **Zero-overhead**: Arena allocation incurs minimal runtime cost compared to manual heap allocation 
-
-## Garbage Collection
-
-### Thesis
-Tig provides an optional, scoped garbage collection mechanism for scenarios where manual memory management would be impractical or would make DX bad. The GC is opt-in and scoped, allowing developers to selectively apply automatic memory management to specific code regions while maintaining manual control elsewhere.
-
-### When to Use GC
-Garbage collection is recommended for:
-- **Long-running processes** where memory leaks would be catastrophic
-- **Complex data structures** with intricate ownership graphs (e.g., cyclic references, shared caches)
-- **Rapid prototyping** where manual memory management would slow development
-
-### Syntax
-
-```tig
-use gc {
-    // Code within this block uses GC-managed memory
-}
-```
-
-### Semantics
-
-**Scope Isolation:**
-- Data allocated (stack or heap) within a `use gc` block is tracked by the garbage collector
-- GC-tracked data cannot escape the GC block; pointers to GC-managed memory cannot be stored in variables that outlive the block
-- Data from outside GC blocks is readable within GC blocks (read-only access)
-
-**Memory Scope Contract:**
-- GC blocks, like arena blocks, are memory scopes
-- Pointers allocated inside cannot be returned or stored in outer-scope variables
-- This ensures the GC can safely reclaim all tracked memory when the block exits
-
-**Implementation Notes:**
-- The GC is inactive by default; only code within `use gc` blocks participates in garbage collection
-- GC runs automatically when memory pressure thresholds are reached or when the GC block exits
-- The GC algorithm is a simple, conservative collector optimized for Tig's type system
-
-## Data Movement and Ownership Transfer
 
 ### Thesis
 Tig extends queues to support ownership transfer for moving data between memory scopes. This mechanism enables data to flow from GC or arena blocks into manual memory zones, and between async blocks, while maintaining clear ownership semantics and preventing use-after-free errors.
@@ -349,14 +311,12 @@ While async blocks run concurrently, synchronization mechanisms (queues, barrier
 
 ### New Keywords
 1. **`arena`** - Introduces arena allocation scope
-2. **`gc`** - Enables garbage collection scope via `use gc`
 
 ### New Operators
 1. **`@`** - Ownership transfer operator introdued in 1.3 (used with queue.push for sending) with new semantics for 1.4
 
 ### New Block Types
 1. **`arena[size] { }`** - Arena allocation block
-2. **`use gc { }`** - Garbage collection block
 3. **`async { }`** - Asynchronous execution block
 
 ## Migration Guide

@@ -15,4 +15,5 @@ fn i32 main: {
     printi(sum) // should print 15
     printi(product) // should print 50
     ret 0
+    
 }

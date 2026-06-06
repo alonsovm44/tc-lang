@@ -1,0 +1,16 @@
+use "stdlib/io.tc"
+
+fn i32 fibonacci: i32 n {
+   if(n <= 1){
+    ret n
+   } 
+    ret fibonacci(n - 1) + fibonacci(n - 2)
+
+}
+
+fn i32 main: {
+    i32 n = 10
+    i32 result = fibonacci(n)
+    printi(result) // should print 55
+    ret 0
+}
