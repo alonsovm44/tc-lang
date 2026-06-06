@@ -1,0 +1,9 @@
+use "stdlib/io.tc"
+
+fn i32 main: {
+
+    f32 a = 3.14
+    i32 b = (i32)a
+    printi(b) // should print 3
+
+}

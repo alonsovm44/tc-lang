@@ -38,7 +38,8 @@ void fn print: ->i8 s {
 
 // print a float with newline
 void fn printflt: f64 n {
-    printf("%f\n", n)
+    printf("%f", n)
+    putchar(10)
     ret
 }
 

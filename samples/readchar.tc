@@ -1,0 +1,9 @@
+use "stdlib/io.tc"
+
+
+fn i32 main: =>->i8 args{
+    printn("Enter a number: ")
+    i8 x = readc()
+    printn("You entered ASCII number: ")
+    printi(x)
+}

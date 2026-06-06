@@ -47,7 +47,8 @@ void print(char *s) {
 }
 
 void printflt(double n) {
-    printf("%f\n", n);
+    printf("%f", n);
+    putchar(10);
     
     return;
 }

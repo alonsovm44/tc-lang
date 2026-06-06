@@ -23,18 +23,18 @@ i32 x = 5
 f64 y = (f64)x
 ```
 
-- [ ] fix Tig compiler asking for ";" when it is optional
+- [x] fix Tig compiler asking for ";" when it is optional
 - [ ] add multiple line code
 ```tc
 a; b; c;
 ```
-- [ ] Fix emmiter to handle this case:
+- [x] Fix emmiter to handle this case:
 ```
 i32 x = 10
 async foo(&x) // it produces bad code
 ```
 
-- [ ] fix the emitter to handle this case
+- [x] fix the emitter to handle this case
 ```
 i32 x = 110
 ->i32 ptr = &x
