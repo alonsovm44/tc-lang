@@ -1,0 +1,18 @@
+use "stdlib/io.tc"
+
+async fn void worker: queue<i32> q, i32 x, i32 y{
+    i32 result = x + y
+    i32 mult = x * y
+    q.push(result)
+    q.push(mult)
+}
+
+fn i32 main: {
+    queue<i32> q
+    worker(q, 5, 10)
+    i32 sum = q.pop()
+    i32 product = q.pop()
+    printi(sum) // should print 15
+    printi(product) // should print 50
+    ret 0
+}
