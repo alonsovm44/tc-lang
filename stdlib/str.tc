@@ -51,3 +51,8 @@ i32 fn sneq: ->i8 a, ->i8 b, u64 n {
 ->i8 fn shas: ->i8 haystack, ->i8 needle {
     ret strstr(haystack, needle)
 }
+
+// compare if two characters are equal (returns 1 if equal)
+i32 fn ceq: i8 a, i8 b {
+    ret a == b
+}

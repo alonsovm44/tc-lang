@@ -1,32 +1,41 @@
 use "stdlib/io.tc"
 use "stdlib/str.tc"
-// simple word counter
-// this simple version just counts spaces as word separators
-// todo: look ahead function to handle multiple spaces
 
 fn i32 main: {
     ->i8 file = "test.txt"
 
     ->FILE f = open_file(file, "r")
-    ->i8 buffer = alloc(1024, i8)
-    defer{
+    defer {
         fclose(f)
-        free(buffer)
     }
 
     if(!f){
         print("Error, could not open file")
         ret 1
     }
+    
     i32 counter = 0
-    loop if (!eof(f)){
-        ->u8 c = fgetc(f)
-        if (strcmp(c, " ")){
-            counter++
+    i32 in_word = 0
+    
+    loop {
+        i32 c = fgetc(f)   // MUST be i32, NOT i8!
+        
+        if (c == -1) {
+            break
+        }
+        
+        // Use ceq from str.tc for character comparison
+        if (ceq(c, 32) || ceq(c, 10) || ceq(c, 9)) {
+            in_word = 0
+        } else {
+            if (in_word == 0) {
+                counter = counter + 1
+                in_word = 1
+            }
         }
     }
+    
     printn("Words: ")
     printi(counter)
     ret 0
-
 }

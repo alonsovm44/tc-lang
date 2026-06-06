@@ -53,7 +53,7 @@ arena[required_size] {
 - **Zero-overhead**: Arena allocation incurs minimal runtime cost compared to manual heap allocation 
 
 ### Thesis
-Tig extends queues to support ownership transfer for moving data between memory scopes. This mechanism enables data to flow from GC or arena blocks into manual memory zones, and between async blocks, while maintaining clear ownership semantics and preventing use-after-free errors.
+Tig extends queues to support ownership transfer for moving data between memory scopes. This mechanism enables data to flow from arena blocks into manual memory zones, and between async blocks, while maintaining clear ownership semantics and preventing use-after-free errors.
 
 ### Queue-Based Ownership Transfer
 
@@ -74,50 +74,24 @@ Tig extends queues to support ownership transfer for moving data between memory 
     // y is available in this scope, and has the value of x
 }
 ```
-### GC to Manual Transfer
-
-```tig
-// Global scope (manual memory management)
-queue<i32> ch = {}
-queue<fn(i32)i32> fn_ch = {}
-
-use gc {
-    fn i32 foo(i32 x) {
-        ret x * 2
-    }
-    
-    i32 x = foo(5)  // x is GC-managed
-    // x is available within this GC block only
-
-    // Transfer ownership to queues
-    ch.push(@x)
-    fn_ch.push(@foo)
-    // x and foo cannot be reused here—ownership transferred
-}
-// Manual memory zone
-
-i32 y = ch.pop()  // y is now manually managed
-fn(i32)i32 fn_y = fn_ch.pop()
-i32 z = fn_y(10)  // Execute transferred function
-```
 
 #### Scope-Escape Rules for Transferred Functions & Closures
 
-To guarantee that executing an escaped function/closure (`fn_y`) outside of its origin environment never causes a segfault or undefined behavior (from referencing a torn-down GC block or Arena), the compiler enforces a compile-time **Scope-Escape Rule** based on the closure's capture environment:
+To guarantee that executing an escaped function/closure (`fn_y`) outside of its origin environment never causes a segfault or undefined behavior (from referencing a torn-down block or Arena), the compiler enforces a compile-time **Scope-Escape Rule** based on the closure's capture environment:
 
 1. **Pure Functions (Zero Capture)**:
    - If a function (like `foo` above) captures no variables from its outer lexical scope, it is transpiled to a raw C function pointer.
-   - **Rule**: Pure functions can escape any memory scope (GC or Arena) freely since they carry no state.
+   - **Rule**: Pure functions can escape any memory scope (Arena) freely since they carry no state.
 
 2. **Value-Type Closures (Value Capture)**:
    - If a function captures only primitive value types (`i8`, `i32`, `f32`, etc.), the compiler generates a closure environment structure and copies those values directly by value.
    - **Rule**: Value-type closures can escape freely because they hold independent copies, ensuring no references point back to the collected memory scope.
 
 3. **Reference-Type Closures (Pointer Capture)**:
-   - If a function captures any reference type, pointer (`->T`), slice (`=>T`), or object allocated inside the GC or Arena block, the environment contains pointers to resources that will be reclaimed when the block exits.
+   - If a function captures any reference type, pointer (`->T`), slice (`=>T`), or object allocated inside the Arena block, the environment contains pointers to resources that will be reclaimed when the block exits.
    - **Rule**: Reference-type closures **cannot escape** the scope. The compiler's escape analysis tracks references, and calling `push(@...)` on such a closure triggers a compile-time error:
      ```
-     error[E040]: closure captures GC-managed references and cannot escape this scope.
+     error[E040]: closure captures arena managed references and cannot escape this scope.
      ```
 
 ### Arena to Manual Transfer
@@ -220,15 +194,13 @@ i32 x = 10
 ## Conditional Memory Management
 
 ### Thesis
-Tig allows runtime selection of memory management strategies based on environmental conditions. This enables adaptive behavior—using GC for complex scenarios, arenas for performance-critical paths, or manual management for predictability—within a single codebase.
+Tig allows runtime selection of memory management strategies based on environmental conditions. This enables adaptive behavior—using arenas for performance-critical paths, or manual management for predictability—within a single codebase.
 
 ### Syntax
 
 ```tig
 if (condition) {
-    use gc {
-        // GC-managed memory path
-    }
+    // manual memory management
 } else {
     arena[size] {
         // Arena-managed memory path
@@ -236,26 +208,12 @@ if (condition) {
 }
 ```
 
-### Use Cases
-
-**Environment-based selection:**
-```tig
-if (is_development_build()) {
-    use gc {
-        // Simplify debugging with GC in development
-    }
-} else {
-    arena[calculate_arena_size()] {
-        // Optimize for performance in production
-    }
-}
-```
 
 **Data-size-based selection:**
 ```tig
 if (data_size > LARGE_DATA_THRESHOLD) {
-    use gc {
-        // GC for large, complex structures
+    arena[size] {
+        // arena for large, complex structures
     }
 } else {
     // Manual management for small, simple data
@@ -323,11 +281,10 @@ While async blocks run concurrently, synchronization mechanisms (queues, barrier
 
 ### From 1.3 to 1.4
 - Existing code using manual memory management remains unchanged
-- Arena and GC features are opt-in; no migration required for existing codebases
+- Arena features are opt-in; no migration required for existing codebases
 - Queue-based ownership transfer is additive; existing pointer patterns continue to work
 
 ### Recommended Adoption Path
 1. **Start with arenas** for performance-critical sections with known allocation patterns
-2. **Introduce GC** for complex data structures where manual management is error-prone
 3. **Use async blocks** for I/O-bound or parallelizable workloads
 4. **Leverage conditional memory management** for adaptive deployment strategies

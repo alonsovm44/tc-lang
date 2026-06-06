@@ -9,6 +9,7 @@
 #define TC_LENOF(x) (sizeof(x) / sizeof((x)[0]))
 #define TC_FAT_LENOF(x) ((x).len)
 
+
 uint64_t slen(char *s);
 int32_t seq(char *a, char *b);
 void scpy(char *dest, char *src);
@@ -17,6 +18,7 @@ int32_t sneq(char *a, char *b, uint64_t n);
 char *sfind(char *s, int32_t c);
 char *sfindlast(char *s, int32_t c);
 char *shas(char *haystack, char *needle);
+int32_t ceq(char a, char b);
 
 
 uint64_t slen(char *s) {
@@ -59,4 +61,9 @@ char *sfindlast(char *s, int32_t c) {
 char *shas(char *haystack, char *needle) {
     
     return strstr(haystack, needle);
+}
+
+int32_t ceq(char a, char b) {
+    
+    return (a == b);
 }
