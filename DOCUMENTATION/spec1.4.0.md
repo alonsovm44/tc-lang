@@ -288,3 +288,20 @@ While async blocks run concurrently, synchronization mechanisms (queues, barrier
 1. **Start with arenas** for performance-critical sections with known allocation patterns
 3. **Use async blocks** for I/O-bound or parallelizable workloads
 4. **Leverage conditional memory management** for adaptive deployment strategies
+
+
+# Notes
+
+|Summary Table
+|Feature|	Verdict|	Notes|
+:-------|:---------|:--------|
+|Arena allocation|	✅ Keep	|Clean syntax, good semantics
+|Queue ownership transfer|	✅ Keep	|Novel and elegant
+|Scope-escape rules|	✅ Keep	|Well-specified
+|pin for read-only|	✅ Keep	|Complements @
+|Conditional memory management|	⚠️ Rethink	|Code duplication problem
+|Nested arena independence|	⚠️ Clarify	|"Independent" needs definition
+|Arena exhaustion handling |	⚠️ Expand	|Panic-only is limiting
+|Defer inside arena	|❌ Missing	|Specify behavior
+|Async + arena interaction |	❌ Missing	|Critical edge case
+|Arena introspection |	❌ Missing	|arena_remaining() etc.

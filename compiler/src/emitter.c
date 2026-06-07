@@ -409,6 +409,7 @@ static void emit_indent(Str *out, int indent) {
 }
 
 static void emit_stmt_vec(Str *out, StmtVec *body, DeclVec *program, int indent);
+static bool emit_stmt_vec_with_defers(Str *out, StmtVec *body, DeclVec *program, int indent);
 
 static void emit_defers(Str *out, StmtVec *body, DeclVec *program, int indent) {
     for (int i = body->count - 1; i >= 0; i--) {
@@ -417,7 +418,7 @@ static void emit_defers(Str *out, StmtVec *body, DeclVec *program, int indent) {
     }
 }
 
-static void emit_stmt(Str *out, Stmt *s, StmtVec *scope, DeclVec *program, int indent) {
+static void emit_stmt(Str *out, Stmt *s, StmtVec *scope, DeclVec *program, int indent, bool *has_return) {
     emit_indent(out, indent);
     switch (s->kind) {
         case ST_VAR: {
@@ -487,6 +488,7 @@ static void emit_stmt(Str *out, Stmt *s, StmtVec *scope, DeclVec *program, int i
             break;
         case ST_RET:
             str_add(out, "\n"); emit_defers(out, scope, program, indent); emit_indent(out, indent); str_add(out, "return"); if (s->expr) { str_add(out, " "); emit_expr(out, s->expr, program); } str_add(out, ";\n");
+            if (has_return) *has_return = true;
             break;
         case ST_BREAK: str_add(out, "break;\n"); break;
         case ST_PIN:
@@ -536,12 +538,14 @@ static void emit_stmt(Str *out, Stmt *s, StmtVec *scope, DeclVec *program, int i
 }
 
 static void emit_stmt_vec(Str *out, StmtVec *body, DeclVec *program, int indent) {
-    for (int i = 0; i < body->count; i++) if (body->items[i]->kind != ST_DEFER) emit_stmt(out, body->items[i], body, program, indent);
+    for (int i = 0; i < body->count; i++) if (body->items[i]->kind != ST_DEFER) emit_stmt(out, body->items[i], body, program, indent, NULL);
 }
 
-static void emit_stmt_vec_with_defers(Str *out, StmtVec *body, DeclVec *program, int indent) {
-    for (int i = 0; i < body->count; i++) if (body->items[i]->kind != ST_DEFER) emit_stmt(out, body->items[i], body, program, indent);
-    emit_defers(out, body, program, indent);
+static bool emit_stmt_vec_with_defers(Str *out, StmtVec *body, DeclVec *program, int indent) {
+    bool has_return = false;
+    for (int i = 0; i < body->count; i++) if (body->items[i]->kind != ST_DEFER) emit_stmt(out, body->items[i], body, program, indent, &has_return);
+    if (!has_return) emit_defers(out, body, program, indent);
+    return has_return;
 }
 
 static void collect_fat_types(Type *t, Str *out, DeclVec *program, char **seen, int *seen_count) {

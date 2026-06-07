@@ -38,14 +38,14 @@ fn void main: {
     printi(sum)  // Prints 7
 }
 ```
-### Safett
+### Safetty
 Add blocking behavior to queues when used in async contexts.
 Pros: Retains the blocking semantics of channels.
 Cons: More complex implementation.
 Example
 
 ```tig
-queue i32(10) result_q  // Buffered queue with size 10
+queue<i32>(10) result_q  // Buffered queue with size 10
 async calculateSum(3, 4, result_q)
 i32 sum = result_q.pop()  // Blocks if queue is empty
 ```
@@ -56,7 +56,7 @@ i32 sum = result_q.pop()  // Blocks if queue is empty
 LIFO stacks can also be used as queues, but they're more intuitive for some use cases.
 
 ```tig
-stack i32 x = {0,1,2,3}
+stack<i32> x = {0,1,2,3}
 x.push(4)
 i32 y = x.pop()
 

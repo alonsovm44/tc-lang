@@ -273,3 +273,4 @@ Same applies to queues.
 
 Bad:
     stack<*, i32> s = {} // this is not allowed, since * already includes i32
+
