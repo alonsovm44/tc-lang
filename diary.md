@@ -9,3 +9,6 @@ Someone gave me the idea of using public WiFi in libraries. I didn't think about
 
 Queues were not working for some reason, i patched it. 
 
+## June 6 
+
+I should work on a package manager for Tig or smth. 
