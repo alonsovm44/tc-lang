@@ -11,9 +11,7 @@ extern "C" {
     i32 fn fputs: ->i8 s, ->FILE stream {} 
     // fn T and T fn are the same, i am just trolling by switching lol
     i32 fn fprintf: ->FILE stream, ->i8 fmt, ... {}
-    i32 fn fscanf: ->FILE stream, ->i8 fmt, ... {}
     i32 fn feof: ->FILE stream {}
-
 }
 
 ->FILE fn open_file: ->i8 file, ->i8 mode {

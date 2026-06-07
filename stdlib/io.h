@@ -13,6 +13,7 @@
 FILE *open_file(char *file, char *mode);
 int32_t fclose(FILE *f);
 int32_t fgetc(FILE *stream);
+int32_t fprintpf(FILE *stream, char *fmt, ...);
 void print(char *s);
 void printflt(double n);
 void printn(char *s);
@@ -37,6 +38,11 @@ int32_t fclose(FILE *f) {
 int32_t fgetc(FILE *stream) {
     
     return fgetc(stream);
+}
+
+int32_t fprintpf(FILE *stream, char *fmt, ...) {
+    
+    return fprintf(stream, fmt);
 }
 
 void print(char *s) {
