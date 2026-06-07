@@ -42,3 +42,16 @@ foo(ptr)
 
 ```
 This compiles but hangs when ran
+
+[x] debug why wc.tc hangs when ran (windows file locking issue)
+[ ] Implement 1.3.1 features.
+    - [ ] try/catch
+    - [ ] comptime execution
+    - [ ] FFI generator
+    - [ ] C flags
+    - [ ] update stacks and queues
+
+[ ] Exhaustively test 1.3.0 - 1.3.1 features
+[ ] Expand stdlib to include web/http features
+[ ] Build a small web server with Tig
+[ ] Make a better, non trivial raylib demo and share it

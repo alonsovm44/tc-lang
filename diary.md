@@ -12,3 +12,9 @@ Queues were not working for some reason, i patched it.
 ## June 6 
 
 I should work on a package manager for Tig or smth. 
+
+I am planning to write a simple dev diary CLI tool in Tig to keep track of ideas, instead of doing it manually. I actually already have a tool called diaryx but it is buggy and i think i deleted it a while back
+
+I will focus in documenting Tig.
+
+To update the docs, i might use Gendox, i built it for that. But i dont have the API key. 
