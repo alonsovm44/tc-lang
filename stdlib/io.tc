@@ -28,6 +28,10 @@ fn i32 fgetc: ->FILE stream {
     ret fgetc(stream)
 }
 
+// fprintpf
+i32 fn fprintpf: ->FILE stream, ->i8 fmt, ... {
+    ret fprintf(stream, fmt, ...)
+}
 
 // print a string with newline
 void fn print: ->i8 s {

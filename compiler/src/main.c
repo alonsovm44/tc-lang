@@ -257,6 +257,8 @@ int main(int argc, char **argv) {
     const char *hot_lib = NULL;
     bool hot_rebuild = false;
     bool keep_temp = false;
+    bool debug_ast = false;
+    bool debug_c = false;
     for (int i = 1; i < argc; i++) {
         if (!strcmp(argv[i], "--help") || !strcmp(argv[i], "-h")) {
             puts("Tight-C compiler v1.3.1\n"
@@ -269,6 +271,8 @@ int main(int argc, char **argv) {
                  "  -H <lib>               Enable hot reload, emit shared library to <lib>\n"
                  "  --hot                  Rebuild hot library (while app is running)\n"
                  "  -t, --temp             Keep temporary .c files for debugging\n"
+                 "  --debug ast            Output AST for debugging\n"
+                 "  --debug c              Output generated C code without compiling\n"
                  "  -h, --help             Show this help message\n"
                  "  -v, --version          Show version\n"
                  "  --error <code>         Explain an error code (e.g. --error E000)\n"
@@ -281,7 +285,9 @@ int main(int argc, char **argv) {
                  "  tigc lib.tc -o lib.h             Emit as header\n"
                  "  tigc main.tc -c app -H hotlib    Hot reload: create app + hotlib_1.dll\n"
                  "  ./app                            Run the application\n"
-                 "  tigc main.tc -H hotlib --hot     Rebuild hotlib (app updates automatically)\n");
+                 "  tigc main.tc -H hotlib --hot     Rebuild hotlib (app updates automatically)\n"
+                 "  tigc main.tc --debug ast          Output AST for debugging\n"
+                 "  tigc main.tc --debug c            Output C code without compiling\n");
             return 0;
         } else if (!strcmp(argv[i], "--version") || !strcmp(argv[i], "-v")) {
             puts("tight-c 1.3.1");
@@ -304,6 +310,15 @@ int main(int argc, char **argv) {
             hot_rebuild = true;
         } else if (!strcmp(argv[i], "-t") || !strcmp(argv[i], "--temp")) {
             keep_temp = true;
+        } else if (!strcmp(argv[i], "--debug")) {
+            if (++i >= argc) die("missing debug option after --debug (ast or c)");
+            if (!strcmp(argv[i], "ast")) {
+                debug_ast = true;
+            } else if (!strcmp(argv[i], "c")) {
+                debug_c = true;
+            } else {
+                die("invalid debug option: %s (use 'ast' or 'c')", argv[i]);
+            }
         } else {
             input = argv[i];
         }
@@ -315,6 +330,16 @@ int main(int argc, char **argv) {
     TokenVec tokens = lex_source(source);
     DeclVec program = parse_program(tokens.items);
     check_program(&program);
+    
+    // Debug: Output AST
+    if (debug_ast) {
+        printf("// AST Dump\n");
+        for (int i = 0; i < program.count; i++) {
+            Decl *d = program.items[i];
+            printf("// Decl: %s\n", d->name ? d->name : "(anonymous)");
+        }
+        printf("// End AST Dump\n\n");
+    }
     
     // Check if program contains async functions
     bool needs_runtime = false;
@@ -379,6 +404,12 @@ int main(int argc, char **argv) {
         c_code = emit_hot_split(program, hot_lib, &hot_c);
     } else {
         c_code = emit_program(program);
+    }
+    
+    // Debug: Output C code
+    if (debug_c) {
+        fputs(c_code, stdout);
+        return 0;
     }
 
     if (compile_out) {

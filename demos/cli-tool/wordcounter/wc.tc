@@ -11,10 +11,6 @@ fn i32 main: {
         ret 1
     }
     
-    defer {
-        fclose(f)
-    }
-    
     i32 counter = 0
     i8 in_word = 0
     i32 char_count = 0   // debug counter
@@ -46,6 +42,8 @@ fn i32 main: {
             }
         }
     }
+    
+    fclose(f)
     
     printn("Words: ")
     printi(counter)
