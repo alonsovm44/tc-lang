@@ -1,0 +1,133 @@
+// Arrays, Pointers, and Slices Example
+// Demonstrates Tig's memory access patterns
+ // === Pointer Field Access with .> ===
+strun Person {
+    i32 age
+    ->u8 name
+}
+
+fn void main: {
+    // === Fixed-size Arrays ===
+    i32[5] arr = {10, 20, 30, 40, 50}
+    
+    print("Array elements:\n")
+    i32 i = 0
+    loop if (i < 5) {
+        printi(arr[i])
+        print("\n")
+        i++
+    }
+    
+    // === Fat Pointers (Slices) ===
+    // Slice a portion of the array
+    =>i32 slice = arr[1:4]  // Elements at indices 1, 2, 3 (20, 30, 40)
+    
+    print("\nSlice length: ")
+    printi(lenof(slice))  // Prints 3
+    print("\n")
+    
+    print("Slice elements:\n")
+    i32 j = 0
+    loop if (j < lenof(slice)) {
+        printi(slice[j])
+        print("\n")
+        j++
+    }
+    
+    // === Raw Pointers ===
+    i32 x = 100
+    ->i32 ptr = @x  // Address-of operator
+    
+    print("\nPointer value: ")
+    printi(->ptr)  // Dereference, prints 100
+    print("\n")
+    
+    // === Pointers as Arrays ===
+    // Allocate an array and use pointer indexing
+    ->i32 dynamic_arr = alloc(i32, 5)
+    dynamic_arr[0] = 1
+    dynamic_arr[1] = 2
+    dynamic_arr[2] = 3
+    dynamic_arr[3] = 4
+    dynamic_arr[4] = 5
+    
+    print("\nDynamic array via pointer:\n")
+    i32 k = 0
+    loop if (k < 5) {
+        printi(dynamic_arr[k])
+        print("\n")
+        k++
+    }
+    
+    defer { free(dynamic_arr) }
+    
+    // === Strings as Pointers ===
+    ->u8 hello = "hello"
+    
+    print("\nString as pointer:\n")
+    print("First char: ")
+    printc(->hello)  // 'h'
+    print("\n")
+    
+    print("Second char: ")
+    printc(hello[1])  // 'e'
+    print("\n")
+    
+    // === Fat Pointer Strings ===
+    =>u8 world = "world"
+    
+    print("Fat pointer string length: ")
+    printi(lenof(world))  // 5
+    print("\n")
+    
+    print("Last char: ")
+    printc(world[lenof(world) - 1])  // 'd'
+    print("\n")
+    
+    Person person
+    person.age = 25
+    person.name = "Alice"
+    
+    print("\nPerson via value:\n")
+    print("Age: ")
+    printi(person.age)
+    print("\n")
+    
+    // Access through pointer
+    ->Person person_ptr = &person
+    person_ptr.>age = 30
+    person_ptr.>name = "Bob"
+    
+    print("Person via pointer:\n")
+    print("Age: ")
+    printi(person_ptr.>age)
+    print("\n")
+    
+    // Alternative explicit dereferencing
+    (->person_ptr).age = 35
+    print("Age after explicit deref: ")
+    printi((->person_ptr).age)
+    print("\n")
+    
+    // === Nested Pointers ===
+    ->i32 x_ptr = &x
+    -->i32 ptr_to_ptr = @x_ptr
+    
+    print("\nNested pointer dereference: ")
+    printi(->->ptr_to_ptr)  // Prints 100
+    print("\n")
+    
+    // === Pointer Arithmetic (via array indexing) ===
+    i32[10] big_arr = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9}
+    ->i32 arr_ptr = &big_arr[0]
+    
+    print("Pointer as array:\n")
+    i32 m = 0
+    loop if (m < 10) {
+        printi(arr_ptr[m])
+        print("\n")
+        m++
+    }
+    
+    print("\nDone!\n")
+}

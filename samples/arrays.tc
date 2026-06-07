@@ -1,0 +1,60 @@
+use "stdlib/io.tc"
+use "stdlib/math.tc"
+
+
+fn i32 minMax: {
+    i32[8] temperatures = {72, 68, 74, 71, 69, 73, 70, 75}
+    
+    i32 min = temperatures[0]
+    i32 max = temperatures[0]
+    
+    i32 i = 1
+    loop(i < 8) {
+        if(temperatures[i] < min) {
+            min = temperatures[i]
+        }
+        if(temperatures[i] > max) {
+            max = temperatures[i]
+        }
+        i++
+    }
+    
+    printn("Min: ")
+    printi(min)   // prints 68
+    printn("Max: ")
+    printi(max)   // prints 75
+    
+    ret 0
+}
+
+fn array01: {
+	i32[10] data = {12, 45, 23, 67, 34, 89, 21}
+
+	i32 sum = 0
+	i32 i = 0
+	loop if(i < 10){
+		sum += data[i]
+		i++
+	}
+	printi(sum)
+	i32 avg = sum / 7
+
+	ret 0
+}
+
+// looping in an array
+fn i32 main: {
+	i32[10] scores = {10, 20, 30, 50, 23, 12, 67, 99, 12, 100}
+	
+	i32 i = 0
+	
+	loop if(i < 6){
+		printi(scores[i])
+		i++
+	}
+	
+	ret 0
+}
+
+// 
+

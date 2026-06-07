@@ -1,0 +1,27 @@
+use "stdlib/io.tc"
+
+// we can do the same with fat pointers
+
+fn void modArray: =>i32 arr{
+    i32 i = 0
+    loop if(i < arr.len) {
+        arr.ptr[i] = arr.ptr[i] * 2  // Double each element
+        i++
+    }
+}
+
+fn i32 main: {
+    i32[4] values = {1, 2, 3, 4}
+    
+    // Pass array (decays to pointer automatically)
+    =>i32 vals = values[0:4]
+    modArray(vals)  // Using fat pointer version
+
+    i32 i = 0
+    loop if(i < 4) {
+        printi(values[i])  // prints 2, 4, 6, 8
+        i++
+    }
+    
+    ret 0
+}

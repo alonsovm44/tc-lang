@@ -5,31 +5,43 @@ fn i32 main: {
     ->i8 file = "test.txt"
 
     ->FILE f = open_file(file, "r")
-    defer {
-        fclose(f)
-    }
 
     if(!f){
         print("Error, could not open file")
         ret 1
     }
     
+    defer {
+        fclose(f)
+    }
+    
     i32 counter = 0
-    i32 in_word = 0
+    i8 in_word = 0
+    i32 char_count = 0   // debug counter
     
     loop {
-        i32 c = fgetc(f)   // MUST be i32, NOT i8!
+        i32 c = fgetc(f)
         
-        if (c == -1) {
+        // Debug: print each character code
+        printn("Read char: ")
+        printi(c)
+        
+        char_count = char_count + 1
+        if (char_count > 100) {  // safety: break after 100 chars
+            printn("Breaking after 100 chars to avoid infinite loop")
             break
         }
         
-        // Use ceq from str.tc for character comparison
-        if (ceq(c, 32) || ceq(c, 10) || ceq(c, 9)) {
+        if (c == -1) {
+            printn("EOF reached!")
+            break
+        }
+        
+        if (c == 32) {  // space
             in_word = 0
         } else {
             if (in_word == 0) {
-                counter = counter + 1
+                counter++
                 in_word = 1
             }
         }

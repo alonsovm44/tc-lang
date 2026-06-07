@@ -246,3 +246,30 @@ tigc samples/hello.tc -c hello -- -O2 -fstack-protector -Wall
 # With external library (e.g., raylib)
 tigc demos/raylib-demo/main.tc -c raylib_app -- -lraylib -L/usr/lib
 ```
+
+## Stack and Queue update
+Currently we have basic stacks and queue implementation
+
+To be added:
+
+- Fixed size stacks and queues
+```
+// example
+stack<i32> s[10] = {}
+queue<f32> q[5] = {} // a queue of 5 floats
+
+// multiple types
+stack<i32, f32, char> s2[10] = {} // this stack accepts integers, floats and characters only
+
+// wildcard
+
+stack<*> s3[10] = {} // this stack accepts any type
+
+// stack of stacks
+stack<stack<i32>> s4[5] = {} // this stack accepts stacks of integers only
+
+Same applies to queues.
+```
+
+Bad:
+    stack<*, i32> s = {} // this is not allowed, since * already includes i32
