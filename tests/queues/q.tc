@@ -1,0 +1,19 @@
+use "stdlib/io.tc"
+
+fn i32 main: {
+    queue<i32> q = {}
+
+    q.push(1)
+    q.push(2)
+
+    printi(q.pop())
+    printi(q.pop()) // should print 2, not 1
+
+    stack<i32> s = {}
+    s.push(1)
+    s.push(2)
+
+    printi(s.pop())
+    printi(s.pop()) // should print 1, not 2
+    ret 0
+}

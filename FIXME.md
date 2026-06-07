@@ -24,3 +24,8 @@ This code breaks
 f (seq(c, ' ') || seq(c, '\n') || seq(c, '\t'))
 
 Tig does not recognize the ' ' quotes for comparing signle characters. 
+
+
+## FIX
+
+FIx io not working

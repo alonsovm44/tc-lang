@@ -1,0 +1,36 @@
+use "stdlib/io.tc"
+use "stdlib/str.tc"
+
+fn i32 main: =>->i8 args{
+    if (args.len < 2){
+        print("Usage: <command> <arg>")
+        print("Commands: init, log")
+    }
+
+    i8 command = args.ptr[1]
+
+    if (strcmp(command, "init")==0){
+        ->i8 msg = "Dev diary kept with dd CLI\nWritten by Alonso VM."
+        
+        ->FILE f = open_file("diary.md", "w")
+        defer{fclose(f)}
+        if (!f){
+            print("Error, could not write to diary file.")
+        }
+        print("Diary initialized.")
+    }
+    else if(strcmp(command, "log")==0){
+        if (args.len < 3){
+            print("Usage: dd log \"entry\"")
+        }
+        ->i8 entry = args.ptr[2]
+
+        // first check if diary exists
+        ->FILE f = open_file("diary.md", "a")
+        defer {(fclose(f))}
+        if(!f){ print("Error, could not open diary file. Make sure to run 'dd init' first.")}
+        printn("logging: ")
+        printn(entry)
+        write_file(entry, f)
+    }
+}

@@ -6,7 +6,7 @@ Should the queue slice {0:2} be a read-only live view (Solution 2) or should it 
 - Read-only live view
 
 # todo
-
+- [ ] FIX IO NOT WORKING
 - [x] Implement stack and queue primitives
 - [ ] Implement pointers to stacks and queues
 - [x] Implement basic stack and pointer features
