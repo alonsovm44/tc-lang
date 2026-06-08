@@ -1,0 +1,15 @@
+use "stdlib/io.tc"
+
+fn i32 main: {
+
+queue<i32> q = {0,1,2,3}
+ 
+i32 x = q.peek() 
+i32 y = q.pop()
+i32 z = q.peek()
+
+printi(x)
+printi(z)
+
+ret 0
+}

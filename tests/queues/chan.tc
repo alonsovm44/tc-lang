@@ -1,0 +1,24 @@
+// using queues as channels demo
+use "stdlib/io.tc"
+
+async fn void worker: i32 id, queue<i32> out {
+    out.push(id * 2)
+}
+
+fn void main: {
+    queue<i32> results = {}// Shared channel/blocking queue (copied handle)
+
+    i32 i = 0        // Primitive type (automatically copied)
+    loop if (i < 5) {
+        worker(i, results) // i is copied, results handle is copied. Safe!
+        i++
+    }
+
+    i32 j = 0
+    loop if (j < 5) {
+        i32 result = results.pop()
+        printi(result)
+        print("\n")
+        j++
+    }
+}

@@ -379,12 +379,12 @@ The loop concurrency challenge is solved elegantly by Tig's type-based ownership
 ```tc
 use "stdlib/io.tc"
 
-async fn void worker: i32 id, chan i32 out {
-    out <- id * 2
+async fn void worker: i32 id, queue<i32> out {
+    out.push(id * 2)
 }
 
 fn void main: {
-    chan i32 results // Shared channel (copied handle)
+    queue<i32> results = {}// Shared channel/blocking queue (copied handle)
 
     i32 i = 0        // Primitive type (automatically copied)
     loop if (i < 5) {
@@ -394,7 +394,7 @@ fn void main: {
 
     i32 j = 0
     loop if (j < 5) {
-        i32 result = <-results
+        i32 result = results.pop()
         printi(result)
         print("\n")
         j++

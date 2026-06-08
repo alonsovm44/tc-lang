@@ -1,0 +1,29 @@
+use "stdlib/io.tc"
+
+fn i32 getQLen: queue<u8> q{
+
+    u8 i = 0
+    i32 counter = 0
+    loop
+    {
+        //i = q.pop() // but this destroys the queue
+        i = q.peek()
+        if (i == stoi("")) // or could be q.isBlocked() built in method, so as to know if we hit cealing/floor
+        {
+            counter++
+        }
+        else
+        {
+            break
+        }
+    }
+    ret counter
+
+}
+
+fn i32 main: {
+    queue<i32> q = {}
+
+    i32 qlen = getQLen(q)
+    printi(qlen)
+}

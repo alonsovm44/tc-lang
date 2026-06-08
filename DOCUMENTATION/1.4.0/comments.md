@@ -5,16 +5,19 @@ The best idea from 1.4.0 is queue based ownership transfer, and using queues (or
 In most languages, moving data between threads, scopes, or memory regions is complex and error-prone. Tig 1.4.0 introduces a unified mechanism: queues (and stacks) become the only way to transfer ownership of data across boundaries.
 
 ```tig
-queue<i32> ch = {}
-ch.push(@x)  // Give ownership
-
+{
+    // some scope
+    queue<i32> ch = {}
+    ch.push(@x)  // Give ownership
+}
 i32 y = ch.pop()  // Take ownership
 ```
 
-That's it. No borrow checker. No lifetime annotations. No hidden copies. Just explicit transfer.
+That's it, No borrow checker. No lifetime annotations. No hidden copies. Just explicit transfer.
 
 ## For values allocated in an arena that need to outlive it.
 How can we make it without leaks?
+
 2. Escaping an Arena
 Arenas free all memory on exit. But what if you need a value to live longer?
 

@@ -1,0 +1,33 @@
+use "stdlib/io.tc"
+
+fn i32 main: {
+
+    i32[8][8] arr = {}
+
+    i32 i = 0
+    i32 j = 0
+    loop if(i<8){
+        loop if(j<8){
+            arr[i][j] = i * j
+            j++
+        }
+        i++
+    }
+
+    print("multiplication tables")
+
+    
+    i32 k = 0
+    i32 g = 0
+    loop if(k<8){
+        loop if(g<8){
+            i32 c = arr[k][g]
+            printi(c)
+            g++
+        }
+    k = k +1
+    }
+    ret 0
+}
+
+

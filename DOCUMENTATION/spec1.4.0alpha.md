@@ -12,6 +12,8 @@ try {
 }
 ```
 
+**TODO**: Define what is an error in Tig
+
 ## Comptime execution
 Following the "explicit" nature of the language, comptime execution is explicit and requires the `comptime` keyword.
 ```tc
@@ -75,6 +77,8 @@ fn void main:{
 ```
 
 ## Conditional defer
+[priority]: LOW
+
 We tried to introduce this before but it didnt work and was buggy. While we could just do this
 
 if(cond){
@@ -91,6 +95,7 @@ defer if(cond){
 }
 
 ```
+But this is sugar that may be not needed
 
 ## FFI generator
 Foreign Function Interface Generator Parse C headers and generate Tig bindings automatically:
@@ -274,3 +279,4 @@ Same applies to queues.
 Bad:
     stack<*, i32> s = {} // this is not allowed, since * already includes i32
 
+This is very, `non-explicit` and not following Tig's historic philosophy. But is pragmatic, and my goal is to be pragmatic 

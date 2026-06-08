@@ -1,0 +1,170 @@
+// Interpreter handwritten with no autocomplete or previous experience, minimal AI consulting, no AI codegen. Old school style.
+use "stdlib/io.tc"
+use "stdlib/str.tc"
+
+stack<i64> globalStack = {}
+
+enum OPERAND{
+    ADD,
+    SUB,
+    MUL,
+    DIV
+    // later mod and pow
+}
+
+fn queue<u8> makeProgramQ: ->FILE f{
+    // this has to:
+    /*
+    1. make a queue of uchars
+    2. iterate over each char of the file, 
+    3. get char value and save it to the queue
+    4. return queue for further processing
+    Limitation of this approach
+    this stores each char of the file as individual entries to the queue, 
+    
+    it would be optimal to store each token of the program as an entry to the queue
+    this could be done by grouping chars separated by (32) spaces and new lines\n
+
+    then idealy, once we a queue of tokens, loop and pop each one and execute them
+    for the offline MVP it is ok for single chars
+    */
+    queue<u8> q = {}
+    open_file((f.>name, "r") // or equivalent way to access the file name field
+
+    u8 c = 0
+    loop // somehow this knows that it has to  ++ the pointer of the readfile
+    {
+        c = fgetc(f)
+        q.push(c)
+
+        if(eof(f)) {break}
+    }
+
+    fclose(f)
+    ret q
+}
+
+fn i8 isSourceFu: ->i8 path{
+    // check if input file is a .fu file, return 1 if true, 0 if falsae
+    i32 len = strlen(path)
+    // check the last 3 chars if they are .fu, if not, return 0
+    =>i8 termination = path[size-3:size]
+    if(strcmp(termination, ".fu"))
+    {
+        ret 1
+    }
+    else{
+        ret 0
+    }
+
+}
+
+fn i8 isANumber: u8 chr { // check if input is an ascii number, code from 48 - 57
+    if(chr >= 48 && chr <= 57){
+        ret 1 // true
+    }
+    else
+    {
+        ret 0 // false
+    }
+}
+
+fn i8 isOperand: u8 chr {
+    // 43 = +, 45 = - , 42 = *, 47 = /
+    if (ceq(chr, 43) || ceq(chr, 45) || ceq(chr, 42) || ceq(chr, 47))
+    {
+        ret 1
+    }
+    else
+    {
+        ret 0
+    }
+}
+
+
+fn i8 isPrintStmt: u8 char{ // no boolean type, later going to add to save memory
+    if(ceq(char, 33)){
+        ret 1
+    }else{
+        ret 0
+    }
+}
+
+
+fn i32 main: =>->i8 args {
+
+    if(args.len < 2){
+        print("Usage:\n furth <source.fu>")
+    }
+    ->i8 src = args.ptr[1]
+    if(!isSourceFu(src)){
+        print("Error, make sure source code is .fu file.")
+        ret 1
+    }
+
+    ->FILE f = open_file(src)
+    // defer{fclose(f)}
+    queue<u8> program = makeProgramQ(f) // TODO: make queue<Token> program instead of hardcoded u8 chars
+
+    // now that we have the program queue, iterate over each character and execute each instruction
+    i32 i = 0
+    loop if(i <= program.len) // still dont know how to get the length of a queue/stack in Tig, if program was a => it would be program.len
+    {   
+        u8 char = program.pop()
+
+        // a match stmt would be useful here, but i have no match ranges yet in Tig
+        if(char == 59){
+            //do nothing, it is a comment
+            // logic to tell the app to skip this line
+        }
+        else if (isANumber(char)){
+            // push ascii char value into the global stack
+            i32 val = getc(char)
+            globalStack.push(val) // push value to the stack
+        }else if(isOperand(char))
+        {
+            OPERAND op
+            match(op){
+                ADD = {
+                    f64 x = globalStack.pop()
+                    f64 y = globalStack.pop()
+                    globalStack.push(x+y)
+                }
+                SUB = {
+                    f64 x = globalStack.pop()
+                    f64 y = globalStack.pop()
+                    globalStack.push(x-y)
+                }
+
+                MUL = {
+                    f64 x = globalStack.pop()
+                    f64 y = globalStack.pop()
+                    globalStack.push(x*y)
+                }
+                
+                DIV = {
+                    f64 x = globalStack.pop()
+                    f64 y = globalStack.pop()
+                    if(y == 0.0){
+                        print("Runtime error: division by 0")
+                    }
+                    f64 result = x/y
+                    globalStack.push(result)
+                }
+            }
+        }
+        else if(isPrintStmt(char)){
+            // get the top value of the stack and print it
+            i32 val = globalStack.pop()
+            printi(val)
+        }
+        else
+        {
+            print("Error, unknown character.")
+        }
+    }
+
+    fclose(f)
+
+}
+

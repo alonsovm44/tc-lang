@@ -3,8 +3,10 @@ Track:
 
     compiler/
     demos/
+    stdlib/
 Ignore:
     # Example: secret.cpp
+    compiler/README.md
 
 Style:
     # Example: no emojis

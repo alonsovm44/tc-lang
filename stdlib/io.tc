@@ -32,7 +32,7 @@ fn i32 fclose: ->FILE f {
 }
 
 fn i32 fgetc: ->FILE stream {
-    ret fgetc(stream)
+    ret fgetc(stream) 
 }
 
 // fprintpf

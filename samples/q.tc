@@ -1,0 +1,21 @@
+use "stdlib/io.tc"
+
+fn queue<i32> func: {
+    queue<i32> q = {}
+
+    q.push(1)
+    q.push(2)
+
+    ret q
+}
+
+fn i32 main: {
+    queue<i32> myq = func()
+    printi(myq.peek()) // should print 1
+    // OK, prints 1
+    ret 0
+}
+
+/*
+Ok, so queues / stacks as return types work
+*/

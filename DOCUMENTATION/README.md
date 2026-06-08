@@ -1,18 +1,18 @@
 # TIG Compiler Documentation Index
 
 Welcome to the TIG compiler documentation! This page helps you navigate all available documentation and find what you need.
-
-## 📚 Quick Start
+> Important note: Check `/.gendox/` for more detailed per file documentation.
+## Quick Start
 
 If you're new to the TIG compiler, start with these documents in order:
-
+0. **[Gendox](../.gendox)** - Extended documentation repo.
 1. **[Main README.md](../README.md)** - Project overview and quick start
 2. **[COMPILER_ARCHITECTURE.md](COMPILER_ARCHITECTURE.md)** - How the compiler works
 3. **[AST_GUIDE.md](AST_GUIDE.md)** - Understanding the Abstract Syntax Tree
 4. **[DEVELOPER_GUIDE.md](DEVELOPER_GUIDE.md)** - How to modify and extend the compiler
 5. **[compiler/README.md](../compiler/README.md)** - Compiler source directory guide
 
-## 📖 Documentation by Topic
+## Documentation by Topic
 
 ### Understanding the Compiler
 
@@ -43,7 +43,7 @@ If you're new to the TIG compiler, start with these documents in order:
 | [spec1.0.0.md](spec1.0.0.md) through [spec2.0.0.md](spec2.0.0.md) | Historical language specifications | Language historians |
 | [TIG_LANGUAGE_SPECIFICATION.md](TIG_LANGUAGE_SPECIFICATION.md) | Current language specification | Language users |
 
-## 🎯 Find Documentation by Task
+## Find Documentation by Task
 
 ### "I want to understand how the compiler works"
 → Read [COMPILER_ARCHITECTURE.md](COMPILER_ARCHITECTURE.md)
@@ -72,7 +72,7 @@ If you're new to the TIG compiler, start with these documents in order:
 ### "I want to understand the TIG language"
 → Read [TIG_LANGUAGE_SPECIFICATION.md](TIG_LANGUAGE_SPECIFICATION.md)
 
-## 📂 File Structure
+## File Structure
 
 ```
 TIG Project
@@ -105,7 +105,7 @@ TIG Project
 └── ...
 ```
 
-## 🔍 Key Concepts
+## Key Concepts
 
 ### Compilation Pipeline
 ```
@@ -134,7 +134,7 @@ Binary executable
 - Pretty-printed diagnostics with colored output
 - Compilation continues with best-effort recovery
 
-## 💡 Documentation Tips
+## Documentation Tips
 
 ### Reading the Header Files
 Each header file (`include/*.h`) is now fully documented with:
@@ -157,7 +157,7 @@ When making changes:
 - Use **AST_GUIDE.md** to understand data structure examples
 - Grep the source code for function names and types
 
-## 🚀 Getting Started
+## Getting Started
 
 ### For Users
 1. Read [../README.md](../README.md) - Project overview
@@ -204,7 +204,7 @@ When making changes:
 ### Q: How do I understand the AST?
 **A**: Read [AST_GUIDE.md](AST_GUIDE.md) with examples and detailed explanations
 
-## 📝 Documentation Maintenance
+## Documentation Maintenance
 
 ### Adding New Documentation
 1. Create file in DOCUMENTATION/ directory
@@ -224,7 +224,7 @@ When making changes:
 - Add detailed comments for complex logic
 - Use examples to clarify non-obvious behavior
 
-## 🔗 Important Links
+## Important Links
 
 - **Main README**: [README.md](../README.md)
 - **Contributing**: [CONTRIBUTING.md](../CONTRIBUTING.md)
@@ -232,13 +232,15 @@ When making changes:
 - **Error Codes**: [Errors.md](Errors.md)
 - **Compiler Source**: [compiler/README.md](../compiler/README.md)
 
-## 📞 Need Help?
+## Need Help?
 
 1. Check the relevant documentation file
 2. Search existing code for examples
 3. Look at test cases in `test.tc`
 4. Check git history for similar changes
 5. Read DEVELOPER_GUIDE.md troubleshooting section
+6. OPEN a issue thread on GitHub
+7. Message to alvemo44@gmail.com (i won't reply immediately but use github if possible)
 
 ---
 
