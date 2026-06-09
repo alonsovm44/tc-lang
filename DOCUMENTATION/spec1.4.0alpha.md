@@ -162,7 +162,7 @@ tigc source.tc -c app -- -Os
 tigc source.tc -c app -- -g
 
 # Include debug symbols with optimization (debug + optimized)
-tigc source.tc -c app -O2 -- -g
+tigc source.tc -c app  -- -O2 -g
 
 # Enable all warnings
 tigc source.tc -c app -- -Wall
@@ -261,7 +261,7 @@ To be added:
 ```
 // example
 stack<i32> s[10] = {}
-queue<f32> q[5] = {} // a queue of 5 floats
+queue<f32> q[5] = {} // a queue of 5  
 
 // multiple types
 stack<i32, f32, char> s2[10] = {} // this stack accepts integers, floats and characters only

@@ -1,6 +1,6 @@
 use "stdlib/io.tc"
 use "stdlib/str.tc"
-@use "stdlib/async.tc"
+use "stdlib/async.tc"
 
 async fn void worker: ->i8 str, queue<i8> q{
 
@@ -17,7 +17,7 @@ fn i32 main:{
 // testing ownership
     ->i8 string = "wahahawololo"
     queue<i8> q = {}
-    worker(@string, q) 
+    worker(string, q) 
     /*
     according t theory, q is an ownder type, so this should throw an ownership comptime error
     it compiles and runs, saving output as owns_1.c

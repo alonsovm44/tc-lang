@@ -1,0 +1,131 @@
+// brainfuck interpreter written in Tig
+// rules
+//1- All handwritten, no autocomplete.
+//2- No AI codegen
+//3- Using AI to do research is OK
+
+enum TOKENS{
+    MOV_RIGHT, // >
+    MOV_LEFT, // <
+    ADD, // +
+    SUB // - 
+    OPEN_LOOP, // [
+    CLOSE_LOOP // ]
+    STDOUT, // .
+    STDIN // ,
+}
+
+fn =>TOKENS makeProgramArray: ->FILE f {
+    /*
+    The queue is good for a single pass program, but since it is destructive, it cannot be used for loops, an array is better
+    */
+    =>TOKENS token = alloc(TOKENS, 2048) // buffer of 2048 for now
+
+    i32 c 
+    i32 i 
+    loop if(!eof(f)){ //loop if not end of file
+        c = fgetc(f)
+
+        if(ceq(c, 60)){ // if <
+           token.ptr[i] = MOV_LEFT
+        }
+        else if(ceq(c, 62))
+        {// mov right
+            token.ptr[i] = MOV_RIGHT
+        }
+        else if(ceq(c, 43))
+        {//ADD
+            token.ptr[i] = ADD
+        }
+        else if(ceq(c, 45))
+        {
+            token.ptr[i] = SUB
+        }
+        else if(ceq(c,91))
+        {
+            token.ptr[i] = OPEN_LOOP
+        }
+        else if(ceq(c, 93))
+        {
+           token.ptr[i] = CLOSE_LOOP
+        }
+        else if(ceq(c, 46))
+        {
+            token.ptr[i] = STD_OUT
+
+        }
+        else if(ceq(c, 44))
+        {
+            token.ptr[i] = STD_IN
+        }
+    }
+
+    ret token
+}
+
+fn ->u8 initTape: ->u8 tape{
+    i32 i = 0
+    loop if(i =< 1024){
+        tape[i] = 0
+        i++
+    }
+    ret tape
+}
+
+fn i32 main: =>->i8 args 
+{
+
+    if (args.len <2){
+        print("usage: tigbf <file.bf>")
+    }
+    ->i8 source = args.ptr[1]
+    ->u8 tape = alloc(u8, 1024) // tape is 1024 cells long
+    defer{free(tape)}
+    // initializing to 0 all members of the tape
+    initTape(tape)
+
+    ->FILE f = openf(source)
+    defer{closef(f)}
+
+    =>TOKENS program = makeProgramArray(f)
+    
+    i32 i = 0
+    loop if(i <= prog.len) 
+    i++
+        match(prog.ptr[i]){
+
+            MOV_RIGHT = 
+            {
+                tape++ // move the pointe +1
+            }
+            MOV_LEFT = 
+            {
+                tape-- // move the pointer -1
+            }
+            ADD = 
+            {
+                tape[i]++ // add 1 to current cell value
+            }
+            SUB = 
+            {
+                tape[i]--
+            }
+            OPEN_LOOP = 
+            {
+
+            }
+            CLOSE_LOOP = 
+            {
+
+            }
+            STD_OUT = 
+            {
+
+            }
+            STD_IN = 
+            {
+                prog.ptr[i] = readc()
+            }
+
+    }
+}

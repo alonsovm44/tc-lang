@@ -1,0 +1,20 @@
+use "stdlib/io.tc"
+
+fn void main:{
+
+    ->i32 ptr = alloc(i32, 10)
+    defer{free(ptr)}
+
+    ->FILE f = openf("test.txt")
+    defer{ closef(f)}    
+    if(!f){
+        print("could not open file")
+    }else
+    {
+        print("file opened successfully")
+    }
+
+    ptr[0] = 10
+
+    printi(ptr[0]) // should print 10
+}

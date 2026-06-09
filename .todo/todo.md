@@ -1,15 +1,32 @@
 
 ## later +1.4.0
-[ ] Implement 1.3.1 and 1.4.0alpha features.
-    - [ ] try/catch
-    - [ ] comptime execution
-    - [ ] FFI generator
-    - [ ] C flags
+[ ] Implement 1.4.0alpha features.
+    - [ ] try/catch (mandatory)
+    - [ ] comptime execution (mandatory)
+    - [ ] FFI generator (can be defered if too difficult)
+    - [ ] C/LLVM flags
+        - [ ] Optimization flags
+        - [ ] Debug 
+        - [ ] Performance and Security 
+        - [ ] Platform specific (medium importance)
+        - [ ] Preprocessing and macros (can skip)
+        - [ ] Linking (essential for making projects with C libs)
+
     - [ ] update stacks and queues
+        - [ ] fixed size (buffered) stacks and queues
+            - [ ] tested
+        - [ ] multiple types
+            - [ ] tested
+        - [ ] wildcard
+            - [ ] tested
 
 [ ] Make a better, non trivial raylib demo and share it
 
 # todo for 1.3.x
+- [ ] add inline braceless defer statements for ergonomics
+```
+defer free(ptr)
+```
 - [ ] Make extern C calls work for variables, not just for functions.
 - [ ] Make inline C work in the global scope
 - [ ] Make extern calls work with old and new syntax fn T,
@@ -21,16 +38,16 @@ i32 i; loop if(i < 100){} // more ergonomic
 ```
 - [ ] Add a function to the stdlib that converts a fatptr string into a normal string
 - [ ] Enforce everything being private by default, since pub does nothing since 1.1.
-- [ ] Fix defer not working
+- [x] Fix defer not working
 - [ ] Test ciclical imports on `use` stmt, make a #pragma once equivalent if needed
 
 - [ ] Add multidimensional array support 
->note: aparently this is supported already**
->note to self: test thoroughly**
 ```
 i32[8][8] chessboard = {}
 i32[255][255][255] cube = {} 
 ```
+>note: aparently this is supported already**
+>note to self: test thoroughly**
 - [ ] add boolean types, 0 or 1.
 - [ ] add a dedicated module to the stdlib to manage queues and stacks
     - [ ] Make a method/lib to see if a queue/stack is blocked
