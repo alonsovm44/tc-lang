@@ -1,0 +1,56 @@
+use "stdlib/io.tc"
+use "stdlib/str.tc"
+
+fn i8 isSourceFu: ->i8 path{
+    // check if input file is a .fu file, return 1 if true, 0 if falsae
+    i32 len = slen(path)
+    // check the last 3 chars if they are .fu, if not, return 0
+    
+    if(strhas(path, ".fu"))
+    {
+        ret 1
+    }
+    else{
+        ret 0
+    }
+
+    /* this code hangs
+
+    i32 len = slen(path)
+
+    =>i8 slc = path[len-3:len]
+    ->i8 str
+    i32 i 
+    loop if(i < 3){
+        str[i] = slc.ptr[i]
+    }
+    investigate why
+    */
+
+ret len
+}
+
+fn i32 main: {
+    // debug notes
+    print("a")
+    ->i8 path = "path/to/file.fu"
+    ->i8 bad = "path/to/file.foo"
+
+    print("b")
+    i8 a = isSourceFu(path)
+    i8 b = isSourceFu(bad)
+
+    print("c")
+    
+    if(a == 1){
+        print("file.fu is valid")
+    }else{print("file.fu is not valid")}
+
+    if(b == 1)
+    {
+        print("file.foo is valid")
+    }else{
+        print("file.foo is not valid")
+    }
+
+}

@@ -17,7 +17,7 @@ void scat(char *dest, char *src);
 int32_t sneq(char *a, char *b, uint64_t n);
 char *sfind(char *s, int32_t c);
 char *sfindlast(char *s, int32_t c);
-char *shas(char *haystack, char *needle);
+char *strhas(char *haystack, char *needle);
 int32_t ceq(char a, char b);
 
 
@@ -58,7 +58,7 @@ char *sfindlast(char *s, int32_t c) {
     return strrchr(s, c);
 }
 
-char *shas(char *haystack, char *needle) {
+char *strhas(char *haystack, char *needle) {
     
     return strstr(haystack, needle);
 }

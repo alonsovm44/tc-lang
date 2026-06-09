@@ -24,3 +24,27 @@ I have no internet but managed to sketch a simple interpreter in Tig, this has b
 
 Yesterday( actually it was today i think ) I used gendox to make docs for the codebase, but used Ollama for it, so the docs are rather raquitique.
 
+For some reason testing async funcntions, i tested without including the runtime `async.tc/async.h`and it compiled and ran, 
+and for some obscure reason now it cant find the lib, even if it is where it should. 
+```
+PS C:\Users\diego\.projects\langs\tig\tc> ./tigc tests/async/owns.tc -c owns -o tests/async/owns_1.c
+  gcc "tests/async/owns_1.c" -std=c11 -lm -o "owns" "compiler/src/runtime.o"
+tests/async/owns_1.c:10:10: fatal error: stdlib/async.h: No such file or directory                                                                                                                                                                         
+   10 | #include "stdlib/async.h"                                                                                                                                                                                                                          
+      |          ^~~~~~~~~~~~~~~~                                                                                                                                                                                                                          
+compilation terminated.
+```
+even inlinling does not work
+```
+PS C:\Users\diego\.projects\langs\tig\tc> ./tigc tests/async/owns.tc -c owns -o tests/async/owns_1.c
+error[E009]: cannot open file 'tests/async/stdlib/async.tc'
+ --> tests/async/owns.tc:3:1
+   |
+ 3 | @use "stdlib/async.tc"
+   | ^^^^ cannot open file 'tests/async/stdlib/async.tc'
+
+E009
+```
+It seems like the file is corrupt
+
+Now that i see, the .tc file has syntax not of Tig, but a mixin of C like function ptrs. The AI seems to have hallucinated it. 

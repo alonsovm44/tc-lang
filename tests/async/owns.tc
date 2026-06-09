@@ -1,0 +1,32 @@
+use "stdlib/io.tc"
+use "stdlib/str.tc"
+@use "stdlib/async.tc"
+
+async fn void worker: ->i8 str, queue<i8> q{
+
+    if(strhas(str, "wololo")){
+        q.push(1) // true
+    }else
+    {
+        q.push(0) // false
+    }
+}
+
+fn i32 main:{
+    defer{ ret 0}
+// testing ownership
+    ->i8 string = "wahahawololo"
+    queue<i8> q = {}
+    worker(@string, q) 
+    /*
+    according t theory, q is an ownder type, so this should throw an ownership comptime error
+    it compiles and runs, saving output as owns_1.c
+    */
+    i8 result = q.pop()
+    if(result == 1){
+        print("string has wololo")
+    }else
+    {
+        print("string has no wololo")
+    }
+}

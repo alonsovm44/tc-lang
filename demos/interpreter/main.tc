@@ -1,4 +1,5 @@
 // Interpreter handwritten with no autocomplete or previous experience, minimal AI consulting, no AI codegen. Old school style.
+// Note: this program does not work yet
 use "stdlib/io.tc"
 use "stdlib/str.tc"
 
@@ -29,12 +30,12 @@ fn queue<u8> makeProgramQ: ->FILE f{
     for the offline MVP it is ok for single chars
     */
     queue<u8> q = {}
-    open_file((f.>name, "r") // or equivalent way to access the file name field
+    openf(f.>name, "r") // or equivalent way to access the file name field
 
     u8 c = 0
     loop // somehow this knows that it has to  ++ the pointer of the readfile
     {
-        c = fgetc(f)
+        c = fgetc(f) // fgetc is broken in 1.3.1, 1.3.2 will patch it
         q.push(c)
 
         if(eof(f)) {break}
@@ -46,10 +47,7 @@ fn queue<u8> makeProgramQ: ->FILE f{
 
 fn i8 isSourceFu: ->i8 path{
     // check if input file is a .fu file, return 1 if true, 0 if falsae
-    i32 len = strlen(path)
-    // check the last 3 chars if they are .fu, if not, return 0
-    =>i8 termination = path[size-3:size]
-    if(strcmp(termination, ".fu"))
+    if(strhas(path, ".fu"))
     {
         ret 1
     }

@@ -1,17 +1,32 @@
-Do we prefer implicit dereferencing for pointers (so q_ptr.push(val) just works) or explicit q_ptr.>push(val)?
-- Explicit
 
-Should the queue slice {0:2} be a read-only live view (Solution 2) or should it copy into a standard array slice =>i32 (Solution 1)?
+## later +1.4.0
+[ ] Implement 1.3.1 and 1.4.0alpha features.
+    - [ ] try/catch
+    - [ ] comptime execution
+    - [ ] FFI generator
+    - [ ] C flags
+    - [ ] update stacks and queues
 
-- Read-only live view
+[ ] Make a better, non trivial raylib demo and share it
 
-# todo
+# todo for 1.3.x
+- [ ] Make extern C calls work for variables, not just for functions.
+- [ ] Make inline C work in the global scope
+- [ ] Make extern calls work with old and new syntax fn T,
+- [ ] add multiline decls (enforce optional semicolon)
+```
+i32 a; i32 b;
+
+i32 i; loop if(i < 100){} // more ergonomic
+```
+- [ ] Add a function to the stdlib that converts a fatptr string into a normal string
 - [ ] Enforce everything being private by default, since pub does nothing since 1.1.
 - [ ] Fix defer not working
 - [ ] Test ciclical imports on `use` stmt, make a #pragma once equivalent if needed
+
 - [ ] Add multidimensional array support 
-**note: aparently this is supported already**
-**note to self: test thoroughly**
+>note: aparently this is supported already**
+>note to self: test thoroughly**
 ```
 i32[8][8] chessboard = {}
 i32[255][255][255] cube = {} 
@@ -19,11 +34,14 @@ i32[255][255][255] cube = {}
 - [ ] add boolean types, 0 or 1.
 - [ ] add a dedicated module to the stdlib to manage queues and stacks
     - [ ] Make a method/lib to see if a queue/stack is blocked
+
 - [ ] FIX IO NOT WORKING, specifically reading files.
     - writef works.
+    - openf works
+    - fgetc is broken
 
-- [x] Implement stack and queue primitives
 - [ ] Implement pointers to stacks and queues
+- [x] Implement stack and queue primitives
 - [x] Implement basic stack and pointer features
     - [x] Stack operations (push, pop, peek)
     - [x] Queue operations (enq, deq, peek)
@@ -31,6 +49,8 @@ i32[255][255][255] cube = {}
 
 - [x] Implement async functions
     - [ ] Fix async functions
+    > i forgot what is wrong with them. 
+    > found it, the async runtime is not working, added notes on tests/async/
 
 - [ ] explicit casting
 ```
@@ -39,10 +59,6 @@ f64 y = (f64)x
 ```
 
 - [x] fix Tig compiler asking for ";" when it is optional
-- [ ] add multiple line code
-```tc
-a; b; c;
-```
 - [x] Fix emmiter to handle this case:
 ```
 i32 x = 10
@@ -58,16 +74,16 @@ foo(ptr)
 ```
 This compiles but hangs when ran
 
-[x] debug why wc.tc hangs when ran (windows file locking issue)
-[ ] Implement 1.3.1 and 1.4.0alpha features.
-    - [ ] try/catch
-    - [ ] comptime execution
-    - [ ] FFI generator
-    - [ ] C flags
-    - [ ] update stacks and queues
+[x] debug why wc.tc hangs when ran (windows file locking issue) ( no, the problem is fgetc)
 
-[ ] Exhaustively test 1.3.0 - 1.3.1 features
+[ ] Exhaustively test 1.3.0 - 1.3.1 features before moving on to 1.4.0alpha
 [ ] Expand stdlib to include web/http features
-    [ ] Make stdlib IO bullet proof
-[ ] Build a small web server or non trivial program with Tig
-[ ] Make a better, non trivial raylib demo and share it
+[ ] Build a small web server or non trivial program with Tig 1.3.1
+---
+
+Do we prefer implicit dereferencing for pointers (so q_ptr.push(val) just works) or explicit q_ptr.>push(val)?
+- Explicit
+
+Should the queue slice {0:2} be a read-only live view (Solution 2) or should it copy into a standard array slice =>i32 (Solution 1)?
+
+- Read-only live view

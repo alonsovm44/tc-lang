@@ -48,7 +48,7 @@ i32 fn sneq: ->i8 a, ->i8 b, u64 n {
 }
 
 // find substring needle in haystack
-->i8 fn shas: ->i8 haystack, ->i8 needle {
+->i8 fn strhas: ->i8 haystack, ->i8 needle {
     ret strstr(haystack, needle)
 }
 
