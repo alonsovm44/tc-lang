@@ -2,7 +2,8 @@ use "stdlib/io.tc"
 
 fn i32 main:
 {
-    queue<i32> q = {1,2,3}
+    queue<i32> q = {0,1,2,3} 
 
-    printi(sizeof(q)) // should print 16 // prints 32??
+    printi(sizeof(q)) // should print 16 // prints 32?? i32 is 4 bytes, plus the end \0 , but it prints double that?
+    
 }

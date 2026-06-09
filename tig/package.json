@@ -1,0 +1,25 @@
+{
+  "name": "tig",
+  "displayName": "tig",
+  "description": "A systems language",
+  "version": "0.0.1",
+  "engines": {
+    "vscode": "^1.110.0"
+  },
+  "categories": [
+    "Programming Languages"
+  ],
+  "contributes": {
+    "languages": [{
+      "id": "tig",
+      "aliases": ["Tig", "tig"],
+      "extensions": [".tc"],
+      "configuration": "./language-configuration.json"
+    }],
+    "grammars": [{
+      "language": "tig",
+      "scopeName": "source.tc",
+      "path": "./syntaxes/tig.tmLanguage.json"
+    }]
+  }
+}

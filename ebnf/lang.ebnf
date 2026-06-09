@@ -1,4 +1,5 @@
 (* TightC v1.0.0 EBNF Specification *)
+(* OUTDATED * )
 
 program         = use_stmt* decl*
 

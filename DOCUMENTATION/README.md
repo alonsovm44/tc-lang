@@ -1,7 +1,7 @@
 # TIG Compiler Documentation Index
 
-Welcome to the TIG compiler documentation! This page helps you navigate all available documentation and find what you need.
 > Important note: Check `/.gendox/` for more detailed per file documentation.
+Welcome to the TIG compiler documentation! This page helps you navigate all available documentation and find what you need.
 ## Quick Start
 
 If you're new to the TIG compiler, start with these documents in order:

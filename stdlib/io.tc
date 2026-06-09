@@ -16,22 +16,22 @@ extern "C" {
 }
 
 // write a string to file
-i32 fn write_file: ->i8 s, ->FILE stream {
+i32 fn writef: ->i8 s, ->FILE stream {
     ret fputs(s, stream)
 }
 
 i32 fn fputc: i32 c, ->FILE stream {
     ret fputc(c, stream)
 }
-fn ->FILE open_file: ->i8 file, ->i8 mode {
+->FILE fn openf: ->i8 file, ->i8 mode {
     ret fopen(file, mode)
 }
 
-fn i32 fclose: ->FILE f {
+i32 fn closef: ->FILE f {
     ret fclose(f)
 }
 
-fn i32 fgetc: ->FILE stream {
+i32 fn fgetc: ->FILE stream { // this one is broken, it causes hangs and the OS kills the process
     ret fgetc(stream) 
 }
 

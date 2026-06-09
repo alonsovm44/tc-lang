@@ -1,0 +1,26 @@
+use "stdlib/io.tc"
+
+fn i32 main: =>->i8 args {
+
+    ->FILE f = openf("test.txt", "r")
+    if(!f){
+        print("couldnt open file")
+    }
+    else
+    {
+    printn("Could open file 'test.txt', now testing reading.")
+    }
+
+    i32 c = fgetc(f) // problem is here
+ 
+    printi(c)
+    closef(f)
+
+    ->FILE q = openf("a.txt", "w")
+    if(!q){print("could not make file.")}
+    
+    ->i8 msg = args.ptr[1]
+    writef(msg, q)
+    closef(q)
+    ret 0
+}

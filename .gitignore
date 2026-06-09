@@ -2,5 +2,4 @@
 *.o
 *.htxt
 *.ctxt
-tig/
 /.gendox/gendox_config.json

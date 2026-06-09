@@ -4,12 +4,12 @@ fn i32 main: {
 
 queue<i32> q = {0,1,2,3}
  
-i32 x = q.peek() 
-i32 y = q.pop()
-i32 z = q.peek()
+i32 x = q.peek() // stores 0
+i32 y = q.pop() // destructive, qp now points to 1
+i32 z = q.peek() // saves 1
 
-printi(x)
-printi(z)
-
+printi(x) // prints 0
+printi(z) // prints 1
+ 
 ret 0
 }

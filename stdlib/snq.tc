@@ -1,0 +1,11 @@
+// lib specially dedicated to stack and queue manipulation
+
+// get length of queue
+
+# getqlen(T){
+    fn i64 getqlen: queue<T> q{
+        // impl
+
+    }
+}
+

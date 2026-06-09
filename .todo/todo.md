@@ -20,6 +20,7 @@ i32[255][255][255] cube = {}
 - [ ] add a dedicated module to the stdlib to manage queues and stacks
     - [ ] Make a method/lib to see if a queue/stack is blocked
 - [ ] FIX IO NOT WORKING, specifically reading files.
+    - writef works.
 
 - [x] Implement stack and queue primitives
 - [ ] Implement pointers to stacks and queues
