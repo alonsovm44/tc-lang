@@ -1,5 +1,6 @@
 use "stdlib/io.tc"
 use "stdlib/str.tc"
+use "stdlib/conv.tc" // for atoi
 // a simple CLI calculator
 
 fn i32 main: =>->i8 args {
@@ -9,38 +10,41 @@ fn i32 main: =>->i8 args {
         ret 1
     }
     print("Welcome to the calculator!")
-    print("Enter a command: ")
-     
-    printn("args len: ") 
-    printi(args.len)
+  
     ->i8 op = args.ptr[1]; 
     //print(op)
     //print("\n")
 
-    i32 op1 = atoi(args.ptr[2]);
-    i32 op2 = atoi(args.ptr[3]);
+    
+    f32 op1 = stof(args.ptr[2]);
+    f32 op2 = stof(args.ptr[3]);
 
     if (strcmp(op, "add") == 0){
-        i32 sum = op1 + op2;
+        f32 sum = op1 + op2;
         printn("Sum is: ")
         printi(sum)
     }
     else if (strcmp(op, "sub") == 0){
-        i32 sub = op1 - op2;
+        f32 sub = op1 - op2;
         printn("Sub is: ")
         printi(sub)
     }
     else if (strcmp(op, "mul") == 0){
-        i32 mul = op1 * op2;
+        f32 mul = op1 * op2;
         printn("Mul is: ")
         printi(mul)
+    }
+    else if(strcmp(op, "mod")==0){
+       // i32 mod = (i32)op1 % (i32)op2 todo: add explicit casting
+        printn("Mod is: ")
+        printn("stub for modulo")
     }
     else if(strcmp(op, "div") == 0){
         if (op2 == 0){
             printn("Error, division by 0")
             ret 1
         }else {
-            f64 div = (f64)op1 / (f64)op2; // need casting operation
+            f32 div = op1 / op2; // need casting operation
             printn("Div is: ")
             printf("%f\n", div)
         }

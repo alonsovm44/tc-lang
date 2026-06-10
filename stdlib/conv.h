@@ -9,6 +9,7 @@
 #define TC_LENOF(x) (sizeof(x) / sizeof((x)[0]))
 #define TC_FAT_LENOF(x) ((x).len)
 
+
 int64_t stoi(char *s);
 int64_t stoib(char *s, int32_t base);
 double stof(char *s);

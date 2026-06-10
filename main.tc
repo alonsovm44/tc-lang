@@ -1,0 +1,14 @@
+use "stdlib/io.tc"
+
+fn i32 main: =>->i8 args {
+
+    if(args.len < 1)
+    {
+        print("No input")
+        ret 1
+    }
+    ->i8 first = args.ptr[1]
+    printn("args passed is: ")
+    print(first)
+    ret 0
+}

@@ -10,6 +10,7 @@
 #define TC_FAT_LENOF(x) ((x).len)
 
 
+
 int32_t writef(char *s, FILE *stream);
 int32_t fputc(int32_t c, FILE *stream);
 FILE *openf(char *file, char *mode);

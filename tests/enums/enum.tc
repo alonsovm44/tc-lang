@@ -1,5 +1,29 @@
 use "stdlib/io.tc"
 
-fn i32 main: {
+enum Piece
+{
+    PAWN,
+    KING,
+    QUEEN
+} 
 
+fn i32 main: {
+    Piece piece 
+
+    piece = 1
+
+    match(piece){
+        PAWN = {
+            print("Piece is pawn")
+        }
+        KING = {
+            print("Piece is king")
+        }
+        QUEEN = {
+            print("piece is queen")
+        }
+        _ = {
+            print("Unknown piece")
+        }
+    }
 }

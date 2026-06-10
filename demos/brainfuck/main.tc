@@ -2,7 +2,9 @@
 // rules
 //1- All handwritten, no autocomplete.
 //2- No AI codegen
-//3- Using AI to do research is OK
+//3- Using AI to do research and explain errors is OK
+use "stdlib/io.tc"
+use "stdlib/str.tc"
 
 enum TOKENS{
     MOV_RIGHT, // >
@@ -15,68 +17,70 @@ enum TOKENS{
     STDIN // ,
 }
 
-fn =>TOKENS makeProgramArray: ->FILE f {
+fn ->TOKENS makeProgramArray: ->FILE f {
     /*
     The queue is good for a single pass program, but since it is destructive, it cannot be used for loops, an array is better
     */
-    =>TOKENS token = alloc(TOKENS, 2048) // buffer of 2048 for now
-
+    ->TOKENS tokens = alloc(TOKENS, 2048) // buffer of 2048 for now, length will vary depending on the file size
+    defer{free(tokens)}
     i32 c 
     i32 i 
     loop if(!eof(f)){ //loop if not end of file
-        c = fgetc(f)
-
+        c = fgetc(f) // this one is buggy
+        // FIX: Change codes from ascii to enum codes
         if(ceq(c, 60)){ // if <
-           token.ptr[i] = MOV_LEFT
+           tokens[i] = 60 // <
         }
         else if(ceq(c, 62))
         {// mov right
-            token.ptr[i] = MOV_RIGHT
+            tokens[i] = 62 // >
         }
         else if(ceq(c, 43))
         {//ADD
-            token.ptr[i] = ADD
+            tokens[i] = 43 // +
         }
         else if(ceq(c, 45))
         {
-            token.ptr[i] = SUB
+            tokens[i] = 45 // -
         }
         else if(ceq(c,91))
         {
-            token.ptr[i] = OPEN_LOOP
+            tokens[i] = 91 // [ 
         }
         else if(ceq(c, 93))
         {
-           token.ptr[i] = CLOSE_LOOP
+           tokens[i] = 93 // ]
         }
         else if(ceq(c, 46))
         {
-            token.ptr[i] = STD_OUT
+            tokens[i] = 46 // .
 
         }
         else if(ceq(c, 44))
         {
-            token.ptr[i] = STD_IN
+            tokens[i] = 44 // ,
         }
     }
 
-    ret token
+    ret tokens
 }
 
 fn ->u8 initTape: ->u8 tape{
     i32 i = 0
-    loop if(i =< 1024){
+    loop if(i <= 1024){
         tape[i] = 0
         i++
     }
     ret tape
 }
 
+# temp_file_size{1024}
 fn i32 main: =>->i8 args 
 {
 
     if (args.len <2){
         print("usage: tigbf <file.bf>")
+        ret 1
     }
     ->i8 source = args.ptr[1]
     ->u8 tape = alloc(u8, 1024) // tape is 1024 cells long
@@ -84,15 +88,16 @@ fn i32 main: =>->i8 args
     // initializing to 0 all members of the tape
     initTape(tape)
 
-    ->FILE f = openf(source)
+    ->FILE f = openf(source, "r")
     defer{closef(f)}
 
-    =>TOKENS program = makeProgramArray(f)
+    ->TOKENS program = makeProgramArray(f)
     
     i32 i = 0
-    loop if(i <= prog.len) 
+    loop if(i <= temp_file_size)  
+    {
     i++
-        match(prog.ptr[i]){
+        match(program[i]){
 
             MOV_RIGHT = 
             {
@@ -118,14 +123,17 @@ fn i32 main: =>->i8 args
             {
 
             }
-            STD_OUT = 
+            STDOUT = 
             {
 
             }
-            STD_IN = 
+            STDIN = 
             {
-                prog.ptr[i] = readc()
+                program[i] = readc()
             }
+            _ = { // wildcard, any other char is taken as a comment
 
+            }
+        }
     }
 }

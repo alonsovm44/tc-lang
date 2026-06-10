@@ -72,3 +72,10 @@ I think i get it, the array has its memory allocated in continuous memory spaces
 I recompiled the async test and it compiled and ran well, for some reason. It seems like it was a heisenbug. 
 
 I ran it again, when i compile it `-c` only it compiles ok, but when I transpile `-o` it does not work.
+
+## June 9 
+Turns out i was right, the array lives on the stack and it is static, while the ptr is assigned on the heap and it is dynamic and can change in runtime, but slower. I already knew this but i had forgotten about it.
+
+Wouldn't it be cool if Tig managed at compile time all resource allocations? we already have defer, but something that injected free() stmts where they should at comptime?
+You would be making code that looks unsafe but Tig free()'s memory under the hood. But we could stick with defer for now. 
+
