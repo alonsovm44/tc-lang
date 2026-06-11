@@ -6,11 +6,11 @@ Look at the repo root to see how to compile Tig
 
 Compile with
 ```bash
-./tigc /demos/brainfuck/main.tc -c bf 
+./tigc /demos/bf/main.tc -c bf 
 ```
 Add `-o` to look at the C source
 ```bash
-./tigc /demos/brainfuck/main.tc -c bf -o bfc.c
+./tigc /demos/bf/main.tc -c bf -o bfc.c
 ```
 
 Run scripts with
