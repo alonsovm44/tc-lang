@@ -1,4 +1,6 @@
 # a brainfuck interpreter in Tig
+Source is in `main.tc`
+
 You need Tig 1.3.1 to compile this script. 
 Look at the repo root to see how to compile Tig
 
