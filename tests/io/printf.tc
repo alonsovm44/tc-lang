@@ -1,0 +1,9 @@
+extern "C" {
+    i32 fn printf: ->i8 fmt, ... {}
+}
+
+fn i32 main: {
+    i32 x = 10
+    printf("aaa. %d", x)
+    ret 0
+}

@@ -1,0 +1,10 @@
+use "stdlib/io.tc"
+
+// checking if declaring queues/stacks invoke the async runtime automatically (which is wrong)
+fn void main: 
+{
+    queue<i32> q
+    stack<i32> s
+    print("Hello, World!")
+
+}

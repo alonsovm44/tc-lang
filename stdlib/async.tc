@@ -1,6 +1,6 @@
 // Async runtime module for Tig 1.3
 // Provides concurrency primitives and thread pool management
-
+use "snq.tc"
 // Runtime initialization and cleanup
 extern "C" {
     void fn runtime_init: {}
@@ -14,21 +14,6 @@ extern "C" {
     void fn thread_pool_submit: ->ThreadPool pool,  fn(->void)void func, ->void arg {} // this needs correction
 }
 // void (*func)(void *)
-// Queue operations
-extern "C" {
-    ->Queue fn queue_create: i32 capacity {}
-    void fn queue_destroy: ->Queue q {}
-    void fn queue_push: ->Queue q, ->void item {}
-    ->void fn queue_pop: ->Queue q {}
-}
-
-// Stack operations
-extern "C" {
-    ->Stack fn stack_create: i32 capacity {}
-    void fn stack_destroy: ->Stack s {}
-    void fn stack_push: ->Stack s, ->void item {}
-    ->void fn stack_pop: ->Stack s {}
-}
 
 // Global thread pool instance
 extern "C" {

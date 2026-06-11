@@ -3,7 +3,6 @@
 use "stdlib/io.tc"
 use "stdlib/str.tc"
 
-stack<i64> globalStack = {}
 
 enum OPERAND{
     ADD,
@@ -13,15 +12,15 @@ enum OPERAND{
     // later mod and pow
 }
 
-fn queue<u8> makeProgramQ: ->FILE f{
+fn queue<u8> makeProgramQ: ->FILE f, ->i32 lengthCounter{
     // this has to:
     /*
     1. make a queue of uchars
-    2. iterate over each char of the file, 
-    3. get char value and save it to the queue
+    2. iterate over each chrof the file, 
+    3. get chrvalue and save it to the queue
     4. return queue for further processing
     Limitation of this approach
-    this stores each char of the file as individual entries to the queue, 
+    this stores each chrof the file as individual entries to the queue, 
     
     it would be optimal to store each token of the program as an entry to the queue
     this could be done by grouping chars separated by (32) spaces and new lines\n
@@ -30,18 +29,14 @@ fn queue<u8> makeProgramQ: ->FILE f{
     for the offline MVP it is ok for single chars
     */
     queue<u8> q = {}
-    openf(f.>name, "r") // or equivalent way to access the file name field
-
     u8 c = 0
     loop // somehow this knows that it has to  ++ the pointer of the readfile
     {
-        c = fgetc(f) // fgetc is broken in 1.3.1, 1.3.2 will patch it
+        c = filegetc(f) // fgetc is broken in 1.3.1, 1.3.2 will patch it. DONE FIXED
         q.push(c)
-
+        (->lengthCounter) = ->lengthCounter + 1
         if(eof(f)) {break}
     }
-
-    fclose(f)
     ret q
 }
 
@@ -80,19 +75,20 @@ fn i8 isOperand: u8 chr {
 }
 
 
-fn i8 isPrintStmt: u8 char{ // no boolean type, later going to add to save memory
-    if(ceq(char, 33)){
+fn i8 isPrintStmt: u8 chr{ // no boolean type, use i8, later going to add it to save memory
+    if(ceq(chr, 33)){
         ret 1
     }else{
         ret 0
     }
 }
 
-
 fn i32 main: =>->i8 args {
+stack<f64> globalStack = {}
 
     if(args.len < 2){
         print("Usage:\n furth <source.fu>")
+        ret 1
     }
     ->i8 src = args.ptr[1]
     if(!isSourceFu(src)){
@@ -100,49 +96,55 @@ fn i32 main: =>->i8 args {
         ret 1
     }
 
-    ->FILE f = open_file(src)
-    // defer{fclose(f)}
-    queue<u8> program = makeProgramQ(f) // TODO: make queue<Token> program instead of hardcoded u8 chars
-
+    ->FILE f = openf(src, "r")
+    defer{closef(f)}
+    i32 leng = 0
+    queue<u8> program = makeProgramQ(f, &leng) // TODO: make queue<Token> program instead of hardcoded u8 chars
+    // defer{ free(program)} actually i havent implemented a way to free queues and stacks. Needs to be done
     // now that we have the program queue, iterate over each character and execute each instruction
     i32 i = 0
-    loop if(i <= program.len) // still dont know how to get the length of a queue/stack in Tig, if program was a => it would be program.len
-    {   
-        u8 char = program.pop()
+    loop if(i < leng) // still dont know how to get the length of a queue/stack in Tig, if program was a => it would be program.len
+    // FIX: use a leng value and pass it as a ptr to make a program queue
+    {
+          
+        if (leng == 0) {break}
+        u8 chr = program.pop()
 
         // a match stmt would be useful here, but i have no match ranges yet in Tig
-        if(char == 59){
+        if(chr== 59){
             //do nothing, it is a comment
             // logic to tell the app to skip this line
+            loop if(i < leng){
+                chr = program.pop()
+                i++
+                if(chr == 10){break}
+            }
         }
-        else if (isANumber(char)){
-            // push ascii char value into the global stack
-            i32 val = getc(char)
+        else if (isANumber(chr)){
+            // push ascii chrvalue into the global stack
+            i32 val = chr- 48
             globalStack.push(val) // push value to the stack
-        }else if(isOperand(char))
+        }else if(isOperand(chr))
         {
-            OPERAND op
-            match(op){
-                ADD = {
-                    f64 x = globalStack.pop()
-                    f64 y = globalStack.pop()
+            f64 x = globalStack.pop()
+            f64 y = globalStack.pop()
+            match(chr){
+                43 = {
+                    
                     globalStack.push(x+y)
                 }
-                SUB = {
-                    f64 x = globalStack.pop()
-                    f64 y = globalStack.pop()
+                45 = {
+            
                     globalStack.push(x-y)
                 }
 
-                MUL = {
-                    f64 x = globalStack.pop()
-                    f64 y = globalStack.pop()
+                42 = {
+
                     globalStack.push(x*y)
                 }
                 
-                DIV = {
-                    f64 x = globalStack.pop()
-                    f64 y = globalStack.pop()
+                47 = {
+
                     if(y == 0.0){
                         print("Runtime error: division by 0")
                     }
@@ -151,18 +153,20 @@ fn i32 main: =>->i8 args {
                 }
             }
         }
-        else if(isPrintStmt(char)){
+        else if(isPrintStmt(chr)){
             // get the top value of the stack and print it
-            i32 val = globalStack.pop()
-            printi(val)
+            //i64 val = (i64)globalStack.pop() // this needs casting (T)v, but it is not supported in Tig 1.3.1 yet 
+            f64 val = globalStack.pop()
+            
+        }
+        else if(chr== 10 || chr== 32){// do nothing
         }
         else
         {
             print("Error, unknown character.")
         }
+        i++
     }
-
-    fclose(f)
-
+    closef(f)
 }
 

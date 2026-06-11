@@ -23,10 +23,14 @@
 [ ] Make a better, non trivial raylib demo and share it
 
 # todo for 1.3.x
-- [ ] Fix bug where async.tc/async.h is included when keeping source after compilation stmt
+- [ ] HIGH PRIORITY: Fix async.h being included for non-async code
+      - type_needs_runtime() incorrectly returns true for queue/stack
+      - decl_needs_runtime() should only care about async functions
+      - Test: queue/stack declaration without async should NOT include async.h
 ```bash
 tigc source.tc -c app -o source.c # this brings async.h even if it wasnt called
 ```
+- [s ] Fix bug where queues and stacks cant be freed when allocated
 - [ ] Make Tig catch when we pass to few args or to many args to a function, not fallback on C to do it.
 - [ ] add more methods to stacks and queues
     - [ ] size
@@ -64,7 +68,7 @@ i32[255][255][255] cube = {}
 - [ ] add a dedicated module to the stdlib to manage queues and stacks
     - [ ] Make a method/lib to see if a queue/stack is blocked
 
-- [ ] FIX IO NOT WORKING, specifically reading files.
+- [done] FIX IO NOT WORKING, specifically reading files.
     - writef works.
     - openf works
     - fgetc is broken

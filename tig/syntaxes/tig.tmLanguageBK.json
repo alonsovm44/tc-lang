@@ -1,0 +1,312 @@
+{
+	"$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+	"name": "Tig",
+	"patterns": [
+		{
+			"include": "#comments"
+		},
+		{
+			"include": "#macros"
+		},
+		{
+			"include": "#keywords"
+		},
+		{
+			"include": "#function-definition"
+		},
+		{
+			"include": "#function-calls"
+		},
+		{
+			"include": "#types"
+		},
+		{
+			"include": "#strings"
+		},
+		{
+			"include": "#numbers"
+		},
+		{
+			"include": "#inline-c"
+		},
+		{
+			"include": "#operators"
+		},
+		{
+			"include": "#match-wildcard"
+		}
+	],
+	"repository": {
+		"comments": {
+			"patterns": [
+				{
+					"name": "comment.line.double-slash.tig",
+					"match": "//.*$"
+				},
+				{
+					"name": "comment.block.tig",
+					"begin": "/\\*",
+					"end": "\\*/"
+				}
+			]
+		},
+		"macros": {
+			"patterns": [
+				{
+					"name": "meta.macro.definition.tig",
+					"begin": "^\\s*(#)(\\s*)([a-zA-Z_][a-zA-Z0-9_]*)",
+					"beginCaptures": {
+						"1": { "name": "keyword.control.macro.tig" },
+						"3": { "name": "entity.name.function.macro.tig" }
+					},
+					"end": "(?<=})",
+					"patterns": [
+						{
+							"name": "meta.macro.params.tig",
+							"begin": "\\(",
+							"end": "\\)",
+							"beginCaptures": {
+								"0": { "name": "punctuation.definition.parameters.begin.tig" }
+							},
+							"endCaptures": {
+								"0": { "name": "punctuation.definition.parameters.end.tig" }
+							},
+							"patterns": [
+								{
+									"name": "variable.parameter.macro.tig",
+									"match": "[a-zA-Z_][a-zA-Z0-9_]*"
+								},
+								{
+									"name": "punctuation.separator.parameters.tig",
+									"match": ","
+								}
+							]
+						},
+						{
+							"name": "meta.macro.body.tig",
+							"begin": "\\{",
+							"end": "\\}",
+							"beginCaptures": {
+								"0": { "name": "punctuation.section.block.begin.tig" }
+							},
+							"endCaptures": {
+								"0": { "name": "punctuation.section.block.end.tig" }
+							},
+							"patterns": [
+								{
+									"include": "#comment"
+								}
+							]
+						}
+					]
+				},
+				{
+					"name": "meta.macro.invocation.tig",
+					"match": "(#)([a-zA-Z_][a-zA-Z0-9_]*)\\s*(?=\\()",
+					"captures": {
+						"1": { "name": "keyword.control.macro.tig" },
+						"2": { "name": "entity.name.function.macro.invocation.tig" }
+					}
+				}
+			]
+		},
+		"keywords": {
+			"patterns": [
+				{
+					"name": "keyword.control.tig",
+					"match": "\\b(if|else|loop|break|defer|ret|match|select)\\b"
+				},
+				{
+					"name": "keyword.declaration.tig",
+					"match": "\\b(fn|async|strun|enum|use|pub|pin|extern)\\b"
+				},
+				{
+					"name": "constant.language.tig",
+					"match": "\\b(true|false|null)\\b"
+				}
+			]
+		},
+		"function-definition": {
+			"patterns": [
+				{
+					"name": "meta.function.definition.tig",
+					"begin": "\\b(async\\s+)?(fn)\\s+([a-zA-Z_][a-zA-Z0-9_]*)\\s*(?=:)",
+					"beginCaptures": {
+						"1": { "name": "keyword.control.async.tig" },
+						"2": { "name": "keyword.declaration.fn.tig" },
+						"3": { "name": "entity.name.function.definition.tig" }
+					},
+					"end": "(?<=\\})",
+					"patterns": [
+						{
+							"name": "meta.function.return-type.tig",
+							"match": "(?<=fn\\s+[a-zA-Z_][a-zA-Z0-9_]*\\s*:)\\s*([a-zA-Z_][a-zA-Z0-9_>*]*)",
+							"captures": {
+								"1": { "name": "storage.type.return.tig" }
+							}
+						},
+						{
+							"name": "meta.function.parameters.tig",
+							"begin": "(?<=:)\\s*([a-zA-Z_][a-zA-Z0-9_>*]*)\\s+([a-zA-Z_][a-zA-Z0-9_]*)",
+							"beginCaptures": {
+								"1": { "name": "storage.type.parameter.tig" },
+								"2": { "name": "variable.parameter.function.tig" }
+							},
+							"end": "(?=\\{)",
+							"patterns": [
+								{
+									"name": "punctuation.separator.parameters.tig",
+									"match": ","
+								},
+								{
+									"name": "meta.function.parameter.tig",
+									"match": "([a-zA-Z_][a-zA-Z0-9_>*]*)\\s+([a-zA-Z_][a-zA-Z0-9_]*)",
+									"captures": {
+										"1": { "name": "storage.type.parameter.tig" },
+										"2": { "name": "variable.parameter.function.tig" }
+									}
+								}
+							]
+						},
+						{
+							"name": "meta.function.body.tig",
+							"begin": "\\{",
+							"end": "\\}",
+							"beginCaptures": {
+								"0": { "name": "punctuation.section.block.begin.tig" }
+							},
+							"endCaptures": {
+								"0": { "name": "punctuation.section.block.end.tig" }
+							},
+							"patterns": [
+								{
+									"include": "$base"
+								}
+							]
+						}
+					]
+				}
+			]
+		},
+		"function-calls": {
+			"patterns": [
+				{
+					"name": "meta.function-call.tig",
+					"match": "\\b([a-zA-Z_][a-zA-Z0-9_]*)\\s*(?=\\()",
+					"captures": {
+						"1": { "name": "entity.name.function.call.tig" }
+					}
+				},
+				{
+					"name": "meta.method-call.tig",
+					"match": "\\b([a-zA-Z_][a-zA-Z0-9_]*)\\s*(?=\\()(?<=[\\]\\)][a-zA-Z_]*)",
+					"captures": {
+						"1": { "name": "entity.name.function.method.tig" }
+					}
+				}
+			]
+		},
+		"match-wildcard": {
+			"patterns": [
+				{
+					"name": "constant.other.symbol.tig",
+					"match": "(?<=match\\s*\\([^)]*\\)\\s*\\{[^}]*)\\s*_\\s*="
+				}
+			]
+		},
+		"types": {
+			"patterns": [
+				{
+					"name": "storage.type.tig",
+					"match": "\\b(void|bool|i8|i16|i32|i64|u8|u16|u32|u64|f32|f64|stack|queue)\\b"
+				},
+				{
+					"name": "storage.type.pointer.tig",
+					"match": "(->|=>)\\s*[a-zA-Z_][a-zA-Z0-9_]*"
+				}
+			]
+		},
+		"strings": {
+			"name": "string.quoted.double.tig",
+			"begin": "\"",
+			"end": "\"",
+			"patterns": [
+				{
+					"name": "constant.character.escape.tig",
+					"match": "\\\\."
+				}
+			]
+		},
+		"numbers": {
+			"patterns": [
+				{
+					"name": "constant.numeric.integer.tig",
+					"match": "\\b[0-9]+\\b"
+				},
+				{
+					"name": "constant.numeric.float.tig",
+					"match": "\\b[0-9]+\\.[0-9]+([eE][+-]?[0-9]+)?\\b"
+				}
+			]
+		},
+		"inline-c": {
+			"name": "meta.embedded.c.tig",
+			"begin": "\"C\"\\s*\\{",
+			"end": "\\}",
+			"patterns": [
+				{
+					"include": "source.c"
+				}
+			]
+		},
+		"operators": {
+			"patterns": [
+				{
+					"name": "keyword.operator.address.tig",
+					"match": "&(?!&)"
+				},
+				{
+					"name": "keyword.operator.dereference.tig",
+					"match": "->(?![>=])"
+				},
+				{
+					"name": "keyword.operator.fat-pointer.tig",
+					"match": "=>"
+				},
+				{
+					"name": "keyword.operator.ownership-transfer.tig",
+					"match": "@(?![a-zA-Z_])"
+				},
+				{
+					"name": "keyword.operator.pointer-field.tig",
+					"match": "\\.>"
+				},
+				{
+					"name": "keyword.operator.assignment.tig",
+					"match": "="
+				},
+				{
+					"name": "keyword.operator.match.tig",
+					"match": "(?<=match\\s*\\([^)]*\\)\\s*)\\="
+				},
+				{
+					"name": "keyword.operator.arithmetic.tig",
+					"match": "[+\\-*/%]"
+				},
+				{
+					"name": "keyword.operator.comparison.tig",
+					"match": "==|<>|<|>|<=|>="
+				},
+				{
+					"name": "keyword.operator.logical.tig",
+					"match": "&&|\\|\\|"
+				},
+				{
+					"name": "keyword.operator.bitwise.tig",
+					"match": "&|\\||\\^|~|<<|>>"
+				}
+			]
+		}
+	},
+	"scopeName": "source.tc"
+}

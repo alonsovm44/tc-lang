@@ -13,7 +13,7 @@ static bool struct_exists(DeclVec *program, const char *name) {
 
 static bool type_needs_runtime(Type *t) {
     if (!t) return false;
-    if (t->kind == TY_QUEUE || t->kind == TY_STACK) return true;
+    // if (t->kind == TY_QUEUE || t->kind == TY_STACK) return true; // This is wrong, since q's and stacks are just data structures, they dont need runtime
     if (t->kind == TY_RAWPTR || t->kind == TY_FATPTR || t->kind == TY_ARRAY || t->kind == TY_FNPTR) {
         if (type_needs_runtime(t->inner)) return true;
     }
@@ -598,7 +598,7 @@ char *emit_program(DeclVec program) {
     bool needs_runtime = false;
     for (int i = 0; i < program.count; i++) {
         Decl *d = program.items[i];
-        if ((d->kind == DC_FN && d->is_async) || decl_needs_runtime(d)) {
+        if ((d->kind == DC_FN && d->is_async)) { //|| decl_needs_runtime(d)
             needs_runtime = true;
             break;
         }

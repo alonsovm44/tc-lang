@@ -2,10 +2,34 @@
 
 // get length of queue
 
-# getqlen(T){
-    fn i64 getqlen: queue<T> q{
-        // impl
-
-    }
+strun Queue {
+    ->void items,
+    i32 capacity,
+    i32 head,
+    i32 tail,
+    i32 count,
+    i32 elem_size
 }
 
+strun Stack {
+    ->void items,
+    i32 capacity,
+    i32 top,
+    i32 elem_size
+}
+
+// Queue operations
+extern "C" {
+    ->Queue fn queue_create: i32 capacity {}
+    void fn queue_destroy: ->Queue q {}
+    void fn queue_push: ->Queue q, ->void item {}
+    ->void fn queue_pop: ->Queue q {}
+}
+
+// Stack operations
+extern "C" {
+    ->Stack fn stack_create: i32 capacity {}
+    void fn stack_destroy: ->Stack s {}
+    void fn stack_push: ->Stack s, ->void item {}
+    ->void fn stack_pop: ->Stack s {}
+}
