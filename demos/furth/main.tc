@@ -171,6 +171,5 @@ stack<f64> globalStack = {}
         }
         i++
     }
-    closef(f)
 }
 

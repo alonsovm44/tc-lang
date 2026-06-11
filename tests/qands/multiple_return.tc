@@ -1,7 +1,7 @@
 
 use "stdlib/io.tc"
 use "stdlib/async.tc"
-use "stdlib/snq.tc" // NEW: module for stacks and queues
+use "stdlib/snq.tc" // NEW: module for Stacks aNd Queues
 //FIX: it does not work for sync functions
 async fn void multiple_return_fn: i32 x, i32 y, queue<i32> q 
 {

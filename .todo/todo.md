@@ -23,14 +23,16 @@
 [ ] Make a better, non trivial raylib demo and share it
 
 # todo for 1.3.x
-- [ ] HIGH PRIORITY: Fix async.h being included for non-async code
+- [x] Separate stacks and queues from async to their own stdlib module [DONE]
+- [x] HIGH PRIORITY: Fix async.h being included for non-async code [DONE]
       - type_needs_runtime() incorrectly returns true for queue/stack
       - decl_needs_runtime() should only care about async functions
-      - Test: queue/stack declaration without async should NOT include async.h
+      - Test: queue/stack declaration without async should NOT include async.h [DONE]
 ```bash
 tigc source.tc -c app -o source.c # this brings async.h even if it wasnt called
 ```
-- [s ] Fix bug where queues and stacks cant be freed when allocated
+- [ ] Fix bug where queues and stacks cant be freed when allocated
+    - Add queue_free and stack_free functions
 - [ ] Make Tig catch when we pass to few args or to many args to a function, not fallback on C to do it.
 - [ ] add more methods to stacks and queues
     - [ ] size
@@ -45,7 +47,7 @@ defer free(ptr)
 ```
 - [ ] Make extern C calls work for variables, not just for functions.
 - [ ] Make inline C work in the global scope
-- [ ] Make extern calls work with old and new syntax fn T,
+- [ ] Make extern calls work with old and new syntax fn T, and T fn
 - [ ] add multiline decls (enforce optional semicolon)
 ```
 i32 a; i32 b;
@@ -65,8 +67,7 @@ i32[255][255][255] cube = {}
 >note: aparently this is supported already**
 >note to self: test thoroughly**
 - [ ] add boolean types, 0 or 1.
-- [ ] add a dedicated module to the stdlib to manage queues and stacks
-    - [ ] Make a method/lib to see if a queue/stack is blocked
+- [X] add a dedicated module to the stdlib to manage queues and stacks [DONE]
 
 - [done] FIX IO NOT WORKING, specifically reading files.
     - writef works.
