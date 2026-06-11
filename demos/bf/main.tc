@@ -76,8 +76,8 @@ fn void initTape: ->u8 tape{ // dont need return type, since it modifies the og 
     }
 }
 
-fn void precomputeLoops: ->TOKENS program, i32 len, ->i32 matches{
-    stack<i32> loopStack
+fn void precomputeLoops: ->TOKENS program, i32 len, ->i32 matches{  // for now just use a fixed size array
+    stack<i32> loopStack // since i dont have yet the stack.size() method i'll use a stack size counter
     i32 stack_size = 0
     i32 pc = 0
     loop if(pc < len){
