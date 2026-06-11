@@ -10,7 +10,7 @@ Compile with
 ```
 Add `-o` to look at the C source
 ```bash
-./tigc /demos/bf/main.tc -c bf -o bfc.c
+./tigc /demos/bf/main.tc -o bfc.c
 ```
 
 Run scripts with
