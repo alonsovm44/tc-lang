@@ -4,7 +4,7 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/version-1.3.0-blue?style=flat-square" alt="Version">
+  <img src="https://img.shields.io/badge/version-1.3.1s-blue?style=flat-square" alt="Version">
   <img src="https://img.shields.io/badge/language-C11-orange?style=flat-square" alt="Language">
   <img src="https://img.shields.io/badge/license-MIT-green?style=flat-square" alt="License">
   <a href="https://ko-fi.com/alonsovm" target="_blank" rel="noopener noreferrer">
@@ -17,6 +17,7 @@
 
 Tig is a minimalistic systems programming language. 🦁🦁🦁
 
+>Note: see demo/ folder for some non trivial examples of Tig being used.
 ## What's New in v1.3.0 🚀
 
 - **Zero-Boilerplate Async** — Write concurrent code with zero setup! No manual `async_init()` or `async_shutdown()` needed. Runtime initializes automatically on first async call.
