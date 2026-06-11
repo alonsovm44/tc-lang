@@ -1,5 +1,5 @@
 # furth
-A forth like, tree walking interpreter written in Tig
+A forth like, interpreter written in Tig
 
 Demo program
 ```

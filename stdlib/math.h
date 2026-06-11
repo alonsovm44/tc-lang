@@ -9,13 +9,14 @@
 #define TC_LENOF(x) (sizeof(x) / sizeof((x)[0]))
 #define TC_FAT_LENOF(x) ((x).len)
 
+
 int64_t iabs(int64_t x);
 int64_t min(int64_t a, int64_t b);
 int64_t max(int64_t a, int64_t b);
 int64_t clamp(int64_t x, int64_t lo, int64_t hi);
 double fabs64(double x);
 double sqrt64(double x);
-double pow64(double base, double exp);
+double powf64(double base, double exp);
 
 
 int64_t iabs(int64_t x) {
@@ -68,7 +69,7 @@ double sqrt64(double x) {
     return sqrt(x);
 }
 
-double pow64(double base, double exp) {
+double powf64(double base, double exp) {
     
     return pow(base, exp);
 }

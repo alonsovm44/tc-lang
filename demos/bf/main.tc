@@ -30,6 +30,7 @@ fn ->TOKENS makeProgramArray: ->FILE f {
     loop if(!eof(f)){ //loop if not end of file
         c = filegetc(f) // this one is buggy ; SOLVED, renamed wrapper to filegetc()
         // FIX: Change codes from ascii to enum codes
+        // todo: char literals 'a' instead of ascii codes
         if(ceq(c, 60)){ // if <
            base[i] = 1 // <
         }

@@ -1,24 +1,31 @@
-1.3.1 (Next Release)
-✅ Try/catch error handling
+1.3.1 (now)
+See .todo/ todo list 
 
-✅ Comptime execution
 
-✅ FFI generator (@port)
+1.4.0 alpha (Next Release)
+[ ] Try/catch error handling
+    - define what is an error in Tig
 
-✅ C flags via --
+[ ] Comptime execution
+    - Comptime C code is good for self hosting
+    - Essential for self hosting
 
-✅ Conditional defer
+[ ] FFI generator (@port)
+    - Generate C bindings for external libraries
 
-✅ Heterogeneous stacks (stack<*>)
+[ ] C flags via --
+    - Necessary for production grade builds
 
-✅ Fixed-size stacks/queues (stack<i32>[10])
+[ ] Fixed-size/buffered stacks/queues (stack<i32>[10])
 
-v1.4.0 (Following Release)
+**Note:** We can begin the self host rewrite after this
 
-✅ Arena allocation
+v1.4.0 beta (Following Release)
 
-✅ Queue/stack ownership transfer (unified memory management)
+[ ] Arena allocation
 
-✅ Async blocks
+[ ] Queue/stack ownership transfer (unified memory management)
+    
+[ ] Async blocks (defer to post self host)
 
-✅ Conditional memory management (falls out naturally)
+[ ] Conditional memory management (falls out naturally)

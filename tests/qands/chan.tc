@@ -1,5 +1,6 @@
 // using queues as channels demo
 use "stdlib/io.tc"
+use "stdlib/snq.tc"
 use "stdlib/async.tc"
 
 async fn void worker: i32 id, queue<i32> out {
