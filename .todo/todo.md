@@ -115,6 +115,8 @@ This compiles but hangs when ran
 [ ] Build a small web server or non trivial program with Tig 1.3.1
 ---
 
+# On design choices
+
 Do we prefer implicit dereferencing for pointers (so q_ptr.push(val) just works) or explicit q_ptr.>push(val)?
 - Explicit
 
