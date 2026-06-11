@@ -1,4 +1,5 @@
-# v1.3.1
+# v1.3.2
+This patch introduces an intuitive error system. I tried to make something that is easy to learn and intuitive to use.
 
 ## Error system
 Error type 
@@ -93,3 +94,30 @@ fn void log: {
 ```
 In this case the default return value is `void`.
 
+# new keywords for 1.3.2
++ `error` (type)
++ `throw` (statement)
++ `try` (statement)
++ `catch` (statement)
+
+Total: 4 new keywords
+
+- **18 keywords** — 
+`if`, 
+`loop`, 
+`break`, 
+`defer`, 
+`ret`, 
+`strun`, 
+`fn`, 
+`use`, 
+`pub`, 
+`pin`, 
+`match`, 
+`else`, 
+`enum`, 
+`async`, 
+`select`,
+`throw`,
+`try`,
+`catch`,
