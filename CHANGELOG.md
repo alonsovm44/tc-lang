@@ -2,6 +2,7 @@
 
 Added:
 
+- added putchr() to the IO stdlib
 - added runtime async.tc to stdlib
 - added async functions with automatic runtime initialization
 - added async module with thread pool management
@@ -18,6 +19,7 @@ Removed:
 
 Improved/Fixed:
 
+- fixed fputc() not working
 - fixed queues and async not working together
 - fixed async function call code generation (removed typeof, added semicolons)
 - fixed compiler -c flag to auto-link runtime when async functions detected

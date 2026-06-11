@@ -23,6 +23,10 @@
 [ ] Make a better, non trivial raylib demo and share it
 
 # todo for 1.3.x
+- [ ] Fix bug where async.tc/async.h is included when keeping source after compilation stmt
+```bash
+tigc source.tc -c app -o source.c # this brings async.h even if it wasnt called
+```
 - [ ] Make Tig catch when we pass to few args or to many args to a function, not fallback on C to do it.
 - [ ] add more methods to stacks and queues
     - [ ] size

@@ -136,6 +136,7 @@ fn i32 main: =>->i8 args
     i32 i = 0
     loop if(i < temp_file_size)  
     {
+        i32 jumped = 0
         match(program[i]){
 
             MOV_RIGHT = 
@@ -148,22 +149,24 @@ fn i32 main: =>->i8 args
             }
             ADD = 
             {
-                ->ptr++ // add 1 to current cell value
+                ->ptr = ->ptr + 1 // add 1 to current cell value
             }
             SUB = 
             {
-                ->ptr-- // sub 1 to the current cell value
+                ->ptr = ->ptr - 1// sub 1 to the current cell value
             }
             OPEN_LOOP = 
             {
                 if(->ptr == 0){
                     i = matches[i]
+                    jumped = 1
                 }
             }
             CLOSE_LOOP = 
             {
                 if(->ptr <> 0){
                     i = matches[i]
+                    jumped = 1
                 }
             }
             STDOUT = 
@@ -178,6 +181,8 @@ fn i32 main: =>->i8 args
                 // do nothing
             }
         }
-        i++
+        if(!jumped){
+            i++
+        }
     }
 }
