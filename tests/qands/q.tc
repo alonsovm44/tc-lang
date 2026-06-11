@@ -1,4 +1,5 @@
 use "stdlib/io.tc"
+use "stdlib/snq.tc" // NEW: module now with queues and stacks
 
 fn i32 main: {
     queue<i32> q = {}

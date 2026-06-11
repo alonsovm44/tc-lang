@@ -2,7 +2,7 @@
 // Note: this program does not work yet
 use "stdlib/io.tc"
 use "stdlib/str.tc"
-
+use "stdlib/snq.tc" // NEW: module for stacks and queues
 
 enum OPERAND{
     ADD,
@@ -83,6 +83,10 @@ fn i8 isPrintStmt: u8 chr{ // no boolean type, use i8, later going to add it to 
     }
 }
 
+extern "C" {
+    i32 fn printf: ->i8 fmt, ... {}
+}
+
 fn i32 main: =>->i8 args {
 stack<f64> globalStack = {}
 
@@ -157,7 +161,7 @@ stack<f64> globalStack = {}
             // get the top value of the stack and print it
             //i64 val = (i64)globalStack.pop() // this needs casting (T)v, but it is not supported in Tig 1.3.1 yet 
             f64 val = globalStack.pop()
-            
+            printf("%f\n", val)
         }
         else if(chr== 10 || chr== 32){// do nothing
         }

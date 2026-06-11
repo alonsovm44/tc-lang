@@ -13,6 +13,7 @@ typedef struct { char * *ptr; size_t len; } tc_fat_ptr;
 
 #include "stdlib/io.h"
 #include "stdlib/str.h"
+#include "stdlib/snq.h"
 typedef enum {
     ADD,
     SUB,

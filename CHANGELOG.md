@@ -19,6 +19,7 @@ Removed:
 
 Improved/Fixed:
 
+- separated the queue and stack runtime from the async runtime
 - fixed fputc() not working
 - fixed queues and async not working together
 - fixed async function call code generation (removed typeof, added semicolons)
