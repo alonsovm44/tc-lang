@@ -7,7 +7,7 @@ Tig 1.3.0 introduces a comprehensive concurrency and ownership model designed to
 1. **Single ownership** - Data is owned by one thread at a time
 2. **Explicit transfer** - The `@` operator explicitly moves data between threads
 3. **Immutable sharing** - The `pin` keyword enables safe read-only sharing
-4. **No return values** - Async functions use channels for communication
+4. **No return values** - Async functions use channels (queues/stacks) for communication
 
 ---
 
@@ -58,8 +58,8 @@ Tig v1.3.0 classifies types into three categories with different ownership seman
    - No ownership transfer needed - each copy is independent
    - Safe to pass without `@` or `pin`
 
-2. **Reference Types** (Channels: `chan T`):
-   - Thread-safe concurrent queues with internal synchronization
+2. **Reference Types** (Channels: `queue<T> / stack<T>`):
+   - Thread-safe concurrent queues/channels with internal synchronization
    - Passing a channel copies its reference handle, not its ownership
    - Safe to pass to multiple async functions without `@` or `pin`
 

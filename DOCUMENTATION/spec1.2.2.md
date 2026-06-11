@@ -4,7 +4,7 @@
 [DISCARDED] 
 > It is unnecesary syntax sugar, postponed for later versions.
 > Beware of code diabetes, it affects 3 out of 5 programmers (according to my butt, which is not a scientific source but still)
-syntax sugar over for loops without for keyword
+syntax sugar over for loops without `for` keyword
 The variable is automatically declared as i32 and set to the first value of the range
 (in this case we make an exception for no shadowing, loop variables can be shadowed)
 ```

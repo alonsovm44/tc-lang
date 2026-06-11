@@ -1,0 +1,16 @@
+use "stdlib/io.tc"
+
+fn void main:
+{
+    ->i32 ptr = alloc(i32, 5)
+    ptr[0] = 10
+    ptr[1] = 20
+    ptr[2] = 30
+    ptr[3] = 40
+    ptr[4] = 50
+    printi(ptr[0])
+    printi(ptr[1])
+    printi(ptr[2])
+    printi(ptr[3])
+    printi(ptr[4])
+}

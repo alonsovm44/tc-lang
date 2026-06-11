@@ -1,4 +1,20 @@
 # a brainfuck interpreter in Tig
+You need Tig 1.3.1 to compile this script. 
+Look at the repo root to see how to compile Tig
+
+Compile with
+```bash
+./tigc /demos/brainfuck/main.tc -c bf 
+```
+Add `-o` to look at the C source
+```bash
+./tigc /demos/brainfuck/main.tc -c bf -o bfc.c
+```
+
+Run scripts with
+```sh
+./bf script.bf
+```
 
 ## Bf rules
 |+ |increases current cell value by 1, wraps if overflow of 255

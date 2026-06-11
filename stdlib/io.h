@@ -10,13 +10,13 @@
 #define TC_FAT_LENOF(x) ((x).len)
 
 
-
 int32_t writef(char *s, FILE *stream);
 int32_t fputc(int32_t c, FILE *stream);
 FILE *openf(char *file, char *mode);
 int32_t closef(FILE *f);
-int32_t fgetc(FILE *stream);
+int32_t filegetc(FILE *stream);
 int32_t fprintpf(FILE *stream, char *fmt, ...);
+int32_t putchr(int32_t c);
 void print(char *s);
 void printflt(double n);
 void printn(char *s);
@@ -47,7 +47,7 @@ int32_t closef(FILE *f) {
     return fclose(f);
 }
 
-int32_t fgetc(FILE *stream) {
+int32_t filegetc(FILE *stream) {
     
     return fgetc(stream);
 }
@@ -55,6 +55,11 @@ int32_t fgetc(FILE *stream) {
 int32_t fprintpf(FILE *stream, char *fmt, ...) {
     
     return fprintf(stream, fmt);
+}
+
+int32_t putchr(int32_t c) {
+    
+    return putchar(c);
 }
 
 void print(char *s) {

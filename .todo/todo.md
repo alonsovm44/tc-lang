@@ -23,6 +23,14 @@
 [ ] Make a better, non trivial raylib demo and share it
 
 # todo for 1.3.x
+- [ ] Make Tig catch when we pass to few args or to many args to a function, not fallback on C to do it.
+- [ ] add more methods to stacks and queues
+    - [ ] size
+    - [ ] clear
+    - [ ] isEmpty <!-- maybe not needed, we could just check size -->
+
+- [ ] Enforce 1.3 move semantics, moving is working without `@`
+- [ ] Make multiple return values via queues/stacks work for sync functions.
 - [ ] add inline braceless defer statements for ergonomics
 ```
 defer free(ptr)

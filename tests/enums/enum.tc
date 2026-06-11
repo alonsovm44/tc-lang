@@ -27,3 +27,4 @@ fn i32 main: {
         }
     }
 }
+// should print option 2, Correct: it prints "piece is a king"

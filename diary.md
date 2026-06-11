@@ -79,3 +79,10 @@ Turns out i was right, the array lives on the stack and it is static, while the 
 Wouldn't it be cool if Tig managed at compile time all resource allocations? we already have defer, but something that injected free() stmts where they should at comptime?
 You would be making code that looks unsafe but Tig free()'s memory under the hood. But we could stick with defer for now. 
 
+
+## June 10
+I discovered a bug, in sync functions, passing queues/stacks as arguments does not work. It only seems to work with async functions.
+Probably today i will have internet again, hope so. 
+
+I found what was wrong with fgetc(), the problem was that both the wrapper and the C function were called the same, and it caused infinite recursion glitch.
+I renamed it to filegetc() and it seems to work now. 

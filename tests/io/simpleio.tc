@@ -1,4 +1,5 @@
 use "stdlib/io.tc"
+// simple IO test
 
 fn i32 main: =>->i8 args {
 
@@ -8,12 +9,14 @@ fn i32 main: =>->i8 args {
     }
     else
     {
-    printn("Could open file 'test.txt', now testing reading.")
+    printn("Could open file 'test.txt', now testing reading.: ")
     }
 
-    i32 c = fgetc(f) // problem is here
+    loop if(!eof(f)){
+        i32 c = filegetc(f) // problem is here
+        putchr(c)
+    }
  
-    printi(c)
     closef(f)
 
     ->FILE q = openf("a.txt", "w")

@@ -1,0 +1,14 @@
+use "stdlib/io.tc"
+use "stdlib/async.tc"
+
+async fn void consumer: ->i32 data {
+    printi(->data)
+}
+
+fn i32 main: {
+    i32 x = 42
+    ->i32 ptr = &x
+    consumer(ptr)  // ptr moved to consumer
+    // ptr is dead here
+    ret 0
+}

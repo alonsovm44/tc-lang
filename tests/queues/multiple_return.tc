@@ -1,0 +1,21 @@
+
+use "stdlib/io.tc"
+use "stdlib/async.tc"
+
+//FIX: it does not work for sync functions
+async fn void multiple_return_fn: i32 x, i32 y, queue<i32> q 
+{
+    q.push(x+y)
+    q.push(x*y)
+}
+
+fn i32 main: {
+    i32 a = 10
+    i32 b = 20
+
+    queue<i32> q = {}
+
+    multiple_return_fn(a, b, q)
+    printi(q.pop())
+    printi(q.pop())
+}

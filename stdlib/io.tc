@@ -31,13 +31,19 @@ i32 fn closef: ->FILE f {
     ret fclose(f)
 }
 
-i32 fn fgetc: ->FILE stream { // this one is broken, it causes hangs and the OS kills the process
+i32 fn filegetc: ->FILE stream { // this one is broken, it causes hangs and the OS kills the process
+//SOLVED: the problem was that both the wrapper and the C function were called fgetc() causing infinite recursion.
+// changed the name to filegetc, it is more text but it is clearer
     ret fgetc(stream) 
 }
 
 // fprintpf
 i32 fn fprintpf: ->FILE stream, ->i8 fmt, ... {
     ret fprintf(stream, fmt, ...)
+}
+
+i32 fn putchr: i32 c {
+    ret putchar(c)
 }
 
 // print a string with newline
@@ -47,7 +53,7 @@ void fn print: ->i8 s {
     ret
 }
 
-// print a float with newline
+// print a float with newline (broken, TODO: fix this)
 void fn printflt: f64 n {
     printf("%f", n)
     putchar(10)
