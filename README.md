@@ -1,5 +1,5 @@
 <p align="center">
-  <h1 align="center">Tig</h1>
+  <h1 align="center">Tig 🦁</h1>
   <p align="center">Simplest possible, usable systems language</p>
 </p>
 
@@ -15,7 +15,7 @@
 
 ---
 
-Tig is a minimalistic systems programming language.
+Tig is a minimalistic systems programming language. 🦁🦁🦁
 
 ## What's New in v1.3.0 🚀
 

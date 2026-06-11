@@ -55,7 +55,7 @@ i32 a; i32 b;
 i32 i; loop if(i < 100){} // more ergonomic
 ```
 - [ ] Add a function to the stdlib that converts a fatptr string into a normal string
-- [ ] Enforce everything being private by default, since pub does nothing since 1.1.
+- [ ] Enforce everything being private by default, since `pub` does nothing since 1.1.
 - [x] Fix defer not working
 - [ ] Test ciclical imports on `use` stmt, make a #pragma once equivalent if needed
 
