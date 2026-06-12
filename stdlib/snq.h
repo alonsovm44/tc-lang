@@ -44,7 +44,7 @@ int stack_size(Stack *s);
 void stack_clear(Stack *s);
 int stack_isEmpty(Stack *s);
 
-#include "snq.h"
+#include "snq.h" // for some reason, removing this breaks everything, so dont remove
 
 Queue queue_create(int capacity) {
     Queue q = {0};
