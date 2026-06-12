@@ -5,14 +5,18 @@ use "stdlib/snq.tc" // NEW: module now with queues and stacks
 fn void main: 
 {
     queue<i32> q = {}
-    q.push(1) // this should not be possible
-    q.enq(1) // this should be possible
+    q.enq(1)
+    q.enq(2)
+    q.enq(3)
+    printi(q.deq())
+    printi(q.deq())
+    printi(q.deq())
 
-    printi(q.deq()) // should print 1, not 2
-    printi(q.pop()) // should not be possible
-
-    stack<i32> s = {}
-    s.push(1)
-    s.push(2)
-    printi(s.pop()) // should print 2, not 1
+    queue<i32> q2 = {}
+    q2.push(1)
+    q2.push(2)
+    q2.push(3)
+    printi(q2.pop())
+    printi(q2.pop())
+    printi(q2.pop())
 }

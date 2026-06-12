@@ -356,13 +356,16 @@ static void emit_expr(Str *out, Expr *e, DeclVec *program) {
             break;
         case EX_QUEUE_METHOD: {
             // Generate queue/stack method calls
-            Type *inner = e->left && e->left->type ? e->left->type->inner : NULL;
-            bool is_stack = e->left && e->left->type && (e->left->type->kind == TY_STACK || (e->left->type->kind == TY_RAWPTR && e->left->type->inner && e->left->type->inner->kind == TY_STACK));
+            Type *left_type = e->left && e->left->type ? e->left->type : NULL;
+            Type *queue_stack_type = left_type;
+            if (queue_stack_type && queue_stack_type->kind == TY_RAWPTR) queue_stack_type = queue_stack_type->inner;
+            Type *inner = queue_stack_type ? queue_stack_type->inner : NULL;
+            bool is_stack = queue_stack_type && queue_stack_type->kind == TY_STACK;
             Str item_type = {0};
             if (inner) emit_type(&item_type, inner, "", program);
             else str_add(&item_type, "void");
 
-            bool left_is_ptr = e->left && e->left->type && e->left->type->kind == TY_RAWPTR && e->left->type->inner && (e->left->type->inner->kind == TY_QUEUE || e->left->type->inner->kind == TY_STACK);
+            bool left_is_ptr = left_type && left_type->kind == TY_RAWPTR;
             if (!left_is_ptr && e->left && e->left->kind == EX_NAME) {
                 bool async_stack = false;
                 if (async_param_is_queue_or_stack(e->left->text, &async_stack)) {
@@ -370,8 +373,10 @@ static void emit_expr(Str *out, Expr *e, DeclVec *program) {
                     if (async_stack) is_stack = true;
                 }
             }
+            // Always take address for C API since functions expect pointers
+            const char *addr = left_is_ptr ? "" : "&";
             if (!strcmp(e->text, "push") || !strcmp(e->text, "enq")) {
-                str_printf(out, "%s_push(%s", is_stack ? "stack" : "queue", left_is_ptr ? "" : "&");
+                str_printf(out, "%s_push(%s", is_stack ? "stack" : "queue", addr);
                 emit_expr(out, e->left, program);
                 str_add(out, ", &(");
                 str_add(out, item_type.data);
@@ -385,22 +390,22 @@ static void emit_expr(Str *out, Expr *e, DeclVec *program) {
                 str_add(out, item_type.data);
                 str_add(out, "*)");
                 if (!strcmp(e->text, "peek")) {
-                    str_printf(out, "%s_peek(%s", is_stack ? "stack" : "queue", left_is_ptr ? "" : "&");
+                    str_printf(out, "%s_peek(%s", is_stack ? "stack" : "queue", addr);
                 } else {
-                    str_printf(out, "%s_pop(%s", is_stack ? "stack" : "queue", left_is_ptr ? "" : "&");
+                    str_printf(out, "%s_pop(%s", is_stack ? "stack" : "queue", addr);
                 }
                 emit_expr(out, e->left, program);
                 str_add(out, ")");
             } else if (!strcmp(e->text, "size")) {
-                str_printf(out, "%s_size(%s", is_stack ? "stack" : "queue", left_is_ptr ? "" : "&");
+                str_printf(out, "%s_size(%s", is_stack ? "stack" : "queue", addr);
                 emit_expr(out, e->left, program);
                 str_add(out, ")");
             } else if (!strcmp(e->text, "clear")) {
-                str_printf(out, "%s_clear(%s", is_stack ? "stack" : "queue", left_is_ptr ? "" : "&");
+                str_printf(out, "%s_clear(%s", is_stack ? "stack" : "queue", addr);
                 emit_expr(out, e->left, program);
                 str_add(out, ")");
-            } else if (!strcmp(e->text, "isEmpty")) {
-                str_printf(out, "%s_isEmpty(%s", is_stack ? "stack" : "queue", left_is_ptr ? "" : "&");
+            } else if (!strcmp(e->text, "isEmpty") || !strcmp(e->text, "is_empty")) {
+                str_printf(out, "%s_isEmpty(%s", is_stack ? "stack" : "queue", addr);
                 emit_expr(out, e->left, program);
                 str_add(out, ")");
             }

@@ -226,13 +226,24 @@ static void check_expr(Expr *e, ScopeStack *s) {
         case EX_METHOD_CALL:
             check_expr(e->left, s);
             for (int i = 0; i < e->args.count; i++) check_expr(e->args.items[i], s);
-            if (e->left->type && (e->left->type->kind == TY_QUEUE || e->left->type->kind == TY_STACK) &&
-                (!strcmp(e->text, "push") || !strcmp(e->text, "enq") || !strcmp(e->text, "pop") || !strcmp(e->text, "deq") || !strcmp(e->text, "peek"))) {
+            Type *left_type = e->left->type;
+            bool is_queue_stack = left_type && (left_type->kind == TY_QUEUE || left_type->kind == TY_STACK);
+            if (!is_queue_stack && left_type && left_type->kind == TY_RAWPTR && left_type->inner) {
+                is_queue_stack = (left_type->inner->kind == TY_QUEUE || left_type->inner->kind == TY_STACK);
+            }
+            if (is_queue_stack &&
+                (!strcmp(e->text, "push") || !strcmp(e->text, "enq") || !strcmp(e->text, "pop") || !strcmp(e->text, "deq") || !strcmp(e->text, "peek") ||
+                 !strcmp(e->text, "size") || !strcmp(e->text, "clear") || !strcmp(e->text, "isEmpty") || !strcmp(e->text, "is_empty"))) {
                 e->kind = EX_QUEUE_METHOD;
                 if (!strcmp(e->text, "pop") || !strcmp(e->text, "deq") || !strcmp(e->text, "peek")) {
-                    if (e->left->type && e->left->type->inner) {
-                        e->type = e->left->type->inner;
+                    Type *inner_type = left_type;
+                    if (left_type->kind == TY_RAWPTR && left_type->inner) inner_type = left_type->inner;
+                    if (inner_type && inner_type->inner) {
+                        e->type = inner_type->inner;
                     }
+                } else if (!strcmp(e->text, "size") || !strcmp(e->text, "isEmpty") || !strcmp(e->text, "is_empty")) {
+                    e->type = new_type(TY_NAME);
+                    e->type->name = xstrdup("i32");
                 } else {
                     e->type = new_type(TY_NAME);
                     e->type->name = xstrdup("void");

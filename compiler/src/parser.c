@@ -502,6 +502,12 @@ static Stmt *parse_stmt(Parser *p) {
         s->body = parse_block(p);
         return s;
     }
+    if (match(p, "while")) {
+        Stmt *s = new_stmt(ST_LOOP);
+        expect(p, "("); s->expr = parse_expr(p); expect(p, ")");
+        s->body = parse_block(p);
+        return s;
+    }
     if (match(p, "match")) {
         Stmt *s = new_stmt(ST_MATCH);
         expect(p, "("); s->expr = parse_expr(p); expect(p, ")");

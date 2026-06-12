@@ -13,11 +13,11 @@
 #include "stdlib/io.h"
 #include "stdlib/snq.h"
 #include "stdlib/async.h"
-void worker(int32_t id, Queue out);
+void worker(int32_t id, Queue *out);
 void main(void);
 
 // Wrapper for async function worker
-struct worker_args {int32_t arg0; Queue arg1; };
+struct worker_args {int32_t arg0; Queue *arg1; };
 static void worker_wrapper(void *arg) {
     struct worker_args *data = arg;
     worker(data->arg0, data->arg1);
@@ -25,7 +25,7 @@ static void worker_wrapper(void *arg) {
 }
 
 
-void worker(int32_t id, Queue out) {
+void worker(int32_t id, Queue *out) {
     queue_push(out, &(int32_t){ (id * 2) }, sizeof(int32_t));
 }
 
@@ -33,7 +33,7 @@ void main(void) {
     Queue results = queue_create(0);
     int32_t i = 0;
     while ((i < 5)) {
-        struct worker_args {int32_t arg0; Queue arg1; };
+        struct worker_args {int32_t arg0; Queue *arg1; };
 struct worker_args *arg = malloc(sizeof(struct worker_args));
 arg->arg0 = i;
 arg->arg1 = &results;
