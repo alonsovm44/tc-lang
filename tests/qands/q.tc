@@ -4,8 +4,8 @@ use "stdlib/snq.tc" // NEW: module now with queues and stacks
 fn i32 main: {
     queue<i32> q = {}
 
-    q.push(1)
-    q.push(2)
+    q.enq(1) // queues can use both enq and push
+    q.enq(2)
 
     printi(q.pop())
     printi(q.pop()) // should print 2, not 1

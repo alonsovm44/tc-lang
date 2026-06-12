@@ -503,7 +503,7 @@ int main(int argc, char **argv) {
 
             char cmd[1024];
             if (needs_runtime) {
-                snprintf(cmd, sizeof(cmd), "%s \"%s\" -std=c11 -lm -o \"%s\" \"compiler/src/runtime.o\" \"stdlib/snq.o\"", cc, tmp_c, compile_out);
+                snprintf(cmd, sizeof(cmd), "%s \"%s\" -std=c11 -lm -o \"%s\" \"compiler/src/runtime.o\"", cc, tmp_c, compile_out);
             } else {
                 snprintf(cmd, sizeof(cmd), "%s \"%s\" -std=c11 -lm -o \"%s\"", cc, tmp_c, compile_out);
             }
