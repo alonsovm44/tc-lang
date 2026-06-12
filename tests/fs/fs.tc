@@ -1,0 +1,12 @@
+use "stdlib/fs.tc"
+use "stdlib/io.tc"
+
+fn void main: 
+{
+    ->FILE f = openf("test.txt", "r")
+    if (f == 0) {
+        println("Failed to open file")
+        ret
+    }
+    fclose(f)
+}

@@ -1,10 +1,12 @@
 // brainfuck interpreter written in Tig
 // rules
 //1- All handwritten.
-//2- No AI codegen
+//2- No AI codegen slop
 //3- Using AI to do research and explain errors is OK
 use "stdlib/io.tc"
 use "stdlib/str.tc"
+use "stdlib/fs.tc"
+
 # temp_file_size{30*1024} // macro
 
 enum TOKENS{

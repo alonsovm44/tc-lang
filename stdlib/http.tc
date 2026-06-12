@@ -72,7 +72,7 @@ fn HttpResponse http_perform_with_callback: HttpMethod method, ->i8 url, queue<-
     ->void curl = curl_easy_init()
     
     HttpResponse resp
-    resp.success = false
+    resp.success = 0
     resp.body = 0
     resp.body_len = 0
     resp.status_code = 0
@@ -87,7 +87,7 @@ fn HttpResponse http_perform_with_callback: HttpMethod method, ->i8 url, queue<-
     curl_easy_setopt_str(curl, 10002, url)  // CURLOPT_URL
     
     // Set callback
-    if (callback != 0) {
+    if (callback <> 0) {
         curl_easy_setopt_pointer(curl, 20011, (->void)callback)  // CURLOPT_WRITEFUNCTION
         curl_easy_setopt_long(curl, 10001, (i64)userdata)  // CURLOPT_WRITEDATA
     }
@@ -95,12 +95,12 @@ fn HttpResponse http_perform_with_callback: HttpMethod method, ->i8 url, queue<-
     // Set method and body
     if (method == POST) {
         curl_easy_setopt_long(curl, 47, 1)  // CURLOPT_POST
-        if (body != 0) {
+        if (body <> 0) {
             curl_easy_setopt_str(curl, 10015, body)  // CURLOPT_POSTFIELDS
         }
     } else if (method == PUT) {
         curl_easy_setopt_str(curl, 10036, "PUT")  // CURLOPT_CUSTOMREQUEST
-        if (body != 0) {
+        if (body <> 0) {
             curl_easy_setopt_str(curl, 10015, body)
         }
     } else if (method == DELETE) {
@@ -109,7 +109,7 @@ fn HttpResponse http_perform_with_callback: HttpMethod method, ->i8 url, queue<-
         curl_easy_setopt_long(curl, 96, 1)  // CURLOPT_NOBODY
     } else if (method == PATCH) {
         curl_easy_setopt_str(curl, 10036, "PATCH")
-        if (body != 0) {
+        if (body <> 0) {
             curl_easy_setopt_str(curl, 10015, body)
         }
     }
@@ -141,8 +141,9 @@ fn HttpResponse http_get: ->i8 url {
     buf.buffer = alloc(u8, 4096)
     buf.len = 0
     buf.cap = 4096
+    queue<->i8> empty_headers = {}
     
-    HttpResponse resp = http_perform_with_callback(GET, url, {}, 0, default_write_callback, &buf)
+    HttpResponse resp = http_perform_with_callback(GET, url, empty_headers, 0, default_write_callback, &buf)
     
     if (resp.success) {
         // Add null terminator for string convenience
@@ -160,13 +161,13 @@ fn HttpResponse http_get: ->i8 url {
 }
 
 // GET with custom callback (streaming)
-fn HttpResponse http_get_stream: ->i8 url, fn(i32) fn WriteCallback: (->u8, i64, ->void*) callback, ->void* userdata {
-    ret http_perform_with_callback(GET, url, {}, 0, callback, userdata)
+fn HttpResponse http_get_stream: ->i8 url, fn(->u8, i64, ->void)i32 WriteCallback, queue<->i8> callback, ->void userdata {
+    ret http_perform_with_callback(GET, url, callback, 0, callback, userdata)
 }
 
 // POST with custom callback
-fn HttpResponse http_post_stream: ->i8 url, ->i8 data, fn(i32) fn WriteCallback: (->u8, i64, ->void*) callback, ->void* userdata {
-    ret http_perform_with_callback(POST, url, {}, data, callback, userdata)
+fn HttpResponse http_post_stream: ->i8 url, ->i8 data, fn(->u8, i64, ->void)i32 WriteCallback, queue<->i8> callback, ->void userdata {
+    ret http_perform_with_callback(POST, url, callback, data, callback, userdata)
 }
 
 // Convenience wrappers
@@ -180,10 +181,10 @@ fn HttpResponse http_post_json: ->i8 url, ->i8 json_body {
 
 // Free response
 fn void http_response_free: ->HttpResponse resp {
-    if (resp.body != 0) {
+    if (resp.body <> 0) {
         free(resp.body)
     }
-    if (resp.error_msg != 0) {
+    if (resp.error_msg <> 0) {
         free(resp.error_msg)
     }
 }
