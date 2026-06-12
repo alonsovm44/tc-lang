@@ -4,7 +4,7 @@ use "stdlib/snq.tc"
 use "stdlib/async.tc"
 
 async fn void worker: i32 id, ->queue<i32> out { // old queue<i32> out, now: ->queue<i32> out
-    out.push(id * 2)
+    out.>push(id * 2)
 }
 
 fn void main: {

@@ -12,5 +12,13 @@ fn void func: queue<i32> q {
 fn i32 main: {
     queue<i32> q = {0,1,2}
     func(q)
+    i32 x
+    q.enq(3)
+    print("About to pop...\n")
+    x = q.pop() // should give 0
+    printi(q.deq()) // should give 1
+    printi(q.deq()) // should give 2
+    printi(q.deq()) // should give 3
+    printi(x)
     ret 0
 }
