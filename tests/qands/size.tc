@@ -1,7 +1,7 @@
 use "stdlib/io.tc"
 use "stdlib/snq.tc"
 
-fn void func: queue<i32> q{
+fn void func: queue<i32> q {
     if (q.size() == 0){
         print("Queue is empty\n")
     } else {

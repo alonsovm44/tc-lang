@@ -1,5 +1,5 @@
 use "stdlib/io.tc"
-
+// deprecated, now built in method .size()
 fn i32 getQLen: queue<u8> q{
 
     u8 i = 0

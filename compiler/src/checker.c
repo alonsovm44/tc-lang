@@ -162,19 +162,21 @@ static void check_expr(Expr *e, ScopeStack *s) {
                                 e->text, expected_params, actual_args);
                         }
                     }
-                    // Check that owned arguments are passed with @ operator
-                    for (int i = 0; i < e->args.count && i < fn->params.count; i++) {
-                        Expr *arg = e->args.items[i];
-                        Type *param_type = fn->params.items[i].type;
-                        // If parameter expects an owned type (pointer)
-                        if (param_type && (param_type->kind == TY_RAWPTR || param_type->kind == TY_FATPTR)) {
-                            // Check if argument is a variable name without @
-                            if (arg->kind == EX_NAME) {
-                                VarInfo *var = get_var_info(s, arg->text);
-                                if (var && var->is_owned) {
-                                    // Variable is owned but not marked with @
-                                    tc_error("E017", e->line, e->col, (int)strlen(arg->text),
-                                        "Owned variable '%s' must be passed with @ operator", arg->text);
+                    // Check that owned arguments are passed with @ operator (only for async functions)
+                    if (fn->is_async) {
+                        for (int i = 0; i < e->args.count && i < fn->params.count; i++) {
+                            Expr *arg = e->args.items[i];
+                            Type *param_type = fn->params.items[i].type;
+                            // If parameter expects an owned type (pointer)
+                            if (param_type && (param_type->kind == TY_RAWPTR || param_type->kind == TY_FATPTR)) {
+                                // Check if argument is a variable name without @
+                                if (arg->kind == EX_NAME) {
+                                    VarInfo *var = get_var_info(s, arg->text);
+                                    if (var && var->is_owned) {
+                                        // Variable is owned but not marked with @
+                                        tc_error("E017", e->line, e->col, (int)strlen(arg->text),
+                                            "Owned variable '%s' must be passed with @ operator", arg->text);
+                                    }
                                 }
                             }
                         }

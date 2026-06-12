@@ -1,9 +1,11 @@
-fn void consume: ->i32 p {
+use "stdlib/async.tc"
+
+async fn void consume: ->i32 p {
     // Consume the pointer
 }
 
 fn i32 main: {
     ->i32 x = alloc(i32, 1)
-    consume(@x)  // Should succeed: owned variable passed with @
+    consume(@x)  // Should succeed: owned variable passed with @ to async function
     ret 0
 }

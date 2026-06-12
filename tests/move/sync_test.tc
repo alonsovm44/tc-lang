@@ -1,0 +1,11 @@
+fn void consume: ->i32 p {
+    // Consume the pointer
+}
+
+fn i32 main: {
+    ->i32 x = alloc(i32, 1)
+    consume(x)  // Should succeed: sync function doesn't require @
+    ret 0
+}
+
+// Tests passed(x)
