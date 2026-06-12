@@ -1,123 +1,92 @@
-# v1.3.2
-This patch introduces an intuitive error system. I tried to make something that is easy to learn and intuitive to use.
-
-## Error system
-Error type 
-
-error MyError: T args,... {
-
-}
-
-Example:
-error BufferOverflow: i32 size, buffer buf{
-    // code that executes when the exception happens
-    printf("Error buffer overflow in buffer %s with size %d", buf, size)
-    free(buf)
-}
-
-fn void myFunction(): {
-    // function body
-    try {
-        risky_fn()
-    }
-    catch {
-        BufferOverflow(1024, buf) ret 1,
-        myErrorFoo(a,c,d) ret 0,
-        myError2(d,e,f) ret -1, 
-        _ {
-            // code that executes when any other error is thrown
-            ret 1
-        }
-        // wildcard, matches any error
-        //catch has no body, we just list the error "functions" that could be thrown, if none are thrown, the catch block is not executed
-    }   // the `ret X` part is optional, if not specified, the default return value is 1
-}
-### Other rules
-- The `ret` statement is optional, if not specified, the default return value is 1
-- You can't throw errors inside error
-- Void functions dont return 1 as a default, it is the only exception.
-Bad:
-
-    error MyError: {
-        throw OtherError(arg) // not allowed
-    }
-### Practical example
+# todo for 1.3.x
+- [x] Separate stacks and queues from async to their own stdlib module [DONE]
+- [x] HIGH PRIORITY: Fix async.h being included for non-async code [DONE]
+      - type_needs_runtime() incorrectly returns true for queue/stack
+      - decl_needs_runtime() should only care about async functions
+      - Test: queue/stack declaration without async should NOT include async.h [DONE]
+```bash
+tigc source.tc -c app -o source.c # this brings async.h even if it wasnt called
 ```
-// Define errors with their behavior
-error BufferOverflow: i32 size, buffer buf {
-    printf("Buffer overflow in %s, size: %d", buf, size)
-    free(buf)
-}
+- [ ] Fix bug where queues and stacks cant be freed when allocated
+    - Add queue_free and stack_free functions
+- [ ] Make Tig catch when we pass to few args or to many args to a function, not fallback on C to do it.
+- [ ] add more methods to stacks and queues
+    - [ ] size
+    - [ ] clear
+    - [ ] isEmpty <!-- maybe not needed, we could just check size -->
 
-error FileNotFound: ->i8 path {
-    printf("File not found: %s", path)
-}
-
-error PermissionDenied: ->i8 path {
-    printf("Permission denied: %s", path)
-}
-
-// Use them
-fn i32 read_config: ->i8 path {
-    try {
-        file = open(path)      // might throw FileNotFound or PermissionDenied
-        data = read(file)      // might throw ReadError
-        config = parse(data)   // might throw ParseError
-        ret 0
-    }
-    catch {
-        FileNotFound(path) ret -1,
-        PermissionDenied(path) ret -2,
-        BufferOverflow(1024, temp_buffer) ret -3,
-        _ {
-            printf("Unknown error in read_config")
-            ret -99
-        }
-    }
-}
+- [ ] Enforce 1.3 move semantics, moving is working without `@`
+- [ ] Make multiple return values via queues/stacks work for sync functions.
+- [ ] add inline braceless defer statements for ergonomics
 ```
-### Q1: What causes an error?
+defer free(ptr)
 ```
-if(errorCondition){
-    throw ErrorName(args...)
-}
+- [ ] Make extern C calls work for variables, not just for functions.
+- [ ] Make inline C work in the global scope
+- [ ] Make extern calls work with old and new syntax fn T, and T fn
+- [ ] add multiline decls (enforce optional semicolon)
+```
+i32 a; i32 b;
 
+i32 i; loop if(i < 100){} // more ergonomic
+```
+- [ ] Add a function to the stdlib that converts a fatptr string into a normal string
+- [ ] Enforce everything being private by default, since `pub` does nothing since 1.1.
+- [x] Fix defer not working
+- [ ] Test ciclical imports on `use` stmt, make a #pragma once equivalent if needed
+
+- [ ] Add multidimensional array support 
+```
+i32[8][8] chessboard = {}
+i32[255][255][255] cube = {} 
+```
+>note: aparently this is supported already**
+>note to self: test thoroughly**
+- [ ] add boolean types, 0 or 1.
+- [X] add a dedicated module to the stdlib to manage queues and stacks [DONE]
+
+- [done] FIX IO NOT WORKING, specifically reading files.
+    - writef works.
+    - openf works
+    - fgetc is broken
+
+- [ ] Implement pointers to stacks and queues
+- [x] Implement stack and queue primitives
+- [x] Implement basic stack and pointer features
+    - [x] Stack operations (push, pop, peek)
+    - [x] Queue operations (enq, deq, peek)
+    - [ ] Pointer operations for stack and queue types
+
+- [x] Implement async functions
+    - [ ] Fix async functions
+    > i forgot what is wrong with them. 
+    > found it, the async runtime is not working, added notes on tests/async/
+
+- [ ] explicit casting
+```
+i32 x = 5
+f64 y = (f64)x
 ```
 
-### Q2: What's the default return value for void functions?
-
-```tc
-fn void log: {
-    try { risky() }
-    catch { BufferOverflow() ret void }  // no ret, returns void
-}
+- [x] fix Tig compiler asking for ";" when it is optional
+- [x] Fix emmiter to handle this case:
 ```
-In this case the default return value is `void`.
+i32 x = 10
+async foo(&x) // it produces bad code
+```
 
-# new keywords for 1.3.2
-+ `error` (type)
-+ `throw` (statement)
-+ `try` (statement)
-+ `catch` (statement)
+- [x] fix the emitter to handle this case
+```
+i32 x = 110
+->i32 ptr = &x
+foo(ptr)
 
-Total: 4 new keywords
+```
+This compiles but hangs when ran
 
-- **18 keywords** — 
-`if`, 
-`loop`, 
-`break`, 
-`defer`, 
-`ret`, 
-`strun`, 
-`fn`, 
-`use`, 
-`pub`, 
-`pin`, 
-`match`, 
-`else`, 
-`enum`, 
-`async`, 
-`select`,
-`throw`,
-`try`,
-`catch`,
+[x] debug why wc.tc hangs when ran (windows file locking issue) ( no, the problem is fgetc)
+
+[ ] Exhaustively test 1.3.0 - 1.3.1 features before moving on to 1.4.0alpha
+[ ] Expand stdlib to include web/http features
+[ ] Build a small web server or non trivial program with Tig 1.3.1
+---

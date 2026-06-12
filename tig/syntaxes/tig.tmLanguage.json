@@ -24,6 +24,15 @@
 			"include": "#struct-enum-definitions"
 		},
 		{
+			"include": "#error-definitions"
+		},
+		{
+			"include": "#try-catch-block"
+		},
+		{
+			"include": "#throw-statement"
+		},
+		{
 			"include": "#strings"
 		},
 		{
@@ -138,11 +147,11 @@
 			"patterns": [
 				{
 					"name": "keyword.control.tig",
-					"match": "\\b(if|else|loop|break|defer|ret|match|select|continue|return)\\b"
+					"match": "\\b(if|else|loop|break|defer|ret|match|select|continue|return|throw|try|catch)\\b"
 				},
 				{
 					"name": "keyword.declaration.tig",
-					"match": "\\b(fn|async|strun|struct|enum|use|pub|pin|extern|defer)\\b"
+					"match": "\\b(fn|async|strun|struct|enum|error|use|pub|pin|extern|defer)\\b"
 				},
 				{
 					"name": "constant.language.tig",
@@ -320,6 +329,125 @@
 							"include": "#enum-members"
 						}
 					]
+				}
+			]
+		},
+		"error-definitions": {
+			"patterns": [
+				{
+					"name": "meta.error.definition.tig",
+					"begin": "\\b(error)\\s+([a-zA-Z_][a-zA-Z0-9_]*)\\s*(:)",
+					"beginCaptures": {
+						"1": { "name": "keyword.declaration.error.tig" },
+						"2": { "name": "entity.name.type.error.tig" },
+						"3": { "name": "punctuation.definition.error.parameters.tig" }
+					},
+					"end": "\\}",
+					"patterns": [
+						{
+							"name": "meta.error.parameters.tig",
+							"begin": "(?<=:)\\s*",
+							"end": "(?=\\{)",
+							"patterns": [
+								{
+									"name": "meta.error.parameter.tig",
+									"match": "([a-zA-Z_][a-zA-Z0-9_>*]*)\\s+([a-zA-Z_][a-zA-Z0-9_]*)",
+									"captures": {
+										"1": { "name": "storage.type.parameter.tig" },
+										"2": { "name": "variable.parameter.error.tig" }
+									}
+								},
+								{
+									"name": "punctuation.separator.parameters.tig",
+									"match": ","
+								}
+							]
+						},
+						{
+							"name": "meta.error.body.tig",
+							"begin": "\\{",
+							"end": "\\}",
+							"beginCaptures": {
+								"0": { "name": "punctuation.section.block.begin.tig" }
+							},
+							"endCaptures": {
+								"0": { "name": "punctuation.section.block.end.tig" }
+							},
+							"patterns": [
+								{
+									"include": "$base"
+								}
+							]
+						}
+					]
+				}
+			]
+		},
+		"try-catch-block": {
+			"patterns": [
+				{
+					"name": "meta.try-catch.tig",
+					"begin": "\\b(try)\\s*(?=\\{)",
+					"beginCaptures": {
+						"1": { "name": "keyword.control.try.tig" }
+					},
+					"end": "(?<=\\})",
+					"patterns": [
+						{
+							"name": "meta.try.body.tig",
+							"begin": "\\{",
+							"end": "\\}",
+							"beginCaptures": {
+								"0": { "name": "punctuation.section.block.begin.tig" }
+							},
+							"endCaptures": {
+								"0": { "name": "punctuation.section.block.end.tig" }
+							},
+							"patterns": [
+								{
+									"include": "$base"
+								}
+							]
+						},
+						{
+							"name": "meta.catch.tig",
+							"begin": "\\b(catch)\\s*(?=\\{)",
+							"beginCaptures": {
+								"1": { "name": "keyword.control.catch.tig" }
+							},
+							"end": "\\}",
+							"patterns": [
+								{
+									"name": "meta.catch.body.tig",
+									"begin": "\\{",
+									"end": "\\}",
+									"beginCaptures": {
+										"0": { "name": "punctuation.section.block.begin.tig" }
+									},
+									"endCaptures": {
+										"0": { "name": "punctuation.section.block.end.tig" }
+									},
+									"patterns": [
+										{
+											"include": "$base"
+										}
+									]
+								}
+							]
+						}
+					]
+				}
+			]
+		},
+		"throw-statement": {
+			"patterns": [
+				{
+					"name": "meta.throw.tig",
+					"match": "\\b(throw)\\s+([a-zA-Z_][a-zA-Z0-9_]*)",
+					"captures": {
+						"1": { "name": "keyword.control.throw.tig" },
+						"2": { "name": "entity.name.error.tig" }
+					}
 				}
 			]
 		},

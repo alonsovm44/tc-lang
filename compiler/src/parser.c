@@ -494,6 +494,53 @@ static Stmt *parse_stmt(Parser *p) {
         p->pinned[p->pin_count++] = s->name;
         return s;
     }
+    if (match(p, "throw")) {
+        Stmt *s = new_stmt(ST_THROW);
+        s->expr = parse_expr(p);
+        return s;
+    }
+    if (match(p, "try")) {
+        Stmt *s = new_stmt(ST_TRY);
+        s->body = parse_block(p);
+        expect(p, "catch");
+        expect(p, "{");
+        while (!match(p, "}")) {
+            // Parse catch arm: ErrorName(args) ret X, or _ { body }
+            char *error_name = NULL;
+            ExprVec args = {0};
+            Expr *ret_expr = NULL;
+            StmtVec arm_body = {0};
+            
+            if (match(p, "_")) {
+                // Wildcard catch
+                error_name = NULL;
+            } else {
+                // Specific error catch
+                error_name = expect_ident(p);
+                if (match(p, "(")) {
+                    // Parse arguments to match
+                    while (!match(p, ")")) {
+                        expr_push(&args, parse_expr(p));
+                        if (!match(p, ",")) break;
+                    }
+                }
+            }
+            
+            // Check for return expression
+            if (match(p, "ret")) {
+                ret_expr = parse_expr(p);
+            }
+            
+            // Parse body (optional for simple catch arms)
+            if (at(p, "{")) {
+                arm_body = parse_block(p);
+            }
+            
+            catch_arm_push(&s->catch_arms, error_name, args, arm_body, ret_expr);
+            match(p, ",");
+        }
+        return s;
+    }
     if (match(p, "{")) {
         Stmt *s = new_stmt(ST_BLOCK);
         while (!match(p, "}")) stmt_push(&s->body, parse_stmt(p));
@@ -653,6 +700,23 @@ static Decl *parse_enum(Parser *p, bool public) {
     return d;
 }
 
+static Decl *parse_error(Parser *p, bool public) {
+    Decl *d = new_decl(DC_ERROR);
+    d->public = public;
+    d->name = expect_ident(p);
+    expect(p, ":");
+    // Parse parameters (like a function)
+    while (!at(p, "{")) {
+        Type *pt = parse_type(p);
+        char *pn = expect_ident(p);
+        param_push(&d->params, pt, pn, false, false);
+        if (!match(p, ",")) break;
+    }
+    // Parse error handler body
+    d->body = parse_block(p);
+    return d;
+}
+
 static void resolve_path(const char *base, const char *rel, char *out, size_t out_size) {
     // Find last slash in base path
     const char *last_slash = NULL;
@@ -753,6 +817,10 @@ DeclVec parse_program(Token *tokens) {
         }
         if (match(&p, "enum")) {
             decl_push(&p.decls, parse_enum(&p, public));
+            continue;
+        }
+        if (match(&p, "error")) {
+            decl_push(&p.decls, parse_error(&p, public));
             continue;
         }
         // Check for async fn syntax first

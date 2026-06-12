@@ -311,6 +311,32 @@ typedef struct {
 } EnumMemberVec;
 
 /**
+ * CatchArm: A single catch arm in a try-catch block
+ *
+ * Fields:
+ *   error_name: Name of the error type to catch (NULL for wildcard '_')
+ *   args: Arguments to match against the error
+ *   body: Statements to execute if error matches
+ *   ret_expr: Return expression (optional, defaults to 1 or void)
+ */
+typedef struct {
+    char *error_name;  // NULL means wildcard '_'
+    ExprVec args;       // Arguments to match
+    StmtVec body;       // Statements to execute
+    Expr *ret_expr;     // Return expression (optional)
+} CatchArm;
+
+/**
+ * CatchArmVec: Dynamic array of catch arms
+ * Used in try-catch blocks to store all catch branches
+ */
+typedef struct {
+    CatchArm *items;
+    int count;
+    int cap;
+} CatchArmVec;
+
+/**
  * StmtKind: Enumeration of statement types
  *
  * ST_VAR:      Variable declaration (e.g., i32 x = 5)
@@ -325,6 +351,8 @@ typedef struct {
  * ST_MATCH:    Match/switch statement with pattern matching
  * ST_SELECT:   Select statement (wait for multiple async operations)
  * ST_INLINE_C: Inline C code block
+ * ST_THROW:    Throw error statement (e.g., throw MyError(args))
+ * ST_TRY:      Try-catch block (e.g., try { ... } catch { ... })
  */
 typedef enum {
     ST_VAR,
@@ -338,7 +366,9 @@ typedef enum {
     ST_EXPR,
     ST_MATCH,
     ST_SELECT,
-    ST_INLINE_C
+    ST_INLINE_C,
+    ST_THROW,
+    ST_TRY
 } StmtKind;
 
 /**
@@ -358,6 +388,7 @@ typedef enum {
  *   elseifs: Else-if branches
  *   else_body: Final else block
  *   text: C code text (for inline C blocks)
+ *   catch_arms: Catch arms for try-catch blocks (ST_TRY)
  *
  * Examples:
  *   ST_VAR:    type=i32, name="x", expr=5
@@ -365,6 +396,8 @@ typedef enum {
  *   ST_IF:     expr=condition, body=if_block, elseifs=[], else_body=[]
  *   ST_LOOP:   body=loop_body
  *   ST_DEFER:  body=cleanup_statements
+ *   ST_THROW:  expr=error_expression (e.g., MyError(args))
+ *   ST_TRY:    body=try_block, catch_arms=[...catch arms...]
  */
 struct Stmt {
     StmtKind kind;
@@ -377,6 +410,7 @@ struct Stmt {
     ElseIfVec elseifs;   // For ST_IF: _if(...){} arms
     StmtVec else_body;   // For ST_IF: _{} final else
     char *text;          // For ST_INLINE_C: the C code text
+    CatchArmVec catch_arms;  // For ST_TRY: catch arms
 };
 
 /**
@@ -385,6 +419,7 @@ struct Stmt {
  * DC_USE:        Import statement (e.g., use "lib.tc")
  * DC_STRUCT:     Struct type definition (includes union fields and methods)
  * DC_ENUM:       Enum type definition
+ * DC_ERROR:      Error type definition (e.g., error MyError: i32 code { ... })
  * DC_FN:         Function definition
  * DC_VAR:        Global variable declaration
  * DC_EXTERN_FN:  External C function declaration
@@ -394,6 +429,7 @@ typedef enum {
     DC_USE,
     DC_STRUCT,
     DC_ENUM,
+    DC_ERROR,
     DC_FN,
     DC_VAR,
     DC_EXTERN_FN,
@@ -507,6 +543,17 @@ void elseif_push(ElseIfVec *v, Expr *cond, StmtVec body);
  *   name: Name of the variant
  */
 void enum_member_push(EnumMemberVec *v, char *name);
+
+/**
+ * catch_arm_push: Add catch arm to try-catch block
+ * Args:
+ *   v: Target catch arm vector
+ *   error_name: Name of error type to catch (NULL for wildcard '_')
+ *   args: Arguments to match against the error
+ *   body: Statements to execute if matched
+ *   ret_expr: Return expression (optional)
+ */
+void catch_arm_push(CatchArmVec *v, char *error_name, ExprVec args, StmtVec body, Expr *ret_expr);
 
 /**
  * new_type: Create a new type node

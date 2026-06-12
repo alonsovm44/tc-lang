@@ -59,6 +59,14 @@ void enum_member_push(EnumMemberVec *v, char *name) {
     v->items[v->count++] = (EnumMember){name};
 }
 
+void catch_arm_push(CatchArmVec *v, char *error_name, ExprVec args, StmtVec body, Expr *ret_expr) {
+    if (v->count == v->cap) {
+        v->cap = v->cap ? v->cap * 2 : 4;
+        v->items = xrealloc(v->items, sizeof(CatchArm) * (size_t)v->cap);
+    }
+    v->items[v->count++] = (CatchArm){error_name, args, body, ret_expr};
+}
+
 Type *new_type(TypeKind kind) {
     Type *t = xmalloc(sizeof(Type));
     memset(t, 0, sizeof(Type));

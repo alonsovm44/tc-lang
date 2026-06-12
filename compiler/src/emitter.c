@@ -518,6 +518,20 @@ static void emit_stmt(Str *out, Stmt *s, StmtVec *scope, DeclVec *program, int i
             str_add(out, "\n");
             break;
         case ST_DEFER: break;
+        case ST_THROW:
+            // Generate throw as a function call to the error handler
+            // For now, just emit the expression as a comment
+            str_add(out, "/* throw "); emit_expr(out, s->expr, program); str_add(out, " */\n");
+            break;
+        case ST_TRY:
+            // Generate try-catch as a simple block for now
+            // TODO: Implement proper error handling with setjmp/longjmp or similar
+            str_add(out, "{\n");
+            emit_stmt_vec(out, &s->body, program, indent + 1);
+            emit_indent(out, indent); str_add(out, "}\n");
+            // Emit catch arms as comments for now
+            str_add(out, "/* catch block */\n");
+            break;
         case ST_MATCH: {
             str_add(out, "switch ("); emit_expr(out, s->expr, program); str_add(out, ") {\n");
             for (int i = 0; i < s->arms.count; i++) {
@@ -701,6 +715,20 @@ char *emit_program(DeclVec program) {
                 else str_add(&out, "\n");
             }
             str_printf(&out, "} %s;\n\n", d->name);
+        }
+        if (d->kind == DC_ERROR) {
+            // Emit error as a function that handles the error
+            // Error handlers don't have a return type, they're void
+            str_add(&out, "void");
+            str_add(&out, " ");
+            str_printf(&out, "error_%s(", d->name);
+            for (int j = 0; j < d->params.count; j++) {
+                if (j) str_add(&out, ", ");
+                emit_type(&out, d->params.items[j].type, d->params.items[j].name, &program);
+            }
+            str_add(&out, ") {\n");
+            emit_stmt_vec(&out, &d->body, &program, 1);
+            str_add(&out, "}\n\n");
         }
         // Emit method forward declarations for structs
         if (d->kind == DC_STRUCT && d->methods.count > 0) {

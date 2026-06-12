@@ -1,0 +1,28 @@
+// Test error system from spec1.3.2.md
+use "stdlib/io.tc"
+
+error BufferOverflow: i32 size {
+    printn("Buffer overflow")
+    printi(size)
+}
+
+fn i32 test_function: {
+    try {
+        printn("Trying something...")
+        ret 0
+    }
+    catch {
+        _ {
+            printn("Caught error")
+            ret -1
+        }
+    }
+}
+
+fn i32 main: {
+    i32 result = test_function()
+    printn("Result:")
+    printi(result)
+    ret 0
+}
+

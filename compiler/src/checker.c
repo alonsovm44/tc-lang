@@ -308,7 +308,32 @@ static void check_stmts(StmtVec *body, ScopeStack *s) {
                 check_expr(st->expr, s);
                 break;
             case ST_INLINE_C:
-                // Inline C code doesn't need type checking
+                break;
+            case ST_THROW:
+                check_expr(st->expr, s);
+                break;
+            case ST_TRY:
+                push_scope(s);
+                check_stmts(&st->body, s);
+                pop_scope(s);
+                // Check catch arms
+                for (int j = 0; j < st->catch_arms.count; j++) {
+                    CatchArm *arm = &st->catch_arms.items[j];
+                    // Check arguments in catch pattern
+                    for (int k = 0; k < arm->args.count; k++) {
+                        check_expr(arm->args.items[k], s);
+                    }
+                    // Check return expression
+                    if (arm->ret_expr) {
+                        check_expr(arm->ret_expr, s);
+                    }
+                    // Check catch body
+                    if (arm->body.count) {
+                        push_scope(s);
+                        check_stmts(&arm->body, s);
+                        pop_scope(s);
+                    }
+                }
                 break;
         }
     }

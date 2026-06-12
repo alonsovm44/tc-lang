@@ -1,0 +1,27 @@
+
+error zeroDivision: i32 a, i32 b {
+    printn("Zero division")
+    printi(a)
+    printn(" / ")
+    printi(b)
+    printn("")
+}
+
+fn i32 main: {
+    i32 a = 10
+    i32 b = 0
+    try {
+        if(b == 0) {
+            throw zeroDivision(a, b)
+        }
+        printn("No error")
+        ret 0
+    }
+    catch {
+        zeroDivision(a, b) ret -1,
+        _ {
+            printn("Caught an unknown error")
+            ret -1
+        }
+    }
+}
