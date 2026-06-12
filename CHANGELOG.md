@@ -2,6 +2,7 @@
 
 Added:
 
+- added braceless defer for ergonomics
 - added argument count validation in tig level, not falling back into C
 - added snq.c compilation
 - added queue stack much needed built in methods size() clear() isEmpty()
