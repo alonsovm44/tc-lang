@@ -1,6 +1,7 @@
 use "stdlib/io.tc"
 
 // checking if declaring queues/stacks invoke the async runtime automatically (which is wrong)
+// OK() it doesn not.
 fn void main: 
 {
     queue<i32> q

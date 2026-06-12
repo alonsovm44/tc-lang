@@ -1,0 +1,35 @@
+use "stdlib/async.tc"
+use "stdlib/io.tc"
+use "stdlib/snq.tc"
+
+async fn void worker: i32 id, ->queue<i32> out { // have to pass a ptr to a queue
+    out.enq(id * 2)
+}
+
+fn i32 main: {
+    
+    queue<i32> results = {}
+    
+    // Spawn all workers
+    i32 i = 0
+    loop if(i < 50) {
+        worker(i, &results)
+        i++
+    }    
+    // Wait for all to complete
+    // how?
+    // Now safe to pop
+    i32 j = 0
+    loop if(j < 50) {
+        printi(results.deq())
+        j++
+    }
+}
+/*
+It worked
+PS C:\Users\diego\.projects\langs\tig\tc> ./tigc tests/async/async.tc -c async
+  gcc "__tigc_tmp.c" -std=c11 -lm -o "async" "compiler/src/runtime.o"
+  compiled: async
+PS C:\Users\diego\.projects\langs\tig\tc> ./async
+02468101214161820222426283032343638404244464850525456586062646668707274767880828486889092949698
+*/

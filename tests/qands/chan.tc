@@ -1,26 +1,57 @@
 // using queues as channels demo
+
 use "stdlib/io.tc"
+
 use "stdlib/snq.tc"
+
 use "stdlib/async.tc"
 
-async fn void worker: i32 id, ->queue<i32> out {
+
+
+async fn void worker: i32 id, queue<i32> out {  // No ->, just queue<i32>
+
     out.push(id * 2)
+
 }
 
-fn i32 main: {
+
+
+fn void main: {
+
     queue<i32> results = {}
 
+
+
     i32 i = 0
+
     loop if(i < 5) {
-        worker(i, &results)
+
+        worker(i, results)  // Pass by value (copy)
+
         i = i + 1
+
     }
 
+
+
     i32 j = 0
+
     loop if(j < 5) {
-        i32 result = results.deq()
+
+        i32 result = results.deq()  // Use .deq()
+
         printi(result)
+
         j = j + 1
+
     }
-    ret 0
+
 }
+
+/*
+
+this used to work without pointers
+
+but now because stacks and queues are destroyed at the end of the scope, we need to pass them by reference
+
+*/

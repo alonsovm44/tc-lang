@@ -1,8 +1,6 @@
 use "stdlib/io.tc"
 use "stdlib/snq.tc" // NEW: module now with queues and stacks
-// testing methods for stacks and queues, and that the old push/pop methods are not available for queues
-// the idea is to have separate methods for queues and stacks so that we don't accidentally use the wrong method for the wrong data structure.
-fn void main: 
+
 {
     queue<i32> q = {}
     q.enq(1)
@@ -11,7 +9,9 @@ fn void main:
     printi(q.deq())
     printi(q.deq())
     printi(q.deq())
-
+    // both work
+    // todo: make deq and enq work on queues only, 
+    // and push and pop work on stacks only
     queue<i32> q2 = {}
     q2.push(1)
     q2.push(2)
