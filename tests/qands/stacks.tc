@@ -1,0 +1,16 @@
+use "stdlib/io.tc"
+use "stdlib/snq.tc"
+
+fn void print_stack: stack<i32> s {
+    while (!s.is_empty()) {
+        printi(s.pop())
+    }
+}
+
+fn void main: {
+    stack<i32> s = {}
+    s.push(1)
+    s.push(2)
+    s.push(3)
+    print_stack(s)
+}
