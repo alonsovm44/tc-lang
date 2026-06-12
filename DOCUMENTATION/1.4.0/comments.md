@@ -77,34 +77,3 @@ async {
     handle(r)
 }
 ```
-
-## Anti-patterns
-Cannot Transfer Twice
-```tig
-i32 x = 10
-q1.push(@x)
-q2.push(@x)  // Error: x is already dead
-```
-
-Cannot Use After Transfer
-```tig
-i32 x = 10
-q.push(@x)
-printi(x)  // Error: cannot access dead variable 'x'
-```
-
-Must Transfer Out Before Scope Ends
-```tig
-{
-    i32 x = 10
-    q.push(@x)  // Ownership moves to q
-}  // ✅ x is dead, but q owns the value
-```
-
-Pin Prevents Transfer
-```tig
-pin i32 x = 10
-q.push(@x)  // Error: cannot transfer pinned variable
-```
-
-Pinned data is read-only for a reason - it may be shared across multiple scopes.

@@ -1,0 +1,198 @@
+// stdlib/http.tc - HTTP client library
+// Requires: libcurl development libraries
+// Link with: -lcurl
+
+extern "C" {
+    void fn curl_global_init: i64 flags {}
+    void fn curl_global_cleanup: {}
+    ->void fn curl_easy_init: {}
+    void fn curl_easy_cleanup: ->void handle {}
+    i32 fn curl_easy_setopt_str: ->void handle, i32 option, ->i8 param {}
+    i32 fn curl_easy_setopt_long: ->void handle, i32 option, i64 param {}
+    i32 fn curl_easy_setopt_pointer: ->void handle, i32 option, ->void param {}
+    i32 fn curl_easy_perform: ->void handle {}
+    i32 fn curl_easy_getinfo_long: ->void handle, i32 info, ->i64 param {}
+    ->i8 fn curl_easy_escape: ->void handle, ->i8 input, i32 length {}
+    ->i8 fn curl_easy_unescape: ->void handle, ->i8 input, i32 length, ->i32 outlength {}
+    ->i8 fn curl_easy_strerror: i32 errcode {}
+}
+
+// HTTP methods
+enum HttpMethod {
+    GET
+    POST
+    PUT
+    DELETE
+    HEAD
+    PATCH
+}
+
+// HTTP response struct
+strun HttpResponse {
+    i32 status_code
+    ->i8 body      // owned pointer, caller must free
+    i64 body_len
+    bool success
+    ->i8 error_msg
+}
+
+// Write callback type: function that receives chunks of response body
+// param: data chunk (NOT null-terminated)
+// param: size of data chunk
+// returns: 0 to abort, non-zero to continue
+fn i32 WriteCallback: ->u8 data, i64 size, ->void userdata {}
+
+// Default write callback that appends to a buffer
+strun BufferUserData {
+    ->u8 buffer
+    i64 len
+    i64 cap
+}
+
+// Default callback implementation
+fn i32 default_write_callback: ->u8 data, i64 size, ->void userdata {
+    ->BufferUserData buf = (->BufferUserData)userdata
+    
+    i64 new_len = buf.>len + size
+    if (new_len > buf.>cap) {
+        i64 new_cap = new_len * 2
+        buf.>buffer = realloc(buf.>buffer, new_cap)
+        buf.>cap = new_cap
+    }
+    
+    memcpy(buf.>buffer + buf.>len, data, size)
+    buf.>len = new_len
+    
+    ret 1  // continue
+}
+
+// Internal perform with custom callback
+fn HttpResponse http_perform_with_callback: HttpMethod method, ->i8 url, queue<->i8> headers, ->i8 body, fn(i32) fn WriteCallback: (->u8, i64, ->void*) callback, ->void* userdata {
+    
+    ->void* curl = curl_easy_init()
+    
+    HttpResponse resp
+    resp.success = false
+    resp.body = 0
+    resp.body_len = 0
+    resp.status_code = 0
+    resp.error_msg = 0
+    
+    if (curl == 0) {
+        resp.error_msg = xstrdup("Failed to initialize curl")
+        ret resp
+    }
+    
+    // Set URL
+    curl_easy_setopt_str(curl, 10002, url)  // CURLOPT_URL
+    
+    // Set callback
+    if (callback != 0) {
+        curl_easy_setopt_pointer(curl, 20011, (->void*)callback)  // CURLOPT_WRITEFUNCTION
+        curl_easy_setopt_long(curl, 10001, (i64)userdata)  // CURLOPT_WRITEDATA
+    }
+    
+    // Set method and body
+    if (method == POST) {
+        curl_easy_setopt_long(curl, 47, 1)  // CURLOPT_POST
+        if (body != 0) {
+            curl_easy_setopt_str(curl, 10015, body)  // CURLOPT_POSTFIELDS
+        }
+    } else if (method == PUT) {
+        curl_easy_setopt_str(curl, 10036, "PUT")  // CURLOPT_CUSTOMREQUEST
+        if (body != 0) {
+            curl_easy_setopt_str(curl, 10015, body)
+        }
+    } else if (method == DELETE) {
+        curl_easy_setopt_str(curl, 10036, "DELETE")
+    } else if (method == HEAD) {
+        curl_easy_setopt_long(curl, 96, 1)  // CURLOPT_NOBODY
+    } else if (method == PATCH) {
+        curl_easy_setopt_str(curl, 10036, "PATCH")
+        if (body != 0) {
+            curl_easy_setopt_str(curl, 10015, body)
+        }
+    }
+    
+    // TODO: Set headers from queue
+    
+    // Perform
+    i32 curl_res = curl_easy_perform(curl)
+    
+    // Get status code
+    i64 status = 0
+    curl_easy_getinfo_long(curl, 10034, &status)
+    resp.status_code = (i32)status
+    
+    if (curl_res == 0) {
+        resp.success = true
+    } else {
+        resp.success = false
+        resp.error_msg = xstrdup(curl_easy_strerror(curl_res))
+    }
+    
+    curl_easy_cleanup(curl)
+    ret resp
+}
+
+// Simple GET with automatic buffering
+fn HttpResponse http_get: ->i8 url {
+    BufferUserData buf
+    buf.buffer = alloc(u8, 4096)
+    buf.len = 0
+    buf.cap = 4096
+    
+    HttpResponse resp = http_perform_with_callback(GET, url, {}, 0, default_write_callback, &buf)
+    
+    if (resp.success) {
+        // Add null terminator for string convenience
+        if (buf.len + 1 > buf.cap) {
+            buf.buffer = realloc(buf.buffer, buf.len + 1)
+        }
+        buf.buffer[buf.len] = 0
+        resp.body = (->i8)buf.buffer
+        resp.body_len = buf.len
+    } else {
+        free(buf.buffer)
+    }
+    
+    ret resp
+}
+
+// GET with custom callback (streaming)
+fn HttpResponse http_get_stream: ->i8 url, fn(i32) fn WriteCallback: (->u8, i64, ->void*) callback, ->void* userdata {
+    ret http_perform_with_callback(GET, url, {}, 0, callback, userdata)
+}
+
+// POST with custom callback
+fn HttpResponse http_post_stream: ->i8 url, ->i8 data, fn(i32) fn WriteCallback: (->u8, i64, ->void*) callback, ->void* userdata {
+    ret http_perform_with_callback(POST, url, {}, data, callback, userdata)
+}
+
+// Convenience wrappers
+fn HttpResponse http_post: ->i8 url, ->i8 data {
+    ret http_get(url)  // TODO: implement properly
+}
+
+fn HttpResponse http_post_json: ->i8 url, ->i8 json_body {
+    ret http_get(url)  // TODO: add headers and implement
+}
+
+// Free response
+fn void http_response_free: ->HttpResponse resp {
+    if (resp.body != 0) {
+        free(resp.body)
+    }
+    if (resp.error_msg != 0) {
+        free(resp.error_msg)
+    }
+}
+
+// Initialize/cleanup
+fn void http_init: {
+    curl_global_init(3)
+}
+
+fn void http_cleanup: {
+    curl_global_cleanup()
+}

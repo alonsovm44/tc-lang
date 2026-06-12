@@ -1,0 +1,18 @@
+extern "C" {
+    ->FILE fn fopen: ->i8 file, ->i8 mode {}
+    i32 fn fclose: ->FILE f {}
+    i32 fn fgetc: ->FILE stream {}
+    i32 fn fputs: ->i8 s, ->FILE stream {}
+    i32 fn fprintf: ->FILE stream, ->i8 fmt, ... {}
+    i32 fn feof: ->FILE stream {}
+    i32 fn fputc: i32 c, ->FILE stream {}
+    i32 fn ungetc: i32 c, ->FILE stream {}
+}
+
+fn ->FILE open: ->i8 file, ->i8 mode { ret fopen(file, mode) }
+fn i32 close: ->FILE f { ret fclose(f) }
+fn i32 read_char: ->FILE stream { ret fgetc(stream) }
+fn i32 write_char: i32 c, ->FILE stream { ret fputc(c, stream) }
+fn i32 write_string: ->i8 s, ->FILE stream { ret fputs(s, stream) }
+fn i32 eof: ->FILE stream { ret feof(stream) }
+// and the other wrappers...
