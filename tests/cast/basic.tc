@@ -1,0 +1,17 @@
+use "stdlib/io.tc"
+
+fn i32 main: {
+    // Test basic numeric cast
+    i32 y = 123
+    f32 x = (f32)y
+    printi(y)
+    print(" cast to f32\n")
+    
+    // Test pointer cast
+    ->i32 ptr = alloc(i32, 10)
+    defer free(ptr)
+    ->u8 byte_ptr = (->u8)ptr
+    print("Pointer cast successful\n")
+    
+    ret 0
+}

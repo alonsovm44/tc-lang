@@ -67,9 +67,9 @@ fn i32 default_write_callback: ->u8 data, i64 size, ->void userdata {
 }
 
 // Internal perform with custom callback
-fn HttpResponse http_perform_with_callback: HttpMethod method, ->i8 url, queue<->i8> headers, ->i8 body, fn(i32) fn WriteCallback: (->u8, i64, ->void*) callback, ->void* userdata {
+fn HttpResponse http_perform_with_callback: HttpMethod method, ->i8 url, queue<->i8> headers, ->i8 body, fn(->u8, i64, ->void)i32 callback, ->void userdata {
     
-    ->void* curl = curl_easy_init()
+    ->void curl = curl_easy_init()
     
     HttpResponse resp
     resp.success = false
@@ -88,7 +88,7 @@ fn HttpResponse http_perform_with_callback: HttpMethod method, ->i8 url, queue<-
     
     // Set callback
     if (callback != 0) {
-        curl_easy_setopt_pointer(curl, 20011, (->void*)callback)  // CURLOPT_WRITEFUNCTION
+        curl_easy_setopt_pointer(curl, 20011, (->void)callback)  // CURLOPT_WRITEFUNCTION
         curl_easy_setopt_long(curl, 10001, (i64)userdata)  // CURLOPT_WRITEDATA
     }
     

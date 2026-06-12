@@ -279,6 +279,12 @@ static void check_expr(Expr *e, ScopeStack *s) {
             // Check the type expression stored in left field
             if (e->left) check_expr(e->left, s);
             break;
+        case EX_CAST:
+            // Cast: check the expression being cast
+            check_expr(e->left, s);
+            // The result type is the cast target type
+            e->type = e->cast_type;
+            break;
     }
 }
 

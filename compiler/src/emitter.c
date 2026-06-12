@@ -509,6 +509,12 @@ static void emit_expr(Str *out, Expr *e, DeclVec *program) {
             }
             str_add(out, ")");
             break;
+        case EX_CAST:
+            str_add(out, "(");
+            emit_type(out, e->cast_type, "", program);
+            str_add(out, ")");
+            emit_expr(out, e->left, program);
+            break;
     }
 }
 

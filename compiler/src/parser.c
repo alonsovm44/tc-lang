@@ -275,6 +275,33 @@ static Expr *parse_primary(Parser *p) {
         return e;
     }
     if (match(p, "(")) {
+        // Check if this is a cast: (type)expr
+        // A cast starts with a type followed by ) and then an expression
+        int save_pos = p->pos;
+        Token *open_paren = &p->tokens[save_pos - 1];  // the ( token
+        
+        // Check if what follows is a type
+        if (at(p, "->") || at(p, "=>") || is_type_name(cur(p)->text) || 
+            at(p, "queue") || at(p, "stack") || at(p, "fn") ||
+            is_struct(p, cur(p)->text) || is_enum(p, cur(p)->text)) {
+            // Try to parse a type
+            Type *t = parse_type(p);
+            if (at(p, ")")) {
+                // It's a type followed by ), so it's a cast
+                match(p, ")");  // consume the )
+                
+                Expr *e = new_expr(EX_CAST);
+                e->cast_type = t;
+                e->left = parse_expr(p);  // parse the expression to cast
+                e->line = open_paren->line; e->col = open_paren->col;
+                return e;
+            } else {
+                // Not a cast, restore position
+                p->pos = save_pos;
+            }
+        }
+        
+        // Not a cast, just a parenthesized expression
         Expr *e = parse_expr(p);
         expect(p, ")");
         return e;

@@ -189,6 +189,7 @@ struct Type {
  * EX_METHOD_CALL: Method call on struct (e.g., obj.method())
  * EX_QUEUE_METHOD: Queue/Stack method (e.g., q.push(), q.pop())
  * EX_SIZEOF:     Size-of operator (e.g., sizeof(i32), sizeof(x))
+ * EX_CAST:       Type cast (e.g., (f32)x, (->i32)ptr)
  */
 typedef enum {
     EX_NAME,
@@ -205,7 +206,8 @@ typedef enum {
     EX_VARARGS,
     EX_METHOD_CALL,
     EX_QUEUE_METHOD,
-    EX_SIZEOF
+    EX_SIZEOF,
+    EX_CAST
 } ExprKind;
 
 /**
@@ -238,6 +240,7 @@ struct Expr {
     ExprKind kind;
     char *text;
     Type *type;
+    Type *cast_type;  // For EX_CAST: target type to cast to
     Expr *left;
     Expr *right;
     Expr *third;
