@@ -494,7 +494,14 @@ static Stmt *parse_stmt(Parser *p) {
     }
     if (match(p, "defer")) {
         Stmt *s = new_stmt(ST_DEFER);
-        s->body = parse_block(p);
+        // Support both braced and braceless defer
+        if (at(p, "{")) {
+            s->body = parse_block(p);
+        } else {
+            // Braceless defer: parse single statement
+            Stmt *single_stmt = parse_stmt(p);
+            stmt_push(&s->body, single_stmt);
+        }
         return s;
     }
     if (match(p, "ret")) {

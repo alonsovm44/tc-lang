@@ -17,7 +17,7 @@ tigc source.tc -c app -o source.c # this brings async.h even if it wasnt called
 
 - [x] Enforce 1.3 move semantics, moving is working without `@` 
 - [x] Make multiple return values via queues/stacks work for sync functions.
-- [ ] add inline braceless defer statements for ergonomics
+- [x] add inline braceless defer statements for ergonomics
 ```
 defer free(ptr)
 ```

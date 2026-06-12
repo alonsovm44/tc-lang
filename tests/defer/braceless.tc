@@ -1,0 +1,11 @@
+use "stdlib/io.tc"
+
+fn i32 main: {
+    ->i32 ptr = alloc(i32, 10)
+    
+    // Test braceless defer
+    defer free(ptr)
+    
+    print("Braceless defer test\n")
+    ret 0
+}
