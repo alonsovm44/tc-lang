@@ -2,7 +2,7 @@
 use "stdlib/io.tc"
 use "stdlib/snq.tc" // NEW: module for Stacks aNd Queues
 //FIX: it does not work for sync functions
-fn void multiple_return_fn: i32 x, i32 y, queue<i32> q 
+fn void multiple_return_fn: i32 x, i32 y, ->queue<i32> q 
 {
     q.push(x+y)
     q.push(x*y)

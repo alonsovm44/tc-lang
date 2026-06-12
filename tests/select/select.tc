@@ -1,0 +1,29 @@
+use "stdlib/io.tc"
+use "stdlib/snq.tc"
+
+fn i32 main: {
+    print("Testing select statement\n")
+    
+    // Test 1: Basic select with queues
+    queue<i32> q1 = {}
+    queue<i32> q2 = {}
+    
+    // Add some values to queues
+    q1.push(10)
+    q2.push(20)
+    
+    print("Created queues and added values\n")
+    
+    // Basic select statement
+    select {
+        q1.pop() => {
+            print("Selected from queue 1\n")
+        },
+        q2.pop() => {
+            print("Selected from queue 2\n")
+        }
+    }
+    
+    print("Select statement test completed\n")
+    ret 0
+}
