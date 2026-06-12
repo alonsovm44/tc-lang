@@ -773,26 +773,32 @@ static Decl *parse_error(Parser *p, bool public) {
 }
 
 static void resolve_path(const char *base, const char *rel, char *out, size_t out_size) {
-    // Find last slash in base path
-    const char *last_slash = NULL;
+    // If rel starts with the same directory as base's directory, use as-is
+    // Or just check if rel contains the base directory name? This is messy.
+    
+    // Simpler approach: just get the directory of base, then append the filename part of rel
+    const char *last_slash_base = NULL;
     for (const char *p = base; *p; p++) {
-        if (*p == '/' || *p == '\\') last_slash = p;
+        if (*p == '/' || *p == '\\') last_slash_base = p;
     }
-    if (last_slash) {
-        size_t dir_len = (size_t)(last_slash - base + 1);
+    
+    const char *last_slash_rel = NULL;
+    for (const char *p = rel; *p; p++) {
+        if (*p == '/' || *p == '\\') last_slash_rel = p;
+    }
+    
+    if (last_slash_base && last_slash_rel) {
+        // rel has a path, use it directly (it's already relative to project root)
+        strncpy(out, rel, out_size);
+    } else if (last_slash_base) {
+        // rel is just a filename, combine with base directory
+        size_t dir_len = (size_t)(last_slash_base - base + 1);
         if (dir_len >= out_size) dir_len = out_size - 1;
         memcpy(out, base, dir_len);
         out[dir_len] = '\0';
-        size_t rem = out_size - dir_len;
-        size_t rlen = strlen(rel);
-        if (rlen >= rem) rlen = rem - 1;
-        memcpy(out + dir_len, rel, rlen);
-        out[dir_len + rlen] = '\0';
+        strncat(out, rel, out_size - dir_len - 1);
     } else {
-        size_t rlen = strlen(rel);
-        if (rlen >= out_size) rlen = out_size - 1;
-        memcpy(out, rel, rlen);
-        out[rlen] = '\0';
+        strncpy(out, rel, out_size);
     }
 }
 

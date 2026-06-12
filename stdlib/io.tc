@@ -4,8 +4,12 @@ extern "C" {
     i32 fn getchar: {}
 }
 
-void fn print: ->i8 s { ... }
-void fn printi: i64 n { ... }
+void fn print: ->i8 s {  
+    printf("%s", s)
+}
+void fn printi: i64 n { 
+    printf("%ld", n)
+}
 i32 fn readc: { ret getchar() }
 i32 fn putchr: i32 c { ret putchar(c) }
 // no file functions

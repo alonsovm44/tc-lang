@@ -10,88 +10,18 @@
 #define TC_FAT_LENOF(x) ((x).len)
 
 
-int32_t writef(char *s, FILE *stream);
-int32_t fputc(int32_t c, FILE *stream);
-FILE *openf(char *file, char *mode);
-int32_t closef(FILE *f);
-int32_t filegetc(FILE *stream);
-int32_t fprintpf(FILE *stream, char *fmt, ...);
-int32_t putchr(int32_t c);
 void print(char *s);
-void printflt(double n);
-void printn(char *s);
 void printi(int64_t n);
-void printin(int64_t n);
 int32_t readc(void);
-int32_t unreadc(int32_t c, FILE *stream);
-int32_t eof(FILE *stream);
+int32_t putchr(int32_t c);
 
-
-int32_t writef(char *s, FILE *stream) {
-    
-    return fputs(s, stream);
-}
-
-int32_t fputc(int32_t c, FILE *stream) {
-    
-    return fputc(c, stream);
-}
-
-FILE *openf(char *file, char *mode) {
-    
-    return fopen(file, mode);
-}
-
-int32_t closef(FILE *f) {
-    
-    return fclose(f);
-}
-
-int32_t filegetc(FILE *stream) {
-    
-    return fgetc(stream);
-}
-
-int32_t fprintpf(FILE *stream, char *fmt, ...) {
-    
-    return fprintf(stream, fmt);
-}
-
-int32_t putchr(int32_t c) {
-    
-    return putchar(c);
-}
 
 void print(char *s) {
-    printf(s);
-    putchar(10);
-    
-    return;
-}
-
-void printflt(double n) {
-    printf("%f", n);
-    putchar(10);
-    
-    return;
-}
-
-void printn(char *s) {
-    printf(s);
-    
-    return;
+    printf("%s", s);
 }
 
 void printi(int64_t n) {
-    printf("%lld\n", n);
-    
-    return;
-}
-
-void printin(int64_t n) {
-    printf("%lld", n);
-    
-    return;
+    printf("%ld", n);
 }
 
 int32_t readc(void) {
@@ -99,12 +29,7 @@ int32_t readc(void) {
     return getchar();
 }
 
-int32_t unreadc(int32_t c, FILE *stream) {
+int32_t putchr(int32_t c) {
     
-    return ungetc(c, stream);
-}
-
-int32_t eof(FILE *stream) {
-    
-    return feof(stream);
+    return putchar(c);
 }

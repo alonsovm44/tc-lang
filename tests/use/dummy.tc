@@ -1,0 +1,4 @@
+
+fn void dummy: {
+    print("dummy\n")
+}

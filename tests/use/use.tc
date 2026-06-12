@@ -1,0 +1,7 @@
+use "stdlib/io.tc"
+use "dummy.tc"
+
+fn void main: 
+{
+    dummy()
+}

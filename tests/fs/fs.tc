@@ -1,12 +1,19 @@
 use "stdlib/fs.tc"
-use "stdlib/io.tc"
+@use "stdlib/io.tc"
 
 fn void main: 
 {
     ->FILE f = openf("test.txt", "r")
     if (f == 0) {
-        println("Failed to open file")
+        print("Failed to open file")
         ret
     }
-    fclose(f)
+    print("Successfully opened file")
+    
+    loop if(!eof(f))
+    {
+        i32 c = filegetc(f)
+        putchr(c)
+    }
+    closef(f)
 }
