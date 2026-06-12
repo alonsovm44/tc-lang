@@ -1,3 +1,4 @@
+use "stdlib/io.tc"
 
 error zeroDivision: i32 a, i32 b {
     printn("Zero division")

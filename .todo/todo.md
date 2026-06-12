@@ -23,8 +23,9 @@
 [ ] Make a better, non trivial raylib demo and share it
 
 # todo for 1.3.x
-- [ ] Finish implementing error system. Catch block not working. 
-    - 
+- [ ] Finish implementing error system. Catch block not working.
+    - [ ] if stmts inside try blocks dont work.
+- 
 - [x] Separate stacks and queues from async to their own stdlib module [DONE]
 - [x] HIGH PRIORITY: Fix async.h being included for non-async code [DONE]
       - type_needs_runtime() incorrectly returns true for queue/stack

@@ -635,6 +635,21 @@ Blocking behavior:
 ```tc
 q.push(value)  // push value
 i32 x = q.pop()  // pop value
+i32 x = q.peek()  // peek at front without removing
+i32 n = q.size()  // get current size
+q.clear()  // remove all elements
+bool empty = q.isEmpty()  // check if empty
+```
+
+### Automatic Cleanup
+
+Queue and stack variables are automatically destroyed when they go out of scope, freeing their internal memory:
+
+```tc
+fn void example: {
+    queue<i32> q = {1, 2, 3}
+    // use q...
+}  // q is automatically destroyed here (queue_destroy called)
 ```
 
 ### Pointers to Collections
@@ -1139,24 +1154,34 @@ error[E014]: cannot take address of temporary
    |                         ^^^^^^^^^^^^^^^^^^^^ cannot take address of temporary
 ```
 
-### E015: Slice bounds out of range
+### E015: Too few arguments to function
 
 ```
-error[E015]: slice bounds out of range
- --> main.tc:3:31
+error[E015]: Too few arguments to function 'add': expected 2, got 1
+ --> main.tc:7:5
    |
-3 |     =>queue<i32> slice = q{0:10}
-   |                               ^^^ end index 10 exceeds queue size 3
+7 |     add(5)
+   |     ^^^ Too few arguments to function 'add': expected 2, got 1
 ```
 
-### E016: Cannot modify read-only slice
+### E016: Too many arguments to function
 
 ```
-error[E016]: cannot modify read-only slice
- --> main.tc:3:6
+error[E016]: Too many arguments to function 'add': expected 2, got 3
+ --> main.tc:7:5
    |
-3 |     slice.push(5)
-   |       ^ cannot modify read-only slice
+7 |     add(1, 2, 3)
+   |     ^^^ Too many arguments to function 'add': expected 2, got 3
+```
+
+### E017: Owned variable must be passed with @
+
+```
+error[E017]: Owned variable 'x' must be passed with @ operator
+ --> main.tc:7:5
+   |
+7 |     consume(x)
+   |     ^ Owned variable 'x' must be passed with @ operator
 ```
 
 ---
@@ -1340,6 +1365,13 @@ fn void main: {
 ---
 
 ## Version History
+
+### 1.3.2
+- Added queue/stack methods: size(), clear(), isEmpty(), peek()
+- Automatic cleanup for queue/stack variables on scope exit
+- Function argument count validation (E015, E016)
+- Move semantics enforcement with @ operator (E017)
+- Queue/stack runtime functions moved to stdlib/snq.c for proper linking
 
 ### 1.3.1
 - First-class queues and stacks with automatic initialization
