@@ -23,7 +23,8 @@
 [ ] Make a better, non trivial raylib demo and share it
 
 # todo for 1.3.x
-- [ ] make comptime errors accumulate instead of just appearing one, solving it, recompiling and seeing the next.
+- [ ] Fix queues so they use enq/deq methods instead of push/pop
+- [ ] make comptime errors accumulate instead of just appearing one at a time, recompiling and seeing the next.
 - [ ] Finish implementing error system. Catch block not working.
     - [ ] if stmts inside try blocks dont work.
 - 

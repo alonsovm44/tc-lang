@@ -36,7 +36,7 @@ Improved/Fixed:
 - fixed compiler -c flag to auto-link runtime when async functions detected
 - fixed async module integration with proper header includes
 - fixed runtime to use lazy initialization instead of manual setup
-- improved async programming experience - zero boilerplate needed
+- improved async programming experience , zero boilerplate needed
 - improved code generation for async calls with primitive arguments
 - improved stdlib organization and module structure
 ## v1.2.2 2026-06-02
