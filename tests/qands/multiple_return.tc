@@ -1,6 +1,7 @@
 
 use "stdlib/io.tc"
 use "stdlib/snq.tc" // NEW: module for Stacks aNd Queues
+//use "stdlib/async.tc"
 //FIX: it does not work for sync functions
 fn void multiple_return_fn: i32 x, i32 y, ->queue<i32> q 
 {
@@ -14,7 +15,7 @@ fn i32 main: {
 
     queue<i32> q = {}
 
-    multiple_return_fn(a, b, q)
+    multiple_return_fn(a, b, &q)
     printi(q.pop())
     printi(q.pop())
 }

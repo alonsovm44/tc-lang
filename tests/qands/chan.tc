@@ -3,7 +3,7 @@ use "stdlib/io.tc"
 use "stdlib/snq.tc"
 use "stdlib/async.tc"
 
-async fn void worker: i32 id, queue<i32> out {
+async fn void worker: i32 id, ->queue<i32> out { // old queue<i32> out, now: ->queue<i32> out
     out.push(id * 2)
 }
 
@@ -12,7 +12,7 @@ fn void main: {
 
     i32 i = 0        // Primitive type (automatically copied)
     loop if (i < 5) {
-        worker(i, results) // i is copied, results handle is copied. Safe!
+        worker(i, &results) // i is copied, results handle is borrowed. 
         i++
     }
 
@@ -23,3 +23,7 @@ fn void main: {
         j++
     }
 }
+/*
+this used to work without pointers
+but now because stacks and queues are destroyed at the end of the scope, we need to pass them by reference
+*/
