@@ -1,0 +1,16 @@
+use "stdlib/io.tc"
+use "stdlib/snq.tc"
+
+fn void func: queue<i32> q{
+    if (q.size() == 0){
+        print("Queue is empty\n")
+    } else {
+        print("Queue is not empty\n")
+    }
+}
+
+fn i32 main: {
+    queue<i32> q = {0,1,2}
+    func(q)
+    ret 0
+}

@@ -1,4 +1,9 @@
 # Dev diary
+Rules:
+  - Keep it simple
+  - Keep it short
+  - Keep it focused
+  - No AI text generation
 
 ## June 4 2026:
 For the rest of the day i wont add new features to Tig, only focus on making more documentation. A lang is as good as its documentation. (or not)
@@ -86,3 +91,24 @@ Probably today i will have internet again, hope so.
 
 I found what was wrong with fgetc(), the problem was that both the wrapper and the C function were called the same, and it caused infinite recursion glitch.
 I renamed it to filegetc() and it seems to work now. 
+
+## June 11
+
+I managed to sketch and implement (still buggy) an error system, i tried to make it intuitive and easy to use. 
+Now i am going to test it.
+Also i am going to tackle as much as i can from the spec1.3.2.md file and do as many todo's as possibe before my free Cascade Code runs out. I could do it without it, but it would take me more time and I am afraid of breaking something. I have git undo for git, which works wonders, but still.
+
+I am also thinking when it would be nice to start the self hosting process, i planned that after 1.4.0alpha would be Ok, the rest of the features of beta could await. 
+
+For the self hosting process i am going to rewrite Tig by hand, i could use AI for debuging and error hunting but not for codegen, the reason is both pragmatic and by ideals: By ideals i mean it would be dishonourable. and by pragmatic i mean: no AI has Tig in its training data, this repo's AI could code based on the knowledge it has of the codebase, but i've tried that for non trivial programs and it keeps thinking it is Rust or Zig, it would use `mut`, `var` `*` for ptrs and deref, so i cant use AI to self host the compiler (at least for codegen). I can use it to build the C core, but everything after that must be handmade. 
+
+I had an idea, related to the thing i talked days before
+> Wouldn't it be cool if Tig managed at compile time all resource allocations? we already have defer, but something that injected free() stmts where they should at comptime? You would be making code that looks unsafe but Tig free()'s memory under the hood. But we could stick with defer for now. 
+
+What if there was a comptime garbage collection? something that would free memory at compile time? that would be really cool. Something that tracked lifetimes (like Rust's BC but simpler), no runtime overhead. Like a memory linter, it could be called that "memory linter"
+The problem comes with input defined at runtime, like user input, files, network data, etc. In that case we would need to allocate at runtime, but we could still do comptime GC for the rest of the program.
+
+Is It Possible?
+Theoretically, yes for a subset of programs. For all programs? That's the halting problem.
+
+But Tig could do it for safe subset and require defer for complex cases. That would still be revolutionary.

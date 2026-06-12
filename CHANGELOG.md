@@ -2,6 +2,9 @@
 
 Added:
 
+- added argument count validation in tig level, not falling back into C
+- added snq.c compilation
+- added queue stack much needed built in methods size() clear() isEmpty()
 - added putchr() to the IO stdlib
 - added runtime async.tc to stdlib
 - added async functions with automatic runtime initialization
@@ -19,6 +22,10 @@ Removed:
 
 Improved/Fixed:
 
+- Queue and stacks vars are now automatically destroyed when they go out of scope
+- Enforced move semantics, now they apply
+- fixed queue stack param passing
+- fixed catch arm parsing error
 - separated the queue and stack runtime from the async runtime
 - fixed fputc() not working
 - fixed queues and async not working together

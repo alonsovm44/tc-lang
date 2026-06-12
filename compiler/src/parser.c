@@ -316,22 +316,41 @@ static Expr *parse_postfix(Parser *p) {
                 // Check if this is a method call: expr.method(...)
                 char *field_name = expect_ident(p);
                 if (match(p, "(")) {
-                    Expr *method_call = new_expr(EX_METHOD_CALL);
-                    method_call->left = e;
-                    method_call->text = field_name;
-                    
-                    // Store struct name in type->name for emitter to use
-                    if (e->type && e->type->name) {
-                        method_call->type = new_type(TY_NAME);
-                        method_call->type->name = xstrdup(e->type->name);
+                    // Check if this is a queue/stack method call
+                    bool is_queue_stack_method = false;
+                    if (e->type && (e->type->kind == TY_QUEUE || e->type->kind == TY_STACK)) {
+                        is_queue_stack_method = true;
                     }
                     
-                    // Parse arguments
-                    while (!match(p, ")")) {
-                        expr_push(&method_call->args, parse_expr(p));
-                        match(p, ",");
+                    if (is_queue_stack_method) {
+                        Expr *method_call = new_expr(EX_QUEUE_METHOD);
+                        method_call->left = e;
+                        method_call->text = field_name;
+                        
+                        // Parse arguments
+                        while (!match(p, ")")) {
+                            expr_push(&method_call->args, parse_expr(p));
+                            match(p, ",");
+                        }
+                        e = method_call;
+                    } else {
+                        Expr *method_call = new_expr(EX_METHOD_CALL);
+                        method_call->left = e;
+                        method_call->text = field_name;
+                        
+                        // Store struct name in type->name for emitter to use
+                        if (e->type && e->type->name) {
+                            method_call->type = new_type(TY_NAME);
+                            method_call->type->name = xstrdup(e->type->name);
+                        }
+                        
+                        // Parse arguments
+                        while (!match(p, ")")) {
+                            expr_push(&method_call->args, parse_expr(p));
+                            match(p, ",");
+                        }
+                        e = method_call;
                     }
-                    e = method_call;
                 } else {
                     // Regular field access
                     Expr *field = new_expr(EX_FIELD);
@@ -519,10 +538,12 @@ static Stmt *parse_stmt(Parser *p) {
                 error_name = expect_ident(p);
                 if (match(p, "(")) {
                     // Parse arguments to match
-                    while (!match(p, ")")) {
-                        expr_push(&args, parse_expr(p));
-                        if (!match(p, ",")) break;
+                    if (!at(p, ")")) {
+                        do {
+                            expr_push(&args, parse_expr(p));
+                        } while (match(p, ","));
                     }
+                    expect(p, ")");
                 }
             }
             

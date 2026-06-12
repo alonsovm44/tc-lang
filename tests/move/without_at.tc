@@ -1,0 +1,9 @@
+fn void consume: ->i32 p {
+    // Consume the pointer
+}
+
+fn i32 main: {
+    ->i32 x = alloc(i32, 2)
+    consume(x)  // Should error: owned variable must be passed with @
+    ret 0
+}

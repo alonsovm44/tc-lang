@@ -92,11 +92,7 @@ static void emit_expr(Str *out, Expr *e, DeclVec *program);
 static void emit_type(Str *out, Type *t, const char *name, DeclVec *program);
 
 static void emit_type_for_async_param(Str *out, Type *t, const char *name, DeclVec *program) {
-    if (t && (t->kind == TY_QUEUE || t->kind == TY_STACK)) {
-        emit_type(out, t, NULL, program);
-        if (name && name[0]) str_printf(out, " *%s", name);
-        return;
-    }
+    // Queue/stack types should be passed by value, not by pointer
     emit_type(out, t, name, program);
 }
 
@@ -207,6 +203,40 @@ static void emit_expr(Str *out, Expr *e, DeclVec *program) {
             if (!strcmp(e->text, "lenof") && e->args.count == 1) {
                 str_add(out, "TC_LENOF("); emit_expr(out, e->args.items[0], program); str_add(out, ")");
                 break;
+            }
+            // Queue methods
+            if (!strcmp(e->text, "size") && e->args.count == 1) {
+                Type *arg_type = e->args.items[0]->type;
+                if (arg_type && arg_type->kind == TY_QUEUE) {
+                    str_add(out, "queue_size("); emit_expr(out, e->args.items[0], program); str_add(out, ")");
+                    break;
+                }
+                if (arg_type && arg_type->kind == TY_STACK) {
+                    str_add(out, "stack_size("); emit_expr(out, e->args.items[0], program); str_add(out, ")");
+                    break;
+                }
+            }
+            if (!strcmp(e->text, "clear") && e->args.count == 1) {
+                Type *arg_type = e->args.items[0]->type;
+                if (arg_type && arg_type->kind == TY_QUEUE) {
+                    str_add(out, "queue_clear("); emit_expr(out, e->args.items[0], program); str_add(out, ")");
+                    break;
+                }
+                if (arg_type && arg_type->kind == TY_STACK) {
+                    str_add(out, "stack_clear("); emit_expr(out, e->args.items[0], program); str_add(out, ")");
+                    break;
+                }
+            }
+            if (!strcmp(e->text, "isEmpty") && e->args.count == 1) {
+                Type *arg_type = e->args.items[0]->type;
+                if (arg_type && arg_type->kind == TY_QUEUE) {
+                    str_add(out, "queue_isEmpty("); emit_expr(out, e->args.items[0], program); str_add(out, ")");
+                    break;
+                }
+                if (arg_type && arg_type->kind == TY_STACK) {
+                    str_add(out, "stack_isEmpty("); emit_expr(out, e->args.items[0], program); str_add(out, ")");
+                    break;
+                }
             }
             // Check if this is an async function call
             bool is_async_call = false;
@@ -361,6 +391,18 @@ static void emit_expr(Str *out, Expr *e, DeclVec *program) {
                 }
                 emit_expr(out, e->left, program);
                 str_add(out, ")");
+            } else if (!strcmp(e->text, "size")) {
+                str_printf(out, "%s_size(%s", is_stack ? "stack" : "queue", left_is_ptr ? "" : "&");
+                emit_expr(out, e->left, program);
+                str_add(out, ")");
+            } else if (!strcmp(e->text, "clear")) {
+                str_printf(out, "%s_clear(%s", is_stack ? "stack" : "queue", left_is_ptr ? "" : "&");
+                emit_expr(out, e->left, program);
+                str_add(out, ")");
+            } else if (!strcmp(e->text, "isEmpty")) {
+                str_printf(out, "%s_isEmpty(%s", is_stack ? "stack" : "queue", left_is_ptr ? "" : "&");
+                emit_expr(out, e->left, program);
+                str_add(out, ")");
             }
             free(item_type.data);
             break;
@@ -370,6 +412,72 @@ static void emit_expr(Str *out, Expr *e, DeclVec *program) {
         case EX_PTR_FIELD: emit_expr(out, e->left, program); str_printf(out, "->%s", e->text); break;
         case EX_METHOD_CALL:
             // Emit method call as StructName_methodName(&expr, args...)
+            // Check if this is a queue/stack method call
+            if (e->left && e->left->type && (e->left->type->kind == TY_QUEUE || e->left->type->kind == TY_STACK)) {
+                // Queue/stack method call
+                bool is_stack = e->left->type->kind == TY_STACK;
+                Str item_type = {0};
+                if (e->left->type->inner) emit_type(&item_type, e->left->type->inner, "", program);
+                else str_add(&item_type, "void");
+
+                // Check if left side is a pointer (raw pointer to queue/stack)
+                // C functions always expect pointers, so add & if not already a pointer
+                bool left_is_ptr = (e->left->type->kind == TY_RAWPTR && e->left->type->inner && 
+                                  (e->left->type->inner->kind == TY_QUEUE || e->left->type->inner->kind == TY_STACK));
+                
+                if (!strcmp(e->text, "push") || !strcmp(e->text, "enq")) {
+                    str_printf(out, "%s_push(%s", is_stack ? "stack" : "queue", left_is_ptr ? "" : "&");
+                    emit_expr(out, e->left, program);
+                    str_add(out, ", &(");
+                    str_add(out, item_type.data);
+                    str_add(out, "){ ");
+                    emit_expr(out, e->args.items[0], program);
+                    str_add(out, " }, sizeof(");
+                    str_add(out, item_type.data);
+                    str_add(out, "))");
+                } else if (!strcmp(e->text, "pop") || !strcmp(e->text, "deq") || !strcmp(e->text, "peek")) {
+                    str_add(out, "*(");
+                    str_add(out, item_type.data);
+                    str_add(out, "*)");
+                    if (!strcmp(e->text, "peek")) {
+                        str_printf(out, "%s_peek(%s", is_stack ? "stack" : "queue", left_is_ptr ? "" : "&");
+                    } else {
+                        str_printf(out, "%s_pop(%s", is_stack ? "stack" : "queue", left_is_ptr ? "" : "&");
+                    }
+                    emit_expr(out, e->left, program);
+                    str_add(out, ")");
+                } else if (!strcmp(e->text, "size")) {
+                    str_printf(out, "%s_size(%s", is_stack ? "stack" : "queue", left_is_ptr ? "" : "&");
+                    emit_expr(out, e->left, program);
+                    str_add(out, ")");
+                } else if (!strcmp(e->text, "clear")) {
+                    str_printf(out, "%s_clear(%s", is_stack ? "stack" : "queue", left_is_ptr ? "" : "&");
+                    emit_expr(out, e->left, program);
+                    str_add(out, ")");
+                } else if (!strcmp(e->text, "isEmpty")) {
+                    str_printf(out, "%s_isEmpty(%s", is_stack ? "stack" : "queue", left_is_ptr ? "" : "&");
+                    emit_expr(out, e->left, program);
+                    str_add(out, ")");
+                } else {
+                    // Unknown method, fall back to regular emission
+                    if (e->type && e->type->name) {
+                        str_printf(out, "%s_%s(&", e->type->name, e->text);
+                    } else {
+                        str_add(out, e->text);
+                        str_add(out, "(&");
+                    }
+                    emit_expr(out, e->left, program);
+                    for (int i = 0; i < e->args.count; i++) {
+                        str_add(out, ", ");
+                        emit_expr(out, e->args.items[i], program);
+                    }
+                    str_add(out, ")");
+                }
+                free(item_type.data);
+                break;
+            }
+            
+            // Regular struct method call
             if (e->type && e->type->name) {
                 str_printf(out, "%s_%s(&", e->type->name, e->text);
             } else {
@@ -557,8 +665,30 @@ static void emit_stmt_vec(Str *out, StmtVec *body, DeclVec *program, int indent)
 
 static bool emit_stmt_vec_with_defers(Str *out, StmtVec *body, DeclVec *program, int indent) {
     bool has_return = false;
+    // First pass: collect queue/stack variables that need cleanup
+    Str cleanup_code = {0};
+    for (int i = 0; i < body->count; i++) {
+        Stmt *s = body->items[i];
+        if (s->kind == ST_VAR && (s->type->kind == TY_QUEUE || s->type->kind == TY_STACK)) {
+            const char *container = s->type->kind == TY_STACK ? "stack" : "queue";
+            str_printf(&cleanup_code, "    %s_destroy(&%s);\n", container, s->name);
+        }
+    }
+    
+    // Second pass: emit statements
     for (int i = 0; i < body->count; i++) if (body->items[i]->kind != ST_DEFER) emit_stmt(out, body->items[i], body, program, indent, &has_return);
+    
+    // Emit cleanup for queue/stack variables (before defers, after regular statements)
+    if (cleanup_code.len > 0 && !has_return) {
+        emit_indent(out, indent);
+        str_add(out, "/* cleanup queue/stack */\n");
+        str_add(out, cleanup_code.data);
+    }
+    
+    // Emit defers
     if (!has_return) emit_defers(out, body, program, indent);
+    
+    free(cleanup_code.data);
     return has_return;
 }
 

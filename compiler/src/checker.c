@@ -115,6 +115,14 @@ static bool fn_exists(DeclVec *program, const char *name) {
     return false;
 }
 
+static Decl *get_fn_decl(DeclVec *program, const char *name) {
+    for (int i = 0; i < program->count; i++) {
+        Decl *d = program->items[i];
+        if ((d->kind == DC_FN || d->kind == DC_EXTERN_FN) && strcmp(d->name, name) == 0) return d;
+    }
+    return NULL;
+}
+
 static bool is_assignment(const char *op) {
     return !strcmp(op, "=") || !strcmp(op, "+=") || !strcmp(op, "-=") || 
            !strcmp(op, "*=") || !strcmp(op, "/=") || !strcmp(op, "%=");
@@ -137,6 +145,42 @@ static void check_expr(Expr *e, ScopeStack *s) {
             break;
         case EX_CALL:
             for (int i = 0; i < e->args.count; i++) check_expr(e->args.items[i], s);
+            // Check argument count against function signature
+            if (e->text && fn_exists(s->program, e->text)) {
+                Decl *fn = get_fn_decl(s->program, e->text);
+                if (fn) {
+                    int expected_params = fn->params.count;
+                    int actual_args = e->args.count;
+                    if (!fn->varargs && actual_args != expected_params) {
+                        if (actual_args < expected_params) {
+                            tc_error("E015", e->line, e->col, (int)strlen(e->text),
+                                "Too few arguments to function '%s': expected %d, got %d", 
+                                e->text, expected_params, actual_args);
+                        } else {
+                            tc_error("E016", e->line, e->col, (int)strlen(e->text),
+                                "Too many arguments to function '%s': expected %d, got %d", 
+                                e->text, expected_params, actual_args);
+                        }
+                    }
+                    // Check that owned arguments are passed with @ operator
+                    for (int i = 0; i < e->args.count && i < fn->params.count; i++) {
+                        Expr *arg = e->args.items[i];
+                        Type *param_type = fn->params.items[i].type;
+                        // If parameter expects an owned type (pointer)
+                        if (param_type && (param_type->kind == TY_RAWPTR || param_type->kind == TY_FATPTR)) {
+                            // Check if argument is a variable name without @
+                            if (arg->kind == EX_NAME) {
+                                VarInfo *var = get_var_info(s, arg->text);
+                                if (var && var->is_owned) {
+                                    // Variable is owned but not marked with @
+                                    tc_error("E017", e->line, e->col, (int)strlen(arg->text),
+                                        "Owned variable '%s' must be passed with @ operator", arg->text);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
             break;
         case EX_BINARY:
             check_expr(e->left, s);

@@ -1,0 +1,9 @@
+fn i32 add: i32 a, i32 b {
+    ret a + b
+}
+
+fn i32 main: {
+    // Too few arguments
+    add(5)
+    ret 0
+}

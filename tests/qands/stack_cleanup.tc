@@ -1,0 +1,11 @@
+use "stdlib/io.tc"
+use "stdlib/snq.tc"
+
+fn i32 main: {
+    stack<i32> s = {1, 2, 3}
+    print("Stack size: ")
+    printi(s.size())
+    print("\n")
+    // Stack should be automatically destroyed when it goes out of scope
+    ret 0
+}

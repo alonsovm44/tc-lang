@@ -1,0 +1,20 @@
+use "stdlib/snq.tc"
+
+fn i32 main: {
+    queue<i32> q = {1, 2, 3}
+    
+    printn("Queue size:")
+    printi(q.size())
+    
+    printn("Queue isEmpty:")
+    printi(q.isEmpty())
+    
+    q.clear()
+    printn("After clear, size:")
+    printi(q.size())
+    
+    printn("After clear, isEmpty:")
+    printi(q.isEmpty())
+    
+    ret 0
+}

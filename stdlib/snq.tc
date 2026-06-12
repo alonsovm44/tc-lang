@@ -24,6 +24,10 @@ extern "C" {
     void fn queue_destroy: ->Queue q {}
     void fn queue_push: ->Queue q, ->void item {}
     ->void fn queue_pop: ->Queue q {}
+    ->void fn queue_peek: ->Queue q {}
+    i32 fn queue_size: ->Queue q {}
+    void fn queue_clear: ->Queue q {}
+    i32 fn queue_isEmpty: ->Queue q {}
 }
 
 // Stack operations
@@ -32,4 +36,8 @@ extern "C" {
     void fn stack_destroy: ->Stack s {}
     void fn stack_push: ->Stack s, ->void item {}
     ->void fn stack_pop: ->Stack s {}
+    ->void fn stack_peek: ->Stack s {}
+    i32 fn stack_size: ->Stack s {}
+    void fn stack_clear: ->Stack s {}
+    i32 fn stack_isEmpty: ->Stack s {}
 }

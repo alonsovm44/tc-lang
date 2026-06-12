@@ -10,10 +10,10 @@ tigc source.tc -c app -o source.c # this brings async.h even if it wasnt called
 - [ ] Fix bug where queues and stacks cant be freed when allocated
     - Add queue_free and stack_free functions
 - [ ] Make Tig catch when we pass to few args or to many args to a function, not fallback on C to do it.
-- [ ] add more methods to stacks and queues
-    - [ ] size
-    - [ ] clear
-    - [ ] isEmpty <!-- maybe not needed, we could just check size -->
+- [x] add more methods to stacks and queues [DONE]
+    - [x] size
+    - [x] clear
+    - [x] isEmpty
 
 - [ ] Enforce 1.3 move semantics, moving is working without `@`
 - [ ] Make multiple return values via queues/stacks work for sync functions.
