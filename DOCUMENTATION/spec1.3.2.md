@@ -1,4 +1,5 @@
 # todo for 1.3.x
+- [ ] Add 
 - [x] Separate stacks and queues from async to their own stdlib module [DONE]
 - [x] HIGH PRIORITY: Fix async.h being included for non-async code [DONE]
       - type_needs_runtime() incorrectly returns true for queue/stack
@@ -90,3 +91,5 @@ This compiles but hangs when ran
 [ ] Expand stdlib to include web/http features
 [ ] Build a small web server or non trivial program with Tig 1.3.1
 ---
+
+[PRIORITY]: LOW 
