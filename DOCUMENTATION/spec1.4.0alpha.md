@@ -1,22 +1,8 @@
-# v1.3.1
-
-## Try/Catch blocks for error handling
-Simple try/catch blocks for error handling, no complex error types or traits.
-```tc
-try {
-    // Code that might throw
-    int result = divide(10, 0);
-} catch (error) {
-    // Handle error
-    print("Error: ", error);
-}
-```
-
-**TODO**: Define what is an error in Tig
+# v1.4.0-alpha
 
 ## Comptime execution
 Following the "explicit" nature of the language, comptime execution is explicit and requires the `comptime` keyword.
-```tc
+```tcs
 comptime {
     // Code that executes at compile time
 }
@@ -74,58 +60,6 @@ comptime {
 fn void main:{
     printi(add_99(1, 2)) // Prints 102
 }
-```
-
-## Conditional defer
-[priority]: LOW
-
-We tried to introduce this before but it didnt work and was buggy. While we could just do this
-
-if(cond){
-    defer{}
-}else
-{
-
-}
-
-we could also have
-```
-defer if(cond){
-
-}
-
-```
-But this is sugar that may be not needed
-
-## FFI generator
-Foreign Function Interface Generator Parse C headers and generate Tig bindings automatically:
-```tc
-extern "C" @port "raylib.h"  // Auto-generates all bindings
-// Now you can use Raylib functions directly
-```
-Why it blows minds: No more manually writing extern declarations. Instant access to any C library.
-```tc
-// Wrapping in comptime ensures the generator runs at compile time
-comptime{
-    extern "C" @port "raylib.h"
-}
-
-```
-This is basically a macro system or #include for any C library, but it's more powerful because it can generate code at compile time.
-
-Example conditional binding generator
-
-```
-if (use_raylib) {
-    comptime {
-        extern "C" @port "raylib.h"
-    }
-}else if(use_sdl) {
-    comptime {
-        extern "C" @port "SDL2/SDL.h"
-    }
-}
-
 ```
 
 ## C flags

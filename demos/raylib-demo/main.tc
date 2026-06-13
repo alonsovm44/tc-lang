@@ -1,7 +1,7 @@
 // Raylib Demo in TightC
 // A simple window with bouncing ball
 
-"C"{
+"C" {
     #include "raylib.h"
 }
 
@@ -10,7 +10,7 @@ fn void main: {
     i32 screenWidth = 800
     i32 screenHeight = 450
     
-    "C"{
+    "C" {
         InitWindow(screenWidth, screenHeight, "TightC + Raylib Demo");
         SetTargetFPS(60);
         
@@ -22,7 +22,7 @@ fn void main: {
         float ballRadius = 20.0f;
     }
     
-    "C"{
+    "C" {
         while (1) {
             // Update ball position
             ballX += velX;

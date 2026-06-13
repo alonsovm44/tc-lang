@@ -1,6 +1,9 @@
 # v1.3.1
 This patch introduces an intuitive error system. I tried to make something that is easy to learn and intuitive to use.
-
+[DONE] partially
+<!-- TODO: 
+1. Fix if statements not working in try blocks
+-->
 ## Error system
 Error type 
 

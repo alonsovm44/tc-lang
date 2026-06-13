@@ -1,0 +1,5 @@
+
+fn void main:
+{
+    ret 0
+}

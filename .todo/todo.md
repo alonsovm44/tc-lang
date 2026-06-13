@@ -46,8 +46,10 @@ tigc source.tc -c app -o source.c # this brings async.h even if it wasnt called
 defer free(ptr)
 ```
 - [ ] Make extern C calls work for variables, not just for functions.
-- [ ] Make inline C work in the global scope
-- [ ] Make extern calls work with old and new syntax fn T, and T fn
+- [x] Make inline C work in the global scope [DONE]
+- [x] Make extern fn calls work with old and new syntax [DONE]
+  - Old: i32 fn name: params
+  - New: fn i32 name: params
 - [ ] add multiline decls (enforce optional semicolon)
 ```
 i32 a; i32 b;
@@ -86,7 +88,7 @@ i32[255][255][255] cube = {}
     > i forgot what is wrong with them. 
     > found it, the async runtime is not working, added notes on tests/async/
 
-- [ ] explicit casting
+- [x] explicit casting
 ```
 i32 x = 5
 f64 y = (f64)x

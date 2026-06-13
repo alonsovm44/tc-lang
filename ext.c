@@ -9,14 +9,4 @@
 #define TC_FAT_LENOF(x) ((x).len)
 
 
-int32_t main(void);
 
-
-int32_t main(void) {
-    int32_t x = 0;
-    while ((x < 100)) {
-        (x++);
-    }
-    
-    return 0;
-}

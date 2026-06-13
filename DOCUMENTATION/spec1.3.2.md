@@ -22,7 +22,7 @@ tigc source.tc -c app -o source.c # this brings async.h even if it wasnt called
 defer free(ptr)
 ```
 - [ ] Make extern C calls work for variables, not just for functions.
-- [ ] Make inline C work in the global scope
+- [x] Make inline C work in the global scope
 - [ ] Make extern fn calls work with old and new syntax fn T, and T fn
 - [ ] add multiline decls (enforce optional semicolon)
 ```

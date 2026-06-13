@@ -670,10 +670,25 @@ static StmtVec parse_block(Parser *p) {
 static Decl *parse_fn(Parser *p, DeclKind kind, bool public, Type *ret) {
     Decl *d = new_decl(kind);
     d->public = public;
-    d->type = ret;
-    d->name = expect_ident(p);
-    expect(p, ":");
-    while (!at(p, "{")) {
+    if (ret) {
+        // Old syntax: return_type fn name: params
+        d->type = ret;
+        d->name = expect_ident(p);
+        expect(p, ":");
+    } else {
+        // New syntax: fn return_type name: params
+        // Check if next token is a type (for new syntax) or name (for old syntax without return type)
+        if (is_type_name(cur(p)->text)) {
+            d->type = parse_type(p);
+            d->name = expect_ident(p);
+            expect(p, ":");
+        } else {
+            d->name = expect_ident(p);
+            expect(p, ":");
+            d->type = parse_type(p);
+        }
+    }
+    while (!at(p, "{") && !at(p, ";") && !at(p, "}")) {
         if (match(p, "...")) { d->varargs = true; break; }
         Type *pt = parse_type(p);
         char *pn = expect_ident(p);
@@ -681,7 +696,12 @@ static Decl *parse_fn(Parser *p, DeclKind kind, bool public, Type *ret) {
         if (!match(p, ",")) break;
     }
     p->pin_count = 0;
-    d->body = parse_block(p);
+    if (kind == DC_EXTERN_FN) {
+        match(p, ";");  // Optional semicolon for extern declarations
+        d->body.count = 0;  // No body for extern functions
+    } else {
+        d->body = parse_block(p);
+    }
     return d;
 }
 
@@ -871,11 +891,21 @@ DeclVec parse_program(Token *tokens) {
             if (cur(&p)->kind != TOK_STRING || strcmp(cur(&p)->text, "\"C\"")) tc_error("E011", cur(&p)->line, cur(&p)->col, (int)strlen(cur(&p)->text), "extern expects \"C\", got '%s'", cur(&p)->text);
             p.pos++;
             expect(&p, "{");
-            while (!match(&p, "}")) {
-                Type *ret = parse_type(&p);
-                expect(&p, "fn");
+            while (!at(&p, "}")) {
+                // Check for old syntax: return_type fn name: params
+                // or new syntax: fn return_type name: params
+                Type *ret = NULL;
+                if (match(&p, "fn")) {
+                    // New syntax: fn return_type name: params
+                    ret = NULL;  // parse_fn will parse return type after name
+                } else {
+                    // Old syntax: return_type fn name: params
+                    ret = parse_type(&p);
+                    expect(&p, "fn");
+                }
                 decl_push(&p.decls, parse_fn(&p, DC_EXTERN_FN, false, ret));
             }
+            match(&p, "}");
             continue;
         }
         if (match(&p, "struct") || match(&p, "strun")) {
