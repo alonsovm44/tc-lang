@@ -23,7 +23,7 @@ defer free(ptr)
 ```
 - [ ] Make extern C calls work for variables, not just for functions.
 - [ ] Make inline C work in the global scope
-- [ ] Make extern calls work with old and new syntax fn T, and T fn
+- [ ] Make extern fn calls work with old and new syntax fn T, and T fn
 - [ ] add multiline decls (enforce optional semicolon)
 ```
 i32 a; i32 b;

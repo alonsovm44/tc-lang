@@ -1,0 +1,20 @@
+use "stdlib/io.tc"
+
+fn void main:
+{
+    i32[5] arr = {1, 2, 3, 4, 5}
+    
+    i32[10][10] matrix = {}
+    i32 i = 0
+    loop if(i < 10){
+        i32 j = 0
+        loop if(j < 10){
+            matrix[i][j] = i + j
+            printi(matrix[i][j])
+            j++
+        }
+        i++
+    }
+
+    printi(matrix[2][2])
+}

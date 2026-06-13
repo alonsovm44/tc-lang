@@ -1,0 +1,9 @@
+
+fn i32 main: 
+{
+    i32 x = 0
+    loop if(x < 100) {
+        x++
+    }
+    ret 0
+}
