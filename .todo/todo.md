@@ -23,11 +23,6 @@
 [ ] Make a better, non trivial raylib demo and share it
 
 # todo for 1.3.x
-- [ ] Fix queues so they use enq/deq methods instead of push/pop
-- [ ] make comptime errors accumulate instead of just appearing one at a time, recompiling and seeing the next.
-- [ ] Finish implementing error system. Catch block not working.
-    - [ ] if stmts inside try blocks dont work.
-- 
 - [x] Separate stacks and queues from async to their own stdlib module [DONE]
 - [x] HIGH PRIORITY: Fix async.h being included for non-async code [DONE]
       - type_needs_runtime() incorrectly returns true for queue/stack
@@ -44,9 +39,9 @@ tigc source.tc -c app -o source.c # this brings async.h even if it wasnt called
     - [x] clear
     - [x] isEmpty
 
-- [x] Enforce 1.3 move semantics, moving is working without `@`
-- [ ] Make multiple return values via queues/stacks work for sync functions.
-- [ ] add inline braceless defer statements for ergonomics
+- [x] Enforce 1.3 move semantics, moving is working without `@` 
+- [x] Make multiple return values via queues/stacks work for sync functions.
+- [x] add inline braceless defer statements for ergonomics
 ```
 defer free(ptr)
 ```

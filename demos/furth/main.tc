@@ -1,5 +1,5 @@
-// Interpreter handwritten with no previous experience, minimal AI consulting, no AI codegen. Old school style.
-
+// Furth Interpreter handwritten with no previous experience, minimal AI consulting, no AI codegen. Old school style.
+// RPN = Reverse Polish Notation
 use "stdlib/io.tc"
 use "stdlib/str.tc"
 use "stdlib/snq.tc" // NEW: module for stacks and queues

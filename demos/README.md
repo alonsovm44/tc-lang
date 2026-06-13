@@ -9,9 +9,9 @@ Tig's ecosystem philosophy is Unix like, we dont have one tool that does everyth
 
 ## Highlighted projects
 
-Choix - A linter for Tig, checks for memory safety and anti-patterns.
+glint - A linter for Tig, checks for memory safety and anti-patterns.
 Tiger - Build system for Tig. 
 Fang - Package manager for Tig. 
-tdb - A debugger for Tig. 
+Tdbug - A debugger for Tig. 
 
 bf - A brainfuck interpreter written in Tig

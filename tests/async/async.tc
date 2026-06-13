@@ -22,7 +22,7 @@ fn i32 main: {
     i32 j = 0
     loop if(j < 50) {
         printi(results.deq())
-        j++
+        j++ 
     }
 }
 /*
