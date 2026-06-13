@@ -1,8 +1,8 @@
 extern "C" {
-    i32 fn rand: {}
-    i32 fn srand: u32 seed {}
-    i32 fn rand_range: i32 min, i32 max {}
-    i32 fn rand_bool: {}
+    i32 fn rand: 
+    i32 fn srand: u32 seed 
+    i32 fn rand_range: i32 min, i32 max 
+    i32 fn rand_bool: 
 }
 
 // initialize random seed

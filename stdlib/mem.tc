@@ -1,8 +1,8 @@
 extern "C" {
-    ->void fn memcpy: ->void dest, ->void src, u64 n {}
-    ->void fn memset: ->void ptr, i32 val, u64 n {}
-    i32 fn memcmp: ->void a, ->void b, u64 n {}
-    ->void fn memmove: ->void dest, ->void src, u64 n {}
+    ->void fn memcpy: ->void dest, ->void src, u64 n 
+    ->void fn memset: ->void ptr, i32 val, u64 n 
+    i32 fn memcmp: ->void a, ->void b, u64 n 
+    ->void fn memmove: ->void dest, ->void src, u64 n 
 }
 
 // zero out n bytes at ptr

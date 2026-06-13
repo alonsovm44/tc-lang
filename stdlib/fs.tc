@@ -1,12 +1,19 @@
 extern "C" {
-    ->FILE fn fopen: ->i8 file, ->i8 mode {}
-    i32 fn fclose: ->FILE f {}
-    i32 fn fgetc: ->FILE stream {}
-    i32 fn fputs: ->i8 s, ->FILE stream {}
-    i32 fn fprintf: ->FILE stream, ->i8 fmt, ... {}
-    i32 fn feof: ->FILE stream {}
-    i32 fn fputc: i32 c, ->FILE stream {}
-    i32 fn ungetc: i32 c, ->FILE stream {}
+    ->FILE fn fopen: ->i8 file, ->i8 mode 
+    i32 fn fclose: ->FILE f 
+    i32 fn fgetc: ->FILE stream 
+    i32 fn fputs: ->i8 s, ->FILE stream 
+    i32 fn fprintf: ->FILE stream, ->i8 fmt, ... 
+    i32 fn feof: ->FILE stream 
+    i32 fn fputc: i32 c, ->FILE stream 
+    i32 fn ungetc: i32 c, ->FILE stream
+
+    u64 fn fread: ->void ptr, u64 size, u64 count, ->void file 
+    u64 fn fwrite: ->void ptr, u64 size, u64 count, ->void file 
+    i32 fn fseek: ->void file, i64 offset, i32 whence 
+    i64 fn ftell: ->void file 
+    i32 fn feof: ->void file 
+    i32 fn ferror: ->void file 
 }
 
 fn ->FILE openf: ->i8 file, ->i8 mode { ret fopen(file, mode) }
@@ -16,3 +23,8 @@ fn i32 fputchr: i32 c, ->FILE stream { ret fputc(c, stream) }
 fn i32 fputstr: ->i8 s, ->FILE stream { ret fputs(s, stream) }
 fn i32 eof: ->FILE stream { ret feof(stream) }
 // and the other wrappers...
+fn u64 readf: ->void ptr, u64 size, u64 count, ->void file { ret fread(ptr, size, count, file) }
+fn u64 writef: ->void ptr, u64 size, u64 count, ->void file { ret fwrite(ptr, size, count, file) }
+fn i32 seekf: ->void file, i64 offset, i32 whence { ret fseek(file, offset, whence) }
+fn i64 tellf: ->void file { ret ftell(file) }
+fn i32 errorf: ->void file { ret ferror(file) }

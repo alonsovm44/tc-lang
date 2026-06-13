@@ -1,0 +1,5 @@
+use "stdlib/io.tc"
+
+fn void main: {
+    println("Hello from module A");
+}

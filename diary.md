@@ -112,3 +112,51 @@ Is It Possible?
 Theoretically, yes for a subset of programs. For all programs? That's the halting problem.
 
 But Tig could do it for safe subset and require defer for complex cases. That would still be revolutionary.
+
+## June 12
+
+I've worked on a lot of things today and I forgot to write in this file. I am going to try to remember what i did and write it here.
+- Fixed queues and stacks not working when allocated
+- Added more methods to queues and stacks (size, clear, isEmpty)
+- Made Tig catch when we pass to few args or to many args to a function
+- Added inline braceless defer statements for ergonomics
+- Made inline C work in the global scope
+- Made extern fn calls work with old and new syntax
+- Fixed defer not working
+- Added a dedicated module to the stdlib to manage queues and stacks
+- Fixed IO not working, specifically reading files
+- Implemented stack and queue primitives
+- Implemented basic stack and pointer features
+- Implemented async functions
+- Added explicit casting
+- Fixed Tig compiler asking for ";" when it is optional
+- Fixed emitter to handle async with pointer arguments
+Some might not be true or mixed memories. 
+
+There is a feature from 1.4 that i really want to implement in 1.3.2, that is passing flags for the C compiler using --
+I also thought that, when i make the Tig build system, or the Tig equivalent of Make, it could have a flag to pass flags to the C compiler. it could look like this
+```bash
+tigre build -- -O2 "-I/usr/local/include -L/usr/local/lib"
+```
+```bash
+tigre run -- -O2 -I/usr/local/include -L/usr/local/lib
+```
+
+WIth just the compiler would be
+
+```bash
+tigc source.tc -c app -- -O2 -lraylib -L/usr/lib
+```
+
+I thought there would be conflict but tigre can just use -- to separate the flags for the C compiler from the flags for tigre.
+
+Adding this would enable tig and tigre to link other clibs 
+
+I was also thinking on this
+`tigc a.tc b.tc -c app` 
+
+the rules 
+  - Only one file can have main function, linker error otherwise
+  - Other files are treated as libs
+  - Compiler merges ASTs from all files
+  - main from whichever file has it becomes the entry point.

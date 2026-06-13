@@ -1035,7 +1035,7 @@ cast(<expr>, <type>)  // Explicit cast
 
 ## Operators
 
-### Bitwise Operators
+### Bitwise
 
 ```
 &   // and

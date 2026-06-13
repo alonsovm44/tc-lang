@@ -3,18 +3,18 @@
 // Link with: -lcurl
 
 extern "C" {
-    void fn curl_global_init: i64 flags {}
-    void fn curl_global_cleanup: {}
-    ->void fn curl_easy_init: {}
-    void fn curl_easy_cleanup: ->void handle {}
-    i32 fn curl_easy_setopt_str: ->void handle, i32 option, ->i8 param {}
-    i32 fn curl_easy_setopt_long: ->void handle, i32 option, i64 param {}
-    i32 fn curl_easy_setopt_pointer: ->void handle, i32 option, ->void param {}
-    i32 fn curl_easy_perform: ->void handle {}
-    i32 fn curl_easy_getinfo_long: ->void handle, i32 info, ->i64 param {}
-    ->i8 fn curl_easy_escape: ->void handle, ->i8 input, i32 length {}
-    ->i8 fn curl_easy_unescape: ->void handle, ->i8 input, i32 length, ->i32 outlength {}
-    ->i8 fn curl_easy_strerror: i32 errcode {}
+    void fn curl_global_init: i64 flags 
+    void fn curl_global_cleanup:
+    ->void fn curl_easy_init: 
+    void fn curl_easy_cleanup: ->void handle 
+    i32 fn curl_easy_setopt_str: ->void handle, i32 option, ->i8 param 
+    i32 fn curl_easy_setopt_long: ->void handle, i32 option, i64 param 
+    i32 fn curl_easy_setopt_pointer: ->void handle, i32 option, ->void param 
+    i32 fn curl_easy_perform: ->void handle 
+    i32 fn curl_easy_getinfo_long: ->void handle, i32 info, ->i64 param 
+    ->i8 fn curl_easy_escape: ->void handle, ->i8 input, i32 length 
+    ->i8 fn curl_easy_unescape: ->void handle, ->i8 input, i32 length, ->i32 outlength 
+    ->i8 fn curl_easy_strerror: i32 errcode 
 }
 
 // HTTP methods

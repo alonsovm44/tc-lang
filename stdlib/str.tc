@@ -1,13 +1,14 @@
+// problem with extern blocks
 extern "C" {
-    u64 fn strlen: ->i8 s {}
-    ->i8 fn strcpy: ->i8 dest, ->i8 src {}
-    ->i8 fn strcat: ->i8 dest, ->i8 src {}
-    i32 fn strcmp: ->i8 a, ->i8 b {}
-    ->i8 fn strncpy: ->i8 dest, ->i8 src, u64 n {}
-    i32 fn strncmp: ->i8 a, ->i8 b, u64 n {}
-    ->i8 fn strchr: ->i8 s, i32 c {}
-    ->i8 fn strrchr: ->i8 s, i32 c {}
-    ->i8 fn strstr: ->i8 haystack, ->i8 needle {}
+    u64 fn strlen: ->i8 s 
+    ->i8 fn strcpy: ->i8 dest, ->i8 src 
+    ->i8 fn strcat: ->i8 dest, ->i8 src 
+    i32 fn strcmp: ->i8 a, ->i8 b 
+    ->i8 fn strncpy: ->i8 dest, ->i8 src, u64 n 
+    i32 fn strncmp: ->i8 a, ->i8 b, u64 n 
+    ->i8 fn strchr: ->i8 s, i32 c 
+    ->i8 fn strrchr: ->i8 s, i32 c 
+    ->i8 fn strstr: ->i8 haystack, ->i8 needle 
 }
 
 // string length
@@ -62,14 +63,28 @@ i32 fn ceq: i8 a, i8 b {
     ret &c
 }
 
+// fat pointer operations
+
 ->i8 fn fptos: =>i8 fatptr {
     // convert a fat pointer into a string
     ->i8 str
-    i32 = 0
+    i32 i = 0
     loop if(i < fatptr.len){
         str[i] = fatptr.ptr[i]
         i++
     }
     ret str
 
+}
+
+// string to fp 
+fn =>i8 stofp: ->i8 s {
+    =>i8 fp 
+    i32 i = 0
+    loop if(i < slen(s)){
+        fp.ptr[i] = s[i]
+        i++
+    }
+    fp.len = slen(s)
+    ret fp
 }

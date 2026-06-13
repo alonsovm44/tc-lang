@@ -1,7 +1,7 @@
 extern "C" {
-    i32 fn printf: ->i8 fmt, ... {}
-    i32 fn putchar: i32 c {}
-    i32 fn getchar: {}
+    i32 fn printf: ->i8 fmt, ...
+    i32 fn putchar: i32 c
+    i32 fn getchar:
 }
 
 void fn print: ->i8 s {  
@@ -9,6 +9,10 @@ void fn print: ->i8 s {
 }
 void fn printi: i64 n { 
     printf("%ld", n)
+}
+void fn printn: ->i8 s { 
+    printf("%s", s)
+    putchar(10)
 }
 i32 fn readc: { ret getchar() }
 i32 fn putchr: i32 c { ret putchar(c) }

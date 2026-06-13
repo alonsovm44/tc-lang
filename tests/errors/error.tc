@@ -21,7 +21,7 @@ fn i32 main: {
     catch {
         zeroDivision(a, b) ret -1,
         _ {
-            printn("Caught an unknown error")
+            print("Caught an unknown error")
             ret -1
         }
     }

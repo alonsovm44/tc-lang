@@ -1,7 +1,10 @@
 // lib specially dedicated to stack and queue manipulation
 
 // get length of queue
+// migrate slowly snq.h to tig.
+// not urgent
 
+// when done, tigc stdlib/snq.tc -o snq.h
 strun Queue {
     ->void items,
     i32 capacity,
@@ -17,27 +20,48 @@ strun Stack {
     i32 top,
     i32 elem_size
 }
+Stack _stack
+Queue _queue 
+
+Queue fn queue_create: i32 capacity {
+    Queue q = {0}
+    if (capacity <= 0) {capacity = 8}
+    q.capacity = capacity
+    q.items = 0
+    q.head = 0
+    q.tail = 0
+    q.count = 0
+    q.elem_size = 0
+    ret q
+}
+
+void fn queue_destroy: ->Queue q {
+    if(!q){
+        ret 
+    }
+    free(q.>items)
+}
 
 // Queue operations
 extern "C" {
-    ->Queue fn queue_create: i32 capacity {}
-    void fn queue_destroy: ->Queue q {}
-    void fn queue_push: ->Queue q, ->void item {}
-    ->void fn queue_pop: ->Queue q {}
-    ->void fn queue_peek: ->Queue q {}
-    i32 fn queue_size: ->Queue q {}
-    void fn queue_clear: ->Queue q {}
-    i32 fn queue_isEmpty: ->Queue q {}
+    ->Queue fn queue_create: i32 capacity 
+    void fn queue_destroy: ->Queue q 
+    void fn queue_push: ->Queue q, ->void item
+    ->void fn queue_pop: ->Queue q 
+    ->void fn queue_peek: ->Queue q 
+    i32 fn queue_size: ->Queue q 
+    void fn queue_clear: ->Queue q 
+    i32 fn queue_isEmpty: ->Queue q 
 }
 
 // Stack operations
 extern "C" {
-    ->Stack fn stack_create: i32 capacity {}
-    void fn stack_destroy: ->Stack s {}
-    void fn stack_push: ->Stack s, ->void item {}
-    ->void fn stack_pop: ->Stack s {}
-    ->void fn stack_peek: ->Stack s {}
-    i32 fn stack_size: ->Stack s {}
-    void fn stack_clear: ->Stack s {}
-    i32 fn stack_isEmpty: ->Stack s {}
+    ->Stack fn stack_create: i32 capacity 
+    void fn stack_destroy: ->Stack s 
+    void fn stack_push: ->Stack s, ->void item 
+    ->void fn stack_pop: ->Stack s 
+    ->void fn stack_peek: ->Stack s 
+    i32 fn stack_size: ->Stack s 
+    void fn stack_clear: ->Stack s 
+    i32 fn stack_isEmpty: ->Stack s 
 }

@@ -16,6 +16,11 @@ int32_t filegetc(FILE *stream);
 int32_t fputchr(int32_t c, FILE *stream);
 int32_t fputstr(char *s, FILE *stream);
 int32_t eof(FILE *stream);
+uint64_t readf(void *ptr, uint64_t size, uint64_t count, void *file);
+uint64_t writef(void *ptr, uint64_t size, uint64_t count, void *file);
+int32_t seekf(void *file, int64_t offset, int32_t whence);
+int64_t tellf(void *file);
+int32_t errorf(void *file);
 
 
 FILE *openf(char *file, char *mode) {
@@ -46,4 +51,29 @@ int32_t fputstr(char *s, FILE *stream) {
 int32_t eof(FILE *stream) {
     
     return feof(stream);
+}
+
+uint64_t readf(void *ptr, uint64_t size, uint64_t count, void *file) {
+    
+    return fread(ptr, size, count, file);
+}
+
+uint64_t writef(void *ptr, uint64_t size, uint64_t count, void *file) {
+    
+    return fwrite(ptr, size, count, file);
+}
+
+int32_t seekf(void *file, int64_t offset, int32_t whence) {
+    
+    return fseek(file, offset, whence);
+}
+
+int64_t tellf(void *file) {
+    
+    return ftell(file);
+}
+
+int32_t errorf(void *file) {
+    
+    return ferror(file);
 }

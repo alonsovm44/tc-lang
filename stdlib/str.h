@@ -10,6 +10,8 @@
 #define TC_FAT_LENOF(x) ((x).len)
 
 
+typedef struct { char *ptr; size_t len; } tc_fat_i8;
+
 uint64_t slen(char *s);
 int32_t seq(char *a, char *b);
 void scpy(char *dest, char *src);
@@ -19,6 +21,9 @@ char *sfind(char *s, int32_t c);
 char *sfindlast(char *s, int32_t c);
 char *strhas(char *haystack, char *needle);
 int32_t ceq(char a, char b);
+char *ctostr(char c);
+char *fptos(tc_fat_i8 fatptr);
+tc_fat_i8 stofp(char *s);
 
 
 uint64_t slen(char *s) {
@@ -66,4 +71,32 @@ char *strhas(char *haystack, char *needle) {
 int32_t ceq(char a, char b) {
     
     return (a == b);
+}
+
+char *ctostr(char c) {
+    
+    return (&c);
+}
+
+char *fptos(tc_fat_i8 fatptr) {
+    char *str = {0};
+    int32_t i = 0;
+    while ((i < fatptr.len)) {
+        (str[i] = fatptr.ptr[i]);
+        (i++);
+    }
+    
+    return str;
+}
+
+tc_fat_i8 stofp(char *s) {
+    tc_fat_i8 fp = {0};
+    int32_t i = 0;
+    while ((i < slen(s))) {
+        (fp.ptr[i] = s[i]);
+        (i++);
+    }
+    (fp.len = slen(s));
+    
+    return fp;
 }
