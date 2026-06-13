@@ -24,6 +24,7 @@ Removed:
 
 Improved/Fixed:
 
+- fixed inline C not working on the global scope
 - fixed queue and stack methods, also fixed methods not working on queue pointers
 - fixed inlining including libs not working, now it looks for the file relative to the file not the project root
 - Queue and stacks vars are now automatically destroyed when they go out of scope
