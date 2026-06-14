@@ -50,7 +50,8 @@
 ## Todo (sorted by importance for self-hosting)
 
 ### High Priority (essential for self-hosting)
-- [ ] Fix async functions (runtime not working)
+- [x] Fix async functions (runtime not working)
+    - Async works but it is fire and forget, we need a way to wait for results.
 - [ ] Fix if stmts not working in try blocks.
 - [ ] Implement pointers to stacks and queues
 - [ ] Pointer operations for stack and queue types
@@ -60,8 +61,8 @@
 
 ### Medium Priority (language features)
 - [ ] add multiline decls (enforce optional semicolon)
-- [ ] Add a function to the stdlib that converts a fatptr string into a normal string
-- [ ] Add multidimensional array support (note: already supported, needs testing)
+- [x] Add a function to the stdlib that converts a fatptr string into a normal string
+- [x] Add multidimensional array support (note: already supported, needs testing)
 - [x] add boolean types, 0 or 1 (i8 is ok since it's just 0 or 1, C's bool is i8 anyway)
 
 ### Low Priority (nice to have)

@@ -1270,33 +1270,75 @@ static void emit_stmt(Str *out, Stmt *s, StmtVec *scope, DeclVec *program, int i
 
         case ST_DEFER: break;
 
-        case ST_THROW:
-
-            // Generate throw as a function call to the error handler
-
-            // For now, just emit the expression as a comment
-
-            str_add(out, "/* throw "); emit_expr(out, s->expr, program); str_add(out, " */\n");
-
+        case ST_THROW: {
+            // Generate throw as: call error body, then tc_throw with error name
+            if (s->expr && s->expr->text) {
+                // First, emit the error body function call
+                str_add(out, "error_");
+                str_add(out, s->expr->text);
+                str_add(out, "(");
+                if (s->expr->args.count > 0) {
+                    for (int i = 0; i < s->expr->args.count; i++) {
+                        emit_expr(out, s->expr->args.items[i], program);
+                        if (i < s->expr->args.count - 1) str_add(out, ", ");
+                    }
+                }
+                str_add(out, ");\n");
+                // Then, emit tc_throw with the error name
+                emit_indent(out, indent);
+                str_add(out, "tc_throw(\"");
+                str_add(out, s->expr->text);
+                str_add(out, "\");\n");
+            } else {
+                // Fallback for other expressions
+                str_add(out, "tc_throw(\"unknown\");\n");
+            }
             break;
+        }
 
-        case ST_TRY:
-
-            // Generate try-catch as a simple block for now
-
-            // TODO: Implement proper error handling with setjmp/longjmp or similar
-
+        case ST_TRY: {
+            // Generate try-catch using setjmp/longjmp
             str_add(out, "{\n");
-
-            emit_stmt_vec(out, &s->body, program, indent + 1);
-
+            emit_indent(out, indent + 1); str_add(out, "jmp_buf _try_buf;\n");
+            emit_indent(out, indent + 1); str_add(out, "jmp_buf *_old_buf = tc_get_try_buf();\n");
+            emit_indent(out, indent + 1); str_add(out, "tc_set_try_buf(&_try_buf);\n");
+            emit_indent(out, indent + 1); str_add(out, "int _try_result = setjmp(_try_buf);\n");
+            emit_indent(out, indent + 1); str_add(out, "if (_try_result == 0) {\n");
+            emit_stmt_vec(out, &s->body, program, indent + 2);
+            emit_indent(out, indent + 1); str_add(out, "} else {\n");
+            // Emit catch arms
+            for (int i = 0; i < s->catch_arms.count; i++) {
+                CatchArm *arm = &s->catch_arms.items[i];
+                if (arm->error_name) {
+                    emit_indent(out, indent + 2); str_add(out, "if (strcmp(tc_error_name(), \"");
+                    str_add(out, arm->error_name);
+                    str_add(out, "\") == 0) {\n");
+                    if (arm->ret_expr) {
+                        emit_indent(out, indent + 3); str_add(out, "return ");
+                        emit_expr(out, arm->ret_expr, program);
+                        str_add(out, ";\n");
+                    } else if (arm->body.count > 0) {
+                        emit_stmt_vec(out, &arm->body, program, indent + 3);
+                    }
+                    emit_indent(out, indent + 2); str_add(out, "}\n");
+                } else {
+                    // Wildcard catch
+                    emit_indent(out, indent + 2); str_add(out, "else {\n");
+                    if (arm->ret_expr) {
+                        emit_indent(out, indent + 3); str_add(out, "return ");
+                        emit_expr(out, arm->ret_expr, program);
+                        str_add(out, ";\n");
+                    } else if (arm->body.count > 0) {
+                        emit_stmt_vec(out, &arm->body, program, indent + 3);
+                    }
+                    emit_indent(out, indent + 2); str_add(out, "}\n");
+                }
+            }
+            emit_indent(out, indent + 1); str_add(out, "}\n");
+            emit_indent(out, indent + 1); str_add(out, "tc_set_try_buf(_old_buf);\n");
             emit_indent(out, indent); str_add(out, "}\n");
-
-            // Emit catch arms as comments for now
-
-            str_add(out, "/* catch block */\n");
-
             break;
+        }
 
         case ST_MATCH: {
 
@@ -1484,7 +1526,7 @@ char *emit_program(DeclVec program) {
 
     Str out = {0};
 
-    str_add(&out, "#include <stdint.h>\n#include <stddef.h>\n#include <stdio.h>\n#include <stdlib.h>\n#include <string.h>\n#include <math.h>\n");
+    str_add(&out, "#include <stdint.h>\n#include <stddef.h>\n#include <stdio.h>\n#include <stdlib.h>\n#include <string.h>\n#include <math.h>\n#include <setjmp.h>\n");
 
     str_add(&out, "#define TC_ALLOC(type, count) ((type *)calloc((count), sizeof(type)))\n");
 

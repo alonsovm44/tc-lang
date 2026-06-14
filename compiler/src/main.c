@@ -317,7 +317,7 @@ int main(int argc, char **argv) {
                  "  tigc main.tc --debug c            Output C code without compiling\n");
             return 0;
         } else if (!strcmp(argv[i], "--version") || !strcmp(argv[i], "-v")) {
-            puts("tight-c 1.3.1");
+            puts("tight-c 1.3.1\nHecho en México");
             return 0;
         } else if (!strcmp(argv[i], "--error") || !strcmp(argv[i], "--explain")) {
             if (++i >= argc) die("missing error code after --error");

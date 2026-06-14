@@ -11,7 +11,7 @@ i32 x = 12
 
 ## Function pointers
 
-i32 fn add(i32 a, i32 b) {
+i32 fn add: i32 a, i32 b {
     return a + b
 }
 

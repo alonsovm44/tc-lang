@@ -5,14 +5,16 @@ This patch introduces an intuitive error system. I tried to make something that 
 1. Fix if statements not working in try blocks
 -->
 ## Error system
-Error type 
+[DONE]
+[STILL BUGGY]
+Add an error type 
 
 error MyError: T args,... {
-
+    // code to be executed on error time
 }
 
 Example:
-error BufferOverflow: i32 size, buffer buf{
+error BufferOverflow: i32 size, ->buffer buf{
     // code that executes when the exception happens
     printf("Error buffer overflow in buffer %s with size %d", buf, size)
     free(buf)

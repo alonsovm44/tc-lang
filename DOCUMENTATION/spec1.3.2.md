@@ -21,3 +21,20 @@ The compiler can now pass flags to the C compiler using --
 ```bash
 tigc file1.tc file2.tc -c app -- -O2 -lraylib -L/usr/lib
 ```
+
+## Free standing mode
+
+The compiler can now compile with no libc using --freestanding flag.
+
+```bash
+tigc file1.tc file2.tc -c app --freestanding
+```
+
+No stdio, no stdlib, no math, no setjmp
+Just these:
+```c
+typedef __SIZE_TYPE__ size_t;
+typedef __UINTPTR_TYPE__ uintptr_t;
+```
+Or define your own fixed-width types
+Change in emitter.c: Add a freestanding flag to emit_program() that skips all libc includes and defines minimal types.
