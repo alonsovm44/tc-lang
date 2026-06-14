@@ -368,13 +368,23 @@ int main(int argc, char **argv) {
         printf("// End AST Dump\n\n");
     }
     
-    // Check if program contains async functions
+    // Check if program contains async functions or try/catch
     bool needs_runtime = false;
     for (int i = 0; i < program.count; i++) {
         Decl *d = program.items[i];
         if ((d->kind == DC_FN && d->is_async) || decl_uses_runtime(d)) {
             needs_runtime = true;
             break;
+        }
+        // Check if function uses try/catch
+        if (d->kind == DC_FN && d->body.count > 0) {
+            for (int j = 0; j < d->body.count; j++) {
+                if (d->body.items[j]->kind == ST_TRY || d->body.items[j]->kind == ST_THROW) {
+                    needs_runtime = true;
+                    break;
+                }
+            }
+            if (needs_runtime) break;
         }
     }
 

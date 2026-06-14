@@ -10,8 +10,8 @@ enum OPERAND{
     SUB,
     MUL,
     DIV,
-    MOD,
-    POW
+    MOD, // todo, add this
+    POW // todo add this
     // later mod and pow
 }
 

@@ -1,0 +1,16 @@
+Critical Bugs That Will Cause Crashes
+str.h has two dangerous bugs: ctostr returns a pointer to a stack variable that becomes invalid immediately after the function returns, causing undefined behavior. fptos declares an uninitialized char* set to NULL, then tries to write through it, guaranteed to segfault. Fix: Both need to allocate memory with malloc (or use a static buffer) and properly copy the data.
+
+snq.h contains a recursive #include "snq.h" inside its own header guard, which can cause infinite preprocessing loops. The comment admits it's fragile. Fix: Move implementations to a separate .c file and remove the self-include.
+
+Design Issues
+Queue/stack return pointers to internal buffers that become invalid after the next push/pop operation. Callers must copy immediately, which is error-prone. Fix: Provide both a _copy variant that writes to a caller-supplied buffer and document the transient nature of the pointer return.
+
+Missing memory management — no arena allocator, garbage collector, or even basic pool allocator. For a systems language claiming ownership semantics, this is a gap. Add: arena.h with region-based allocation.
+
+Incomplete async runtime — async.h declares a thread pool but the implementation is stubbed. The queue/stack aren't thread-safe either. Fix: Implement the thread pool with pthreads and add concurrent queue variants with mutex protection.
+
+Missing Core Modules
+You need dynamic arrays (vec.h), hash tables (map.h), proper string builders, and sorting utilities. These are foundational for any real program.
+
+The stdlib has a solid skeleton, but these fixes are necessary before Tig can be used for serious applications without frequent crashes.

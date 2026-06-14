@@ -1,15 +1,7 @@
 #include "emitter.h"
-
-
-
 #include "common.h"
-
-
-
 #include <stdlib.h>
-
 #include <string.h>
-
 #include <stdio.h>
 
 
@@ -1536,7 +1528,7 @@ char *emit_program(DeclVec program) {
 
     
 
-    // Check if we need runtime support (async functions, queue/stack types, or queue/stack methods)
+    // Check if we need runtime support (async functions, queue/stack types, queue/stack methods, or try/catch)
 
     bool needs_runtime = false;
 
@@ -1552,6 +1544,17 @@ char *emit_program(DeclVec program) {
 
         }
 
+        // Check if function uses try/catch
+        if (d->kind == DC_FN && d->body.count > 0) {
+            for (int j = 0; j < d->body.count; j++) {
+                if (d->body.items[j]->kind == ST_TRY || d->body.items[j]->kind == ST_THROW) {
+                    needs_runtime = true;
+                    break;
+                }
+            }
+            if (needs_runtime) break;
+        }
+
     }
 
     
@@ -1559,6 +1562,12 @@ char *emit_program(DeclVec program) {
     if (needs_runtime) {
 
         str_add(&out, "#include \"stdlib/async.h\"\n");
+
+        // Add function declarations for error handling
+        str_add(&out, "jmp_buf *tc_get_try_buf(void);\n");
+        str_add(&out, "void tc_set_try_buf(jmp_buf *buf);\n");
+        str_add(&out, "void tc_throw(const char *error_name);\n");
+        str_add(&out, "const char *tc_error_name(void);\n");
 
     }
 
