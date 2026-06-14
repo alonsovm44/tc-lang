@@ -51,7 +51,7 @@
 
 ### High Priority (essential for self-hosting)
 - [x] Fix async functions (runtime not working)
-    - Async works but it is fire and forget, we need a way to wait for results.
+    - Async works but it is fire and forget, we need a way to wait for results. [for now skip]
 - [ ] Fix if stmts not working in try blocks.
 - [ ] Implement pointers to stacks and queues
 - [ ] Pointer operations for stack and queue types

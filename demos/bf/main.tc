@@ -13,9 +13,9 @@ enum TOKENS{
     MOV_RIGHT, // > 0
     MOV_LEFT, // < 1
     ADD, // + 2
-    SUB // -  3
+    SUB, // -  3
     OPEN_LOOP, // [ 4
-    CLOSE_LOOP // ] 5
+    CLOSE_LOOP, // ] 5
     STDOUT, // . 6 
     STDIN // , 7
 }
@@ -105,7 +105,7 @@ fn void precomputeLoops: ->TOKENS program, i32 len, ->i32 matches{  // for now j
     i32 i = 0
     loop if(i < stack_size){
         print("Error, unclosed loop at position: ")
-        print(i)
+        printi(i)
         i++
     }
     }
