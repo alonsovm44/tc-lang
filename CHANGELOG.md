@@ -2,6 +2,7 @@
 
 Added:
 
+- added pointer access to stacks and queues
 - added explicit casting x = (T)y
 - added braceless defer for ergonomics
 - added argument count validation in tig level, not falling back into C

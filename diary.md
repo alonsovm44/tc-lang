@@ -175,3 +175,18 @@ I might not add C codegen at comptime, or comptime, or maybe yes, but I am most 
 I am thinking on writing a program in Tig to manage this diary. 
 
 Also, select stmts are not working properly, but it is something i can defer for later. 
+
+### on adding generics
+So far queues and stacks are hardcoded into the language, but i think it would be better to have a generic implementation that can be used for any type. We need actual generics to make the languge "modable" so future users can make their own modules and data structures without needing to modify or hardcode them into the Compiler core. 
+
+Given Tig's philosophy (minimal, C-transpiled, explicit), I recommend C FFI + Library with a hybrid approach:
+
+Keep queue/stack as built in special cases, they're fundamental and used throughout the stdlib  
+Everything else (maps, vectors, lists) as C libraries with ergonomic wrappers
+Add a simple macro system only if needed for common patterns
+This way:
+
+No compiler changes needed for new containers
+Users can leverage existing C libraries
+Language stays minimal and focused
+Self-hosting compiler can use these libraries without modification

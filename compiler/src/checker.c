@@ -222,6 +222,10 @@ static void check_expr(Expr *e, ScopeStack *s) {
         case EX_INDEX:
             check_expr(e->left, s);
             check_expr(e->right, s);
+            // Set the type to the array element type
+            if (e->left->type && e->left->type->kind == TY_ARRAY) {
+                e->type = e->left->type->inner;
+            }
             break;
         case EX_METHOD_CALL:
             check_expr(e->left, s);

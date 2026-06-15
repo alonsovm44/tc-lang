@@ -1,5 +1,5 @@
 # Lintig
-Linting is a static analysis tool that checks your code for errors and style issues. And memory leaks within your Tig program. 
+Lintig is a static analysis tool that checks your code for errors and style issues. And memory leaks within your Tig program. 
 
 ## Usage
 `lintig <file.tc> --[fags]`

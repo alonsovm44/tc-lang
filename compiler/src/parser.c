@@ -334,11 +334,48 @@ static Expr *parse_postfix(Parser *p) {
         }
         if (match(p, ".")) {
             if (match(p, ">")) {
-                // .> for pointer field access
-                Expr *field = new_expr(EX_PTR_FIELD);
-                field->left = e;
-                field->text = expect_ident(p);
-                e = field;
+                // .> for pointer field access or method call
+                char *field_name = expect_ident(p);
+                if (match(p, "(")) {
+                    // Check if this is a queue/stack method call on a pointer
+                    bool is_queue_stack_method = false;
+                    if (e->type && e->type->kind == TY_RAWPTR) {
+                        Type *inner = e->type->inner;
+                        if (inner && (inner->kind == TY_QUEUE || inner->kind == TY_STACK)) {
+                            is_queue_stack_method = true;
+                        }
+                    }
+
+                    if (is_queue_stack_method) {
+                        Expr *method_call = new_expr(EX_QUEUE_METHOD);
+                        method_call->left = e;
+                        method_call->text = field_name;
+
+                        // Parse arguments
+                        while (!match(p, ")")) {
+                            expr_push(&method_call->args, parse_expr(p));
+                            match(p, ",");
+                        }
+                        e = method_call;
+                    } else {
+                        // Regular method call on pointer
+                        Expr *method_call = new_expr(EX_METHOD_CALL);
+                        method_call->left = e;
+                        method_call->text = field_name;
+
+                        while (!match(p, ")")) {
+                            expr_push(&method_call->args, parse_expr(p));
+                            match(p, ",");
+                        }
+                        e = method_call;
+                    }
+                } else {
+                    // Regular pointer field access
+                    Expr *field = new_expr(EX_PTR_FIELD);
+                    field->left = e;
+                    field->text = field_name;
+                    e = field;
+                }
             } else {
                 // Check if this is a method call: expr.method(...)
                 char *field_name = expect_ident(p);

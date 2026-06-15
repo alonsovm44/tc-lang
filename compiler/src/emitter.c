@@ -706,7 +706,20 @@ static void emit_expr(Str *out, Expr *e, DeclVec *program) {
 
             // Generate queue/stack method calls
 
-            Type *inner = e->left && e->left->type ? e->left->type->inner : NULL;
+            Type *inner = NULL;
+            if (e->left && e->left->type) {
+                if (e->left->type->kind == TY_RAWPTR && e->left->type->inner) {
+                    // Pointer to queue/stack - get the item type from the queue/stack's inner
+                    if (e->left->type->inner->kind == TY_QUEUE || e->left->type->inner->kind == TY_STACK) {
+                        inner = e->left->type->inner->inner;
+                    } else {
+                        inner = e->left->type->inner;
+                    }
+                } else {
+                    // Direct queue/stack - get the item type
+                    inner = e->left->type->inner;
+                }
+            }
 
             bool is_stack = e->left && e->left->type && (e->left->type->kind == TY_STACK || (e->left->type->kind == TY_RAWPTR && e->left->type->inner && e->left->type->inner->kind == TY_STACK));
 

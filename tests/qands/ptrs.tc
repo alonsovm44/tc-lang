@@ -21,16 +21,16 @@ fn void foo: ->queue<i32> qptr {
 }
 // dynamic allocation
 fn void bar: {
-    queue<i32> qptr = alloc(queue<i32>, 1)
+    ->queue<i32> qptr = alloc(queue<i32>, 1)
     defer free(qptr)
 
     qptr.>push(1)
     qptr.>push(2)
     qptr.>push(3)
-    
-    println(qptr.>pop())
-    println(qptr.>pop())
-    println(qptr.>pop())
+
+    printi(qptr.>pop())
+    printi(qptr.>pop())
+    printi(qptr.>pop())
 }
 
 fn void main: 
@@ -38,16 +38,14 @@ fn void main:
     queue<i32> q = {}
     queue<i32> p = {}
     processQueue(&p)
-    
+
     ->queue<i32> qptr = &q
 
     qptr.>push(1)
-    //or
-    ->qptr.push(1)
     qptr.>push(2)
     qptr.>push(3)
 
-    println(qptr.>pop())
-    println(qptr.>pop())
-    println(qptr.>pop())
+    printi(qptr.>pop())
+    printi(qptr.>pop())
+    printi(qptr.>pop())
 }
