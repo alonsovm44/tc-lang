@@ -1,12 +1,12 @@
 # v1.3.1
 This patch introduces an intuitive error system. I tried to make something that is easy to learn and intuitive to use.
-[DONE] partially
+[DONE] 
 <!-- TODO: 
 1. Fix if statements not working in try blocks
 -->
 ## Error system
 [DONE]
-[STILL BUGGY]
+[STILL BUGGY]: NOW-FIXED
 Add an error type 
 
 error MyError: T args,... {
@@ -98,6 +98,34 @@ fn void log: {
 }
 ```
 In this case the default return value is `void`.
+
+
+## Pointers to stacks and queues
+
+It partially works now but needs to be tighten up.
+
+```
+fn void main: {
+    queue<i32> q
+    ->queue<i32> qptr = &q // this stores the address of the queue
+}
+
+// Add deref access support for pointers to stacks and queues
+
+fn void foo: {
+    queue<i32> q
+    ->queue<i32> qptr = &q
+    qptr.>push(1)
+    qptr.>push(2)
+    qptr.>push(3)
+    
+    println(qptr.>pop())
+    println(qptr.>pop())
+    println(qptr.>pop())
+}
+
+// this->: queue and stack pointers are useful for passing to functions and avoiding copying large objects
+```
 
 # new keywords for 1.3.2
 + `error` (type)

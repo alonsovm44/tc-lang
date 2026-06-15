@@ -160,3 +160,18 @@ the rules
   - Other files are treated as libs
   - Compiler merges ASTs from all files
   - main from whichever file has it becomes the entry point.
+
+## June 13
+
+Did not code much today, just wrote this diary and thought about the future of Tig.
+
+## June 14
+
+I fixed the if stmt not working on try blocks. Now throw works as intended. 
+I am thinking on not going for 1.4.0 at all, but instead make a final 1.3.3 version with just enough stable features to start the self hosting (writing Tig in Tig) process. 
+
+I might not add C codegen at comptime, or comptime, or maybe yes, but I am most interested in self hosting. 
+
+I am thinking on writing a program in Tig to manage this diary. 
+
+Also, select stmts are not working properly, but it is something i can defer for later. 

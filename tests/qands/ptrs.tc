@@ -1,0 +1,53 @@
+
+// use cases for queue /stack pointers
+use "stdlib/io.tc"
+use "stdlib/snq.tc"
+
+// passing to functions, avoids copying
+
+fn void processQueue: ->queue<i32> qptr {
+    qptr.>push(42)
+    qptr.>push(43)
+}
+
+// arrays of queues
+fn void foo: ->queue<i32> qptr {
+    queue<i32>[10] queues
+    i32 i = 0
+    loop if (i < 10){
+        queues[i].push(i*i)
+        i++
+    }
+}
+// dynamic allocation
+fn void bar: {
+    queue<i32> qptr = alloc(queue<i32>, 1)
+    defer free(qptr)
+
+    qptr.>push(1)
+    qptr.>push(2)
+    qptr.>push(3)
+    
+    println(qptr.>pop())
+    println(qptr.>pop())
+    println(qptr.>pop())
+}
+
+fn void main: 
+{
+    queue<i32> q = {}
+    queue<i32> p = {}
+    processQueue(&p)
+    
+    ->queue<i32> qptr = &q
+
+    qptr.>push(1)
+    //or
+    ->qptr.push(1)
+    qptr.>push(2)
+    qptr.>push(3)
+
+    println(qptr.>pop())
+    println(qptr.>pop())
+    println(qptr.>pop())
+}
