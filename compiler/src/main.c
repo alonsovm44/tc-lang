@@ -10,6 +10,9 @@
 #include <string.h>
 #ifdef _WIN32
 #include <windows.h>
+#else
+#include <limits.h>
+#include <unistd.h>
 #endif
 
 const char *g_current_input = NULL;
@@ -277,11 +280,46 @@ static bool decl_uses_runtime(Decl *d) {
     return false;
 }
 
+static char *get_stdlib_path(void) {
+    // 1. Check environment variable
+    const char *env_path = getenv("TIG_STDLIB_PATH");
+    if (env_path && env_path[0]) return xstrdup(env_path);
+
+    // 2. Check relative to executable
+#ifdef _WIN32
+    char exe_path[MAX_PATH];
+    GetModuleFileNameA(NULL, exe_path, MAX_PATH);
+    // Get directory of executable
+    char *last_slash = strrchr(exe_path, '\\');
+    if (last_slash) {
+        *last_slash = '\0';
+        char *stdlib_path = malloc(strlen(exe_path) + 16);
+        sprintf(stdlib_path, "%s\\stdlib", exe_path);
+        return stdlib_path;
+    }
+#else
+    char exe_path[PATH_MAX];
+    if (readlink("/proc/self/exe", exe_path, PATH_MAX) != -1) {
+        char *last_slash = strrchr(exe_path, '/');
+        if (last_slash) {
+            *last_slash = '\0';
+            char *stdlib_path = malloc(strlen(exe_path) + 16);
+            sprintf(stdlib_path, "%s/stdlib", exe_path);
+            return stdlib_path;
+        }
+    }
+#endif
+
+    // 3. Default to current directory + stdlib
+    return xstrdup("stdlib");
+}
+
 int main(int argc, char **argv) {
     const char *input = NULL;
     const char *output = NULL;
     const char *compile_out = NULL;
     const char *hot_lib = NULL;
+    const char *stdlib_path = NULL;
     bool hot_rebuild = false;
     bool keep_temp = false;
     bool debug_ast = false;
@@ -300,10 +338,14 @@ int main(int argc, char **argv) {
                  "  -t, --temp             Keep temporary .c files for debugging\n"
                  "  --debug ast            Output AST for debugging\n"
                  "  --debug c              Output generated C code without compiling\n"
+                 "  --stdlib-path <path>   Set stdlib path (default: ./stdlib or relative to exe)\n"
                  "  -h, --help             Show this help message\n"
                  "  -v, --version          Show version\n"
                  "  --error <code>         Explain an error code (e.g. --error E000)\n"
                  "  --error list           List all error codes\n"
+                 "\n"
+                 "Environment Variables:\n"
+                 "  TIG_STDLIB_PATH        Path to stdlib directory\n"
                  "\n"
                  "Examples:\n"
                  "  tigc main.tc -o main.c           Transpile to C\n"
@@ -346,11 +388,19 @@ int main(int argc, char **argv) {
             } else {
                 die("invalid debug option: %s (use 'ast' or 'c')", argv[i]);
             }
+        } else if (!strcmp(argv[i], "--stdlib-path")) {
+            if (++i >= argc) die("missing path after --stdlib-path");
+            stdlib_path = argv[i];
         } else {
             input = argv[i];
         }
     }
     if (!input) die("usage: tigc <input.tc> [-o output.c] [-c binary]\n       tigc --help for more info");
+
+    // Get stdlib path if not specified
+    if (!stdlib_path) {
+        stdlib_path = get_stdlib_path();
+    }
     char *source = read_file(input);
     tc_set_source(input, source);
     g_current_input = input;
@@ -394,7 +444,7 @@ int main(int argc, char **argv) {
         if (hot_rebuild) {
             // Rebuild only hot library
             char *hot_c_only = NULL;
-            emit_hot_split(program, hot_lib, &hot_c_only);
+            emit_hot_split(program, hot_lib, &hot_c_only, stdlib_path);
             char hot_c_path[256];
             snprintf(hot_c_path, sizeof(hot_c_path), "%s.c", hot_lib);
             write_file(hot_c_path, hot_c_only);
@@ -438,9 +488,9 @@ int main(int argc, char **argv) {
             printf("  hot library rebuilt: %s\n", hot_lib);
             return 0;
         }
-        c_code = emit_hot_split(program, hot_lib, &hot_c);
+        c_code = emit_hot_split(program, hot_lib, &hot_c, stdlib_path);
     } else {
-        c_code = emit_program(program);
+        c_code = emit_program(program, stdlib_path);
     }
     
     // Debug: Output C code

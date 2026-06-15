@@ -3,12 +3,12 @@
 This directory contains the standard library for the Tig programming language.
 
 Format:
-- Each module can have a corresponding .h file
-- Each module can have a corresponding .tc file
+- Each module can have a corresponding .h file (optional)
+- Each module has a corresponding .tc file (mandatory)
 
 How to write a stdlib module
 
-1. Write extern C function calls to the C stdlib in the .tc file
+1. Write extern C function calls to the necessary C stdlibs in the .tc file
 2. Write structures and enums in the .tc file
 3. Write functions/wrappers in the .tc file
     - If it is a libc wrapper, write the code to call the libc function

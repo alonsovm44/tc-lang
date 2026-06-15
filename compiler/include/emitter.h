@@ -53,6 +53,7 @@
  *
  * Args:
  *   program: The validated AST (DeclVec) from the checker phase
+ *   stdlib_path: Path to the stdlib directory for resolving @use includes
  *
  * Returns:
  *   A dynamically allocated string containing the generated C code.
@@ -73,11 +74,11 @@
  * Example:
  *   DeclVec program = parse_program(tokens);
  *   check_program(&program);
- *   char *c_code = emit_program(program);
+ *   char *c_code = emit_program(program, "stdlib");
  *   // Write c_code to file or compile directly
  *   free(c_code);
  */
-char *emit_program(DeclVec program);
+char *emit_program(DeclVec program, const char *stdlib_path);
 
 /**
  * emit_hot_split: Generate C code for hot-swapping (library reloading)
@@ -95,6 +96,7 @@ char *emit_program(DeclVec program);
  *   hot_c_out: Output pointer for the library-specific C code.
  *              Will be set to a newly allocated string containing
  *              the library code. Caller must free this string.
+ *   stdlib_path: Path to the stdlib directory for resolving @use includes
  *
  * Returns:
  *   A dynamically allocated string containing the main C code.
@@ -110,11 +112,11 @@ char *emit_program(DeclVec program);
  * Example:
  *   char *main_c = NULL;
  *   char *lib_c = NULL;
- *   main_c = emit_hot_split(program, "hotlib.so", &lib_c);
+ *   main_c = emit_hot_split(program, "hotlib.so", &lib_c, "stdlib");
  *   // Write main_c and lib_c to separate files
  *   free(main_c);
  *   free(lib_c);
  */
-char *emit_hot_split(DeclVec program, const char *hot_lib, char **hot_c_out);
+char *emit_hot_split(DeclVec program, const char *hot_lib, char **hot_c_out, const char *stdlib_path);
 
 #endif

@@ -2,6 +2,7 @@
 
 Added:
 
+- now tigc can be used from any directory
 - added pointer access to stacks and queues
 - added explicit casting x = (T)y
 - added braceless defer for ergonomics

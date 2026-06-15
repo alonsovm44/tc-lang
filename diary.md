@@ -183,10 +183,9 @@ Given Tig's philosophy (minimal, C-transpiled, explicit), I recommend C FFI + Li
 
 Keep queue/stack as built in special cases, they're fundamental and used throughout the stdlib  
 Everything else (maps, vectors, lists) as C libraries with ergonomic wrappers
-Add a simple macro system only if needed for common patterns
+Use the macro system only if needed for common patterns
 This way:
-
-No compiler changes needed for new containers
-Users can leverage existing C libraries
-Language stays minimal and focused
-Self-hosting compiler can use these libraries without modification
+- No compiler changes needed for new containers
+- Users can leverage existing C libraries
+- Language stays minimal and focused
+- Self-hosting compiler can use these libraries without modification

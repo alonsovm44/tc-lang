@@ -1527,7 +1527,7 @@ static void scan_fat_types_in_stmts(StmtVec *body, Str *out, DeclVec *program, c
 
 
 
-char *emit_program(DeclVec program) {
+char *emit_program(DeclVec program, const char *stdlib_path) {
 
     Str out = {0};
 
@@ -1574,7 +1574,7 @@ char *emit_program(DeclVec program) {
 
     if (needs_runtime) {
 
-        str_add(&out, "#include \"stdlib/async.h\"\n");
+        str_printf(&out, "#include \"%s/async.h\"\n", stdlib_path);
 
         // Add function declarations for error handling
         str_add(&out, "jmp_buf *tc_get_try_buf(void);\n");
@@ -1642,7 +1642,15 @@ char *emit_program(DeclVec program) {
 
             }
 
-            str_printf(&out, "#include \"%s\"\n", path);
+            // Resolve path relative to stdlib_path if it starts with "stdlib/"
+            char full_path[512];
+            if (strncmp(path, "stdlib/", 7) == 0) {
+                snprintf(full_path, sizeof(full_path), "%s/%s", stdlib_path, path + 7);
+            } else {
+                snprintf(full_path, sizeof(full_path), "%s", path);
+            }
+
+            str_printf(&out, "#include \"%s\"\n", full_path);
 
         }
 
@@ -2150,7 +2158,7 @@ char *emit_program(DeclVec program) {
 
 
 
-char *emit_hot_split(DeclVec program, const char *hot_lib, char **hot_c_out) {
+char *emit_hot_split(DeclVec program, const char *hot_lib, char **hot_c_out, const char *stdlib_path) {
 
     Str host = {0};
 
@@ -2196,7 +2204,15 @@ char *emit_hot_split(DeclVec program, const char *hot_lib, char **hot_c_out) {
 
             }
 
-            str_printf(&hot, "#include \"%s\"\n", path);
+            // Resolve path relative to stdlib_path if it starts with "stdlib/"
+            char full_path[512];
+            if (strncmp(path, "stdlib/", 7) == 0) {
+                snprintf(full_path, sizeof(full_path), "%s/%s", stdlib_path, path + 7);
+            } else {
+                snprintf(full_path, sizeof(full_path), "%s", path);
+            }
+
+            str_printf(&hot, "#include \"%s\"\n", full_path);
 
         }
 
