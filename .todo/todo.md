@@ -58,7 +58,7 @@
 - [x] Fix if stmts not working in try blocks.
 - [x] Implement pointers to stacks and queues
 - [x] Pointer operations for stack and queue types
-- [ ] Test ciclical imports on `use` stmt, make a #pragma once equivalent if needed
+- [x] Test ciclical imports on `use` stmt, make a #pragma once equivalent if needed (solved using collections)
 - [ ] Enforce everything being private by default, since `pub` does nothing since 1.1
 - [ ] Make extern C calls work for variables, not just for functions
 

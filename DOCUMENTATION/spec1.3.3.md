@@ -1,21 +1,8 @@
 # v1.3.3
 Runtime patch
 
-[ ] - Fix async runtime
+- [ ] Make async runtime production grade
 
-## Pointers to stacks and queues
-
-It partially works now
-
-```
-fn void main: {
-    queue<i32> q
-    ->queue<i32> qptr = &q
-
-
-}
-
-```
 
 ## Library for hash maps
 

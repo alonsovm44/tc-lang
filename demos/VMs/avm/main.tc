@@ -1,0 +1,6 @@
+use "stdlib/io.tc"
+
+fn main: i32 x {
+    print("Hello, World!")
+    return 0
+}

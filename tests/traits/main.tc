@@ -1,0 +1,42 @@
+// ===== main.tc =====
+@use "std/collections/geometry.tc"
+@use "std/collections/shapes.tc"
+@use "std/collections/logger.tc"
+
+fn void main(geometry, shapes, logger("APP")): void {
+    logger.info("Application started")
+    
+    // Create a point
+    geometry.Point p1 = {10, 20}
+    p1.print()
+    p1.move(5, -5)
+    p1.print()
+    
+    // Create another point
+    geometry.Point p2 = {20, 30}
+    i32 dist = p1.distance_to(p2)
+    print("Distance: " + dist)
+    
+    // Create a circle
+    geometry.Circle circle = {p1, 10}
+    circle.print()
+    
+    // Check if point is in circle
+    if circle.contains(p2) {
+        print("p2 is inside circle")
+    }
+    
+    // Create a rectangle (from inherited shapes bundle)
+    shapes.Rectangle rect = {
+        {0, 0},
+        {10, 10}
+    }
+    rect.print()
+    print("Area: " + rect.area())
+    
+    if rect.contains({5, 5}) {
+        print("Point (5,5) is inside rectangle")
+    }
+    
+    logger.info("Application finished")
+}

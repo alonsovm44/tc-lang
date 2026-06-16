@@ -1,0 +1,120 @@
+// ===== std/collections/geometry.tc =====
+% geometry {
+    strun Point {
+        i32 x,
+        i32 y
+        
+        fn void print: {
+            print("(" + x + ", " + y + ")")
+        }
+        
+        fn void move: i32 dx, i32 dy {
+            x = x + dx
+            y = y + dy
+        }
+        
+        fn i32 distance_to: Point other {
+            i32 dx = x - other.x
+            i32 dy = y - other.y
+            ret sqrt(dx * dx + dy * dy)
+        }
+    }
+    
+    strun Circle {
+        Point center,
+        i32 radius
+        
+        fn void print: {
+            print("Circle at center: ")
+            center.print()
+            print("Radius: " + radius)
+        }
+        
+        fn bool contains: Point p {
+            ret center.distance_to(p) <= radius
+        }
+    }
+}
+
+// ===== std/collections/shapes.tc =====
+% shapes : geometry {
+    strun Rectangle {
+        Point top_left,
+        Point bottom_right
+        
+        fn void print: {
+            print("Rectangle:")
+            print("  TL: " + top_left)
+            print("  BR: " + bottom_right)
+        }
+        
+        fn i32 area: {
+            i32 width = bottom_right.x - top_left.x
+            i32 height = bottom_right.y - top_left.y
+            ret width * height
+        }
+        
+        fn bool contains: Point p {
+            ret p.x >= top_left.x && p.x <= bottom_right.x &&
+                p.y >= top_left.y && p.y <= bottom_right.y
+        }
+    }
+}
+
+// ===== std/collections/logger.tc =====
+% logger(level) {
+    # log(msg) {
+        print("[" + level + "] " + msg)
+    }
+    
+    fn void info(->i8 msg) {
+        log(msg)
+    }
+    
+    fn void error(->i8 msg) {
+        log("ERROR: " + msg)
+    }
+}
+
+// ===== main.tc =====
+@use "geometry.tc"
+@use "shapes.tc"
+@use "logger.tc"
+
+fn void main(geometry, shapes, logger("APP")): void {
+    logger.info("Application started")
+    
+    // Create a point
+    geometry.Point p1 = {10, 20}
+    p1.print()
+    p1.move(5, -5)
+    p1.print()
+    
+    // Create another point
+    geometry.Point p2 = {20, 30}
+    i32 dist = p1.distance_to(p2)
+    print("Distance: " + dist)
+    
+    // Create a circle
+    geometry.Circle circle = {p1, 10}
+    circle.print()
+    
+    // Check if point is in circle
+    if circle.contains(p2) {
+        print("p2 is inside circle")
+    }
+    
+    // Create a rectangle (from inherited shapes bundle)
+    shapes.Rectangle rect = {
+        {0, 0},
+        {10, 10}
+    }
+    rect.print()
+    print("Area: " + rect.area())
+    
+    if rect.contains({5, 5}) {
+        print("Point (5,5) is inside rectangle")
+    }
+    
+    logger.info("Application finished")
+}

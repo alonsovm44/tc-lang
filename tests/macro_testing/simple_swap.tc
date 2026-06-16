@@ -11,3 +11,5 @@ fn void main: {
     printi(a)
     printi(b)
 }
+
+# PI {3.1415}

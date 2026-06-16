@@ -1,0 +1,15 @@
+// ===== std/collections/logger.tc =====
+% logger(level) {
+    # log(msg) {
+        print("[" + level + "] " + msg)
+    }
+    
+    fn void info(->i8 msg) {
+        log(msg)
+    }
+    
+    fn void error(->i8 msg) {
+        log("ERROR: " + msg)
+    }
+}
+

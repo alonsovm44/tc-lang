@@ -1,0 +1,25 @@
+// ===== std/collections/shapes.tc =====
+% shapes : geometry {
+    strun Rectangle {
+        Point top_left,
+        Point bottom_right
+        
+        fn void print: {
+            print("Rectangle:")
+            print("  TL: " + top_left)
+            print("  BR: " + bottom_right)
+        }
+        
+        fn i32 area: {
+            i32 width = bottom_right.x - top_left.x
+            i32 height = bottom_right.y - top_left.y
+            ret width * height
+        }
+        
+        fn bool contains: Point p {
+            ret p.x >= top_left.x && p.x <= bottom_right.x &&
+                p.y >= top_left.y && p.y <= bottom_right.y
+        }
+    }
+}
+

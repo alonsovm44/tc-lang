@@ -127,7 +127,7 @@ fn void foo: {
 // this->: queue and stack pointers are useful for passing to functions and avoiding copying large objects
 ```
 
-# new keywords for 1.3.2
+# new keywords for 1.3.1
 + `error` (type)
 + `throw` (statement)
 + `try` (statement)
