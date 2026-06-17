@@ -127,24 +127,8 @@ fn void foo: {
 // this->: queue and stack pointers are useful for passing to functions and avoiding copying large objects
 ```
 ## All is public
-In saviet rasha evriting ist publik komrade
+For now all data is public in Tig
 
-Wrap `my` to indicate what is private
-
-```
-my i32 priv_global = 42 // private global variable
-
-my async fn void myPrivate function:{} // private function
-
-my strun privStruct{i32 x} // private struct
-my strun privUnion{&i32 x} // private struct
-
-my collection pCol { // everything decl here is private
-    fn void priv_method:{} // private method
-} // private collection
-
-
-```
 
 # Keywords
 

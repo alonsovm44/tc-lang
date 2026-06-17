@@ -387,3 +387,48 @@ fn void main: {
     printi(result)
     printi(result2)
 }
+/// Instances?
+
+% myColl(T){
+    fn void greet: {
+        print("Hello!")
+    }
+
+    fn T add: T a, T b {
+        ret (T)a + (T)b
+    }
+
+    strun Point{
+        i32 x,
+        i32 y
+        fn void print: {
+            printi(x)
+            printi(y)
+        }
+    }
+
+    fn void say: ->i8 msg{
+
+    }
+}
+
+fn void main(myColl(_)):
+{
+   myColl(*).greet() // direct call
+   myColl(i32) myc1 // instance of the collection 
+   myColl(f32) myc2 // new instance of the collection initialized with f32 as value
+
+   i32 x = myc1.add(1, 2)
+   f32 y = myc2.add(1.24, 3.43)
+
+   myColl(*) &m // alias,  same as saying `myColl as m`
+   // myColl is now called m in this scope
+   myColl().greet() // error, myColl was renamed to m in this scope
+   m.greet()
+
+   m.Point point // instantiating a point 
+   point.x = 10
+   point.y = 20
+   point.print()
+
+}
