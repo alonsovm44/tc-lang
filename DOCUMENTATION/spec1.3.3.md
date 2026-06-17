@@ -33,6 +33,27 @@ Make select stmt not a stub anymore before moving to self hosting
 
 ## My
 Implement my to specify which objects are private.
+// math.tc
+fn i32 add(i32 a, i32 b) {  // PUBLIC by default
+    ret a + b
+}
+
+my fn void helper(i32 x) {  // PRIVATE to this collection/file
+    printi(x)
+}
+
+my struct InternalData {    // PRIVATE type
+    i32 secret
+}
+
+// main.tc
+@use "math.tc"
+
+fn void main(): void {
+    add(1, 2)        // OK - public
+    helper(5)        // ERROR - private!
+    InternalData d    // ERROR - private type!
+}
 
 # Keywords for 1.3.3
 

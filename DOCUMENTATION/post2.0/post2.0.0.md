@@ -306,7 +306,7 @@ While async blocks run concurrently, synchronization mechanisms (queues, barrier
 |Async + arena interaction |	❌ Missing	|Critical edge case
 |Arena introspection |	❌ Missing	|arena_remaining() etc.
 
-## Comptime execution[APPROVED]
+## Comptime execution[DEFERED-FOR-POST-SELFHOSTING]
 <!--> <-->
 Following the "explicit" nature of the language, comptime execution is explicit and requires the `comptime` keyword and
 within comptime blocks.
@@ -370,6 +370,27 @@ fn void main:{
 }
 ```
 
+### Using comptime for inline 
+Instead of using `inline` as a separate keyword, we could use comptime to indicate which functions/methods are decl inline
+I first thought of comptime as a block only word, but i'd be useful as a function trait def
+
+comptime fn i32 foo: {}
+
+### Note:
+Values must be known at comptime
+```tig
+comptime fn i32 square(i32 x) {
+    // x MUST be known at compile time!
+    ret x * x
+}
+
+fn void main(): void {
+    i32 x = 42
+    i32 y = square(x)   // ERROR! x is not compile-time constant
+    
+    i32 y = square(5)   // OK! 5 is a compile-time constant
+}
+```
 ### Generate Tig code in comptime
 
 ```

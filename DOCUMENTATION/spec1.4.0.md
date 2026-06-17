@@ -420,7 +420,7 @@ fn void main(col,col2): {
 
 
 # Keywords in 1.4.0
-- **19 keywords** — 
+- **20 keywords** — 
 `if`, 
 `loop`, 
 `break`, 
@@ -439,5 +439,5 @@ fn void main(col,col2): {
 `throw`,
 `try`,
 `catch`,
-`comptime`,
-`% `
+`comptime`, (new)
+`my`

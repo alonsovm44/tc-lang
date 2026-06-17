@@ -151,7 +151,7 @@
 				},
 				{
 					"name": "keyword.declaration.tig",
-					"match": "\\b(fn|async|strun|struct|enum|error|use|pub|pin|extern|defer)\\b"
+					"match": "\\b(fn|async|strun|struct|enum|comptime|my|use|pub|pin|extern|defer)\\b"
 				},
 				{
 					"name": "constant.language.tig",
@@ -275,7 +275,7 @@
 			"patterns": [
 				{
 					"name": "storage.type.tig",
-					"match": "\\b(void|bool|i8|i16|i32|i64|u8|u16|u32|u64|f32|f64|char|byte|size_t|ssize_t|stack|queue)\\b"
+					"match": "\\b(void|error|bool|i8|i16|i32|i64|u8|u16|u32|u64|f32|f64|char|byte|size_t|ssize_t|stack|queue)\\b"
 				},
 				{
 					"name": "storage.type.pointer.tig",

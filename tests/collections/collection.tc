@@ -380,9 +380,11 @@ fn void main: {
 
 fn i32 add_two: i32 x { ret x + 2 }
 fn i32 multiply_three: i32 x { ret x * 3 }
-
+#pipe{(i32, i32).pipe}
 fn void main: {
     i32 result = (i32, i32).pipe(5, add_two)      // 7
+    // or 
+    // i32 result = pipe(5, add_two)
     i32 result2 = (i32,i32).pipe(5, multiply_three)  // 15
     printi(result)
     printi(result2)
@@ -430,5 +432,67 @@ fn void main(myColl(_)):
    point.x = 10
    point.y = 20
    point.print()
+
+}
+
+/// errors using collections
+
+% ErrorCollections(T, Code) {
+    fn void print: T type {
+        if(T == "runtime"){
+            printf("Runtime error, code: %s", Code)
+        }else if (T == "comptime"){
+            printf("Comptime error, code: %s", Code)
+        }
+    }
+
+    fn void what: ->Buffer buff {
+        ->i8 name = buff.>name
+        printf("Error on buffer: %s", name)
+    }
+}
+
+error E001(ErrorCollections("runtime", "001")): ->Buffer buf {
+    E001.print("runtime")
+    E001.what(buff)
+    free(buff)
+}
+
+strun Buffer{
+    ->i8 name
+    i32[1024] arr 
+}
+
+fn void foo(): {
+    // risky fn
+    Buffer buff
+    buff[0] = readc() // read char from stdin
+    if (buff.arr[0] > 32){
+        throw E001(buff)
+    }
+}
+
+/// using collections and comptime
+
+% coll{
+
+    my fn i32 foo:{
+        /// helper
+    } 
+
+    my strun Point{
+        i32 x,
+        i32 y
+    }
+
+}
+
+fn void main(coll): {
+    coll.foo() // error, foo is private
+
+    coll.Point p // error cannot instantiate a private strun 
+}
+
+my % private_collection { // this collection can only be instantiated and called inside this file
 
 }
