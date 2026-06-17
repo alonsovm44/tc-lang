@@ -190,3 +190,18 @@ This way:
 - Language stays minimal and focused
 - Self-hosting compiler can use these libraries without modification
 
+# June 16
+`pub` was introduced in 1.1 but it does nothing ever since. I resolved to remove pub since it is a stub and introduce `my` to specify what is private. Everything is public, like Terry envisioned.
+
+I also designed collections today, i first thought of using `%` to decl one, maybe i could use `stmt` or `decl` or simply `collect`. They're pretty cool concept, it merges different concepts into one single construtct. 
+
+I refactores updates 1.3.2, 1.3.3 and 1.4.0, i made 1.3.x versions much more approachable and less feature creeped. I moved 1.4.0beta for post 2.0.0. 
+
+I will implement 1.4.0, including the map type, which is crucial for ergonomicly using maps in the self hosting compiler, after that the plan is to update the stdlib and then proceeed with self hosting
+- Todo before self hosting:
+  - [ ] ship 1.3.1 full
+  - [ ] ship 1.3.2
+  - [ ] ship 1.3.3
+  - [ ] ship 1.4.0
+  - [ ] stabilize stdlib
+

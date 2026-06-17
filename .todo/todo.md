@@ -1,9 +1,6 @@
 
-# 1.4.0 alpha
+# 1.4.0 
 [ ] Implement 1.4.0alpha features.
-    - [x] try/catch (mandatory) [buggy]
-    - [ ] comptime execution (mandatory)
-    - [ ] FFI generator (can be defered if too difficult)
     - [ ] update stacks and queues
         - [ ] fixed size (buffered) stacks and queues
             - [ ] tested
@@ -11,12 +8,12 @@
             - [ ] tested
         - [ ] wildcard
             - [ ] tested
+[ ] 
 
-[ ] Make a better, non trivial raylib demo and share it
 # todo for 1.3.3
 
 - [ ] Implement `map` type and library
-- [ ]
+- [ ] 
 # todo for 1.3.2
 - [ ] C/LLVM flags
     - [ ] Optimization flags
@@ -25,7 +22,9 @@
     - [ ] Platform specific (medium importance)
     - [ ] Preprocessing and macros (can skip)
     - [ ] Linking (essential for making projects with C libs)
-
+- [ ] Freestanding mode
+    - [ ] No stdlib output
+- [ ] 
 # todo for 1.3.1
 
 ## Done
@@ -59,10 +58,11 @@
 - [x] Implement pointers to stacks and queues
 - [x] Pointer operations for stack and queue types
 - [x] Test ciclical imports on `use` stmt, make a #pragma once equivalent if needed (solved using collections)
-- [ ] Enforce everything being private by default, since `pub` does nothing since 1.1
-- [ ] Make extern C calls work for variables, not just for functions
+- [x] Enforce everything being private by default, since `pub` does nothing since 1.1
+    - Update: Everything is public by default, we use `my` to specify what is private.
 
 ### Medium Priority (language features)
+- [ ] Make extern C calls work for variables, not just for functions
 - [ ] add multiline decls (enforce optional semicolon)
 - [x] Add a function to the stdlib that converts a fatptr string into a normal string
 - [x] Add multidimensional array support (note: already supported, needs testing)

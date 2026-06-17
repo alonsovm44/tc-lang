@@ -482,11 +482,13 @@ typedef enum {
  */
 struct Decl {
     DeclKind kind;
-    bool public;
-    bool is_hot;      // For hot reload: function is in shared library
-    bool is_async;    // For 1.3: async function
+    bool public;     // Deprecated: everything is public by default now
+    bool is_hot;     // For hot reload: function is in shared library
+    bool is_async;   // For 1.3: async function
+    bool is_my;      // For 1.3.1: marked as private with 'my' keyword
     char *name;
     char *path;
+    char *source_file; // Source file where this declaration was defined
     Type *type;
     Expr *init;
     ParamVec params;

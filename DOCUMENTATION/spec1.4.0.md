@@ -33,7 +33,7 @@ comptime {
     
     // Generate a C array initialization
     "C"{
-        int lookup_table[] = {collections};
+        int lookup_table[] = {%s};
     }
 }
 
@@ -49,8 +49,8 @@ fn void generate_adders: {
     loop if(i<=100){
         // generate functions at comptime
         "C"{
-            int add_collectiond(int a, int b) {
-                return a + b + collectiond;
+            int add_%d(int a, int b) {
+                return a + b + %d;
             }
         }
         i++
@@ -97,9 +97,9 @@ Bad:
 This is very, `non-explicit` and not following Tig's historic philosophy. But is pragmatic, and my goal is to be pragmatic 
 
 
-## Collections
-Collections are a mix of: Mixins, Generics and Namespaces.
-We add a collections system to define behavior for types. And to unify namespaces and generics.
+## % ions s
+% ions s are a mix of: Mixins, Generics and Namespaces.
+We add a % ions system to define behavior for types. And to unify namespaces and generics.
 
 Currently in Tig we can import other functions from other files via raw immports
 
@@ -121,15 +121,15 @@ fn void main: {
 For using libs made by other people, this gets messy fast.
 
 Solution
-Use collections to classify code
+Use % ions to classify code
 ```
 /// lib.tc
-collection lib {
+%lib {
     fn void foo: {}
 }
 
 /// lib2.tc
-collection lib2 {
+%lib2 {
     fn void foo: {}
 }
 
@@ -138,29 +138,29 @@ collection lib2 {
 @use "lib2.tc"
 
 fn void main: {
-    lib.foo() // we call the first collection's foo function
-    lib2.foo() // we call the second collection's foo function
+    lib.foo() // we call the first %'s foo function
+    lib2.foo() // we call the second %'s foo function
 }
 
 
 ```
 
-Collections can be genericly parametric and inherit via `:`
+% ions can be genericly parametric and inherit via `:`
 
 ```
-collection balls(T){
+% balls(T){
     fn void kick: T n {
         print("Kicking the ball")
         if (typeof(T)=="i32"){
-            printf("Kicked collectiond times", n)
+            printf("Kicked %d times", n)
         }
         else {
-            printf("Error, expected i32, got collections", typeof(T))
+            printf("Error, expected i32, got %s", typeof(T))
         }
     }
 }
 
-collection foo(T) : balls(i32){
+%foo(T) : balls(i32){
     fn void kick {
         balls::kick(i32, 5)
     }
@@ -172,15 +172,15 @@ fn i32 main(foo(i32)): {
 }
 ```
 
-Example spec of collection defs and uses:
+Example spec of % defs and uses:
 ```tig
 /// Tig 1.3.2 patch 
-/// Collections
+/// %s
 
 # macro(T){ print(T)} // this is a Macro, text replacement codegen, compile-time, fully implemented, works now.
 
-collection myCollection(T){ // This is a collection. It is called collection, they can have parameters.
-// because it collects functions and other items that can be used to group and define behavior
+%myColl(T){ // This is a % ion. It is called myColl, they can have parameters.
+// because it % s functions and other items that can be used to group and define behavior
 // it is like an inline library
     pin f32 PI = 3.14
 
@@ -192,11 +192,11 @@ collection myCollection(T){ // This is a collection. It is called collection, th
             print("This is a string")
         }
         else{
-            printf("This is a pointer to: collectiond", T)
+            printf("This is a pointer to: %d", T)
         }
     }
     fn void greet(){
-        print("Hello from myCollection")
+        print("Hello from my%")
     }
     async fn doWork(): ->T data, ->queue<T> res {
         ->data = ->data * 2
@@ -210,29 +210,29 @@ collection myCollection(T){ // This is a collection. It is called collection, th
 
 // Use
 
-fn void foo(myCollection(i32)): ->i32 data { // if collection(_) wildcard was used, the type must be specified in each call
+fn void foo(my%(i32)): ->i32 data { // if %(_) wildcard was used, the type must be specified in each call
     macro("Hello") // we call the macro, it expands in comptime to print("Hello")
-    myCollection.run(*, ->data) // we use * to indicate that the type is inferred from the parameter signature at the top
-    myCollection.greet()
+    my%.run(*, ->data) // we use * to indicate that the type is inferred from the parameter signature at the top
+    my%.greet()
     queue<i32> res = {}
-    myCollection.doWork(*, ->data, ->res)
-    myCollection.sayGoodBye()
+    my%.doWork(*, ->data, ->res)
+    my%.sayGoodBye()
 }
-/// collections inheritance ------a---------------------------------------------
+/// %s inheritance ------a---------------------------------------------
 
-collection balls(T){
+%balls(T){
     fn void kick: T n {
         print("Kicking the ball")
         if (typeof(T)=="i32"){
-            printf("Kicked collectiond times", n)
+            printf("Kicked %d times", n)
         }
         else {
-            printf("Error, expected i32, got collections", typeof(T))
+            printf("Error, expected i32, got %s", typeof(T))
         }
     }
 }
 
-collection foo(T) : balls(i32){
+%foo(T) : balls(i32){
     fn void kick {
         balls::kick(i32, 5)
     }
@@ -245,13 +245,13 @@ fn i32 main(foo(i32)): {
 
 /// Another example -------------------------------------------------------------------
 
-collection parent {
+% parent {
     fn void hello {
         print("Hello from parent")
     }
 }
 
-collection child : parent {
+% child : parent {
     fn void goodbye {
         print("Goodbye from child")
     }
@@ -264,10 +264,10 @@ fn void main(child): void {
 
 /// Another example
 
-// ===== std/collectionss.tc =====
+// ===== std/%ss.tc =====
 
-// Simple collections
-collection printer {
+// Simple %s
+% printer {
     fn void print_str(str s) {
         print(s)
     }
@@ -277,8 +277,8 @@ collection printer {
     }
 }
 
-// collections with state
-collection counter {
+// %s with state
+% counter {
     pin i32 count = 0
     
     fn void increment {
@@ -290,8 +290,8 @@ collection counter {
     }
 }
 
-// collections with type parameter
-collection stack(T) {
+// %s with type parameter
+%stack(T) {
     queue<T> items = {}
     
     fn void push(T item) {
@@ -307,8 +307,8 @@ collection stack(T) {
     }
 }
 
-// collections with macro
-collection logger(level) {
+// %s with macro
+%logger(level) {
     # log(msg) {
         print("[" + level + "] " + msg)
     }
@@ -322,9 +322,9 @@ collection logger(level) {
     }
 }
 
-// collections composition
-collection debug_logger(level) {
-    printer  // Include printer collections
+// %s composition
+%debug_logger(level) {
+    printer  // Include printer %s
     
     # log(msg) {
         print("[" + level + "] " + msg)
@@ -338,27 +338,27 @@ collection debug_logger(level) {
 
 // ===== main.tc =====
 
-// Use collectionss
+// Use %ss
 fn void main(printer, counter, stack(i32), logger("INFO"), debug_logger("DEBUG")): void {
-    // printer collections
+    // printer %s
     print_str("Hello")
     print_int(42)
     
-    // counter collections
+    // counter %s
     counter.increment()
     counter.increment()
     print_int(counter.get_count())  // 2
     
-    // stack collections
+    // stack %s
     stack.push(10)
     stack.push(20)
     print_int(stack.pop())  // 20
     
-    // logger collections
+    // logger %s
     logger.info("Application started")
     logger.error("Something failed")
     
-    // debug_logger collections (includes printer)
+    // debug_logger %s (includes printer)
     debug_logger.debug("Debugging...")
     debug_logger.print_str("Hello from debug logger")
 }
@@ -379,15 +379,15 @@ fn void main: {
 /*
 but what if there is another function named foo in lib2.tc?
 To avoid collisions, we need to use a different approach.
-We can declare functions inside collections, like this:
+We can declare functions inside %s, like this:
 */
 /// lib.tc
-collection lib {
+%lib {
     fn void foo: {}
 }
 
 /// lib2.tc
-collection lib2 {
+%lib2 {
     fn void foo: {}
 }
 
@@ -396,13 +396,13 @@ collection lib2 {
 @use "lib2.tc"
 
 fn void main: {
-    lib.foo() // we call the first collection's foo function
-    lib2.foo() // we call the second collection's foo function
+    lib.foo() // we call the first %'s foo function
+    lib2.foo() // we call the second %'s foo function
 }
 
 
 /// mathutils.tc
-collection arith(T) {
+%arith(T) {
     fn T add: T a, T b {
         if(typeof(T)=="i32"){
             a = (i32)a 
@@ -427,27 +427,27 @@ i32 b = 3
 i32 result = arith(i32).add(a, b) // 
 f64 result2 = arith(f64).add(2.5, 3.5) // no collision possible since we carry the namespace 
 printi(result)
-printf("collectionf\n", result2)
+printf("%f\n", result2)
 
 }
 
-//// collections serve thre purposes
+//// %s serve thre purposes
 
-collection lib {           // 1. NAMESPACE (organizes code)
+%lib {           // 1. NAMESPACE (organizes code)
     fn foo() {}   //    No collisions with other libs
 }
 
-collection arith(T) {      // 2. GENERICS (type-parameterized)
+%arith(T) {      // 2. GENERICS (type-parameterized)
     fn add() {}   //    Works with i32, f64, etc.
 }
 
-collection logger :: parent {     // 3. MIXINS (behavior injection)
+%logger :: parent {     // 3. MIXINS (behavior injection)
     fn log() {}   //    Can be added to functions
 }
 
-// Struns and collections
+// Struns and %s
 
-collection col {
+%col {
     strun Point:{
         i32 x,
         i32 y
@@ -461,7 +461,7 @@ collection col {
 
 }
 
-collection col2 : col {
+%col2 : col {
     // inherits Point strun
     fn void foo: ->Point p{
         p.>x = 30
@@ -501,7 +501,7 @@ fn void main: {
     if(typeof(x)=="i32"){
         printi(x)
     }else{
-        printf("collectiond", x)
+        printf("%d", x)
     }
 }
 
@@ -512,8 +512,8 @@ fn i32 foo(io): *data{
 
 // return type inferred
 
-fn *myFunc(collection): i32 x{
-    x = collection.get(0)
+fn *myFunc(%): i32 x{
+    x = %.get(0)
     ret x // return type inferred from x
 }
 
@@ -526,7 +526,7 @@ fn *myFunc2(coll): *x {
 
 /// inference with type constrains
 
-collection numeric(T) {
+% numeric(T) {
     fn T add: T a, T b {
         ret a + b
     }
@@ -562,4 +562,4 @@ fn void main(numeric(_)): {
 `try`,
 `catch`,
 `comptime`,
-`collection`
+`% `

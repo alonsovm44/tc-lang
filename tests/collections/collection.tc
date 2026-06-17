@@ -1,10 +1,17 @@
-/// Tig 1.3.2 patch 
+/// Tig 1.4.0 minor patch 
 /// Collections update
+
+// Newcomer: "What's %?"
+// Documentation: "It's a collection."
+// Newcomer: "What's a collection?"
+// Documentation: "It's how you organize code, create generics, build modules, and share behavior."
+// Newcomer: "That's it?"
+// Documentation: "That's it."
 
 # macro(T){ print(T)} // this is a Macro, text replacement codegen, compile-time, fully implemented, works now.
 
-% myCollection(T){ // This is a collection. It is called collection, they can have parameters.
-// because it collects functions and other items that can be used to group and define behavior
+% myCollection(T){ // This is a collection. It is called myCollection, they can have parameters.
+// It is called collection because it collects functions and other items that can be used to group and define behavior
 // it is like an inline library
     pin f32 PI = 3.14
 
@@ -330,4 +337,53 @@ fn void main(outer): void {
     // T = f32, U = i32
     *result = outer(f32).inner(i32).combine(3.14, 42)
     printf("%f", result)  // 45.14
+}
+
+/// Using anonymous collections
+
+% (T){
+  fn void method: T x{ ret x*x}  
+}
+
+fn void main(): { // this includes the anonymous collection
+    i32 result = (i32).method(5)
+    printi(result)
+}
+/// Another example case
+
+/// Named collection
+% math(T) {
+    fn T square: T x { ret x * x }
+}
+
+// Anonymous collection
+% (T) {
+    fn T square: T x { ret x * x }
+}
+
+// Usage
+fn void main: {
+    i32 result0 = math(f32).square(10) // sqrt(10)
+    i32 result1 = (i32).square(5)  // 25
+    f64 result2 = (f64).square(3.14) // 9.8596
+}
+
+//You don't need a name! The collection is defined and used inline.
+// This is like lambdas but for TYPE-LEVEL functions
+
+/// function composition
+% (T,U) {
+    fn U pipe: T value, fn(T)U func {
+        ret func(value)
+    }
+}
+
+fn i32 add_two: i32 x { ret x + 2 }
+fn i32 multiply_three: i32 x { ret x * 3 }
+
+fn void main: {
+    i32 result = (i32, i32).pipe(5, add_two)      // 7
+    i32 result2 = (i32,i32).pipe(5, multiply_three)  // 15
+    printi(result)
+    printi(result2)
 }
