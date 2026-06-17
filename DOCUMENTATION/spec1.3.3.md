@@ -55,6 +55,20 @@ fn void main(): void {
     InternalData d    // ERROR - private type!
 }
 
+# priorities
+
+HIGH PRIORITY:
+1. my keyword implementation
+2. Hash map library
+3. select statement implementation
+
+MEDIUM PRIORITY:
+4. Async runtime fixes
+5. Map iteration (for loops over maps)
+
+LOW PRIORITY:
+6. Map performance optimizations
+
 # Keywords for 1.3.3
 
 

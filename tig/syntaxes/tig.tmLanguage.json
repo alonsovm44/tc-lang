@@ -21,6 +21,12 @@
 			"include": "#types"
 		},
 		{
+			"include": "#collection-definition"
+		},
+		{
+			"include": "#collection-usage"
+		},
+		{
 			"include": "#struct-enum-definitions"
 		},
 		{
@@ -67,6 +73,9 @@
 		},
 		{
 			"include": "#match-wildcard"
+		},
+		{
+			"include": "#function-params"
 		}
 	],
 	"repository": {
@@ -147,15 +156,64 @@
 			"patterns": [
 				{
 					"name": "keyword.control.tig",
-					"match": "\\b(if|else|loop|break|defer|ret|match|select|continue|return|throw|try|catch)\\b"
+					"match": "\\b(if|else|loop|break|defer|ret|match|select|continue|return|throw|try|catch|await)\\b"
 				},
 				{
 					"name": "keyword.declaration.tig",
-					"match": "\\b(fn|async|strun|struct|enum|comptime|my|use|pub|pin|extern|defer)\\b"
+					"match": "\\b(fn|async|strun|struct|enum|comptime|my|use|pub|pin|extern|defer|collection)\\b"
 				},
 				{
 					"name": "constant.language.tig",
 					"match": "\\b(true|false|null|nil|undefined)\\b"
+				}
+			]
+		},
+		"function-params": {
+			"patterns": [
+				{
+					"name": "meta.function.parameters.tig",
+					"begin": "(?<=fn\\s+[a-zA-Z_][a-zA-Z0-9_]*\\s+[a-zA-Z_][a-zA-Z0-9_]*\\s*:)\\s*",
+					"end": "(?=\\{)",
+					"patterns": [
+						{
+							"name": "meta.param.type.tig",
+							"begin": "([a-zA-Z_][a-zA-Z0-9_>]*)\\s+",
+							"beginCaptures": {
+								"1": { "name": "storage.type.param.tig" }
+							},
+							"end": "(?=,|\\{|$)",
+							"patterns": [
+								{
+									"name": "meta.param.name.tig",
+									"match": "([a-zA-Z_][a-zA-Z0-9_]*)",
+									"captures": {
+										"1": { "name": "variable.parameter.function.tig" }
+									}
+								},
+								{
+									"name": "meta.param.default.tig",
+									"begin": "=",
+									"beginCaptures": {
+										"0": { "name": "keyword.operator.assignment.tig" }
+									},
+									"end": "(?=,|\\{|$)",
+									"patterns": [
+										{
+											"include": "$base"
+										}
+									]
+								}
+							]
+						},
+						{
+							"name": "punctuation.separator.parameters.tig",
+							"match": ","
+						},
+						{
+							"name": "keyword.operator.varargs.tig",
+							"match": "\\.\\.\\."
+						}
+					]
 				}
 			]
 		},
@@ -174,27 +232,7 @@
 					"end": "(?<=\\})",
 					"patterns": [
 						{
-							"name": "meta.function.parameters.tig",
-							"begin": "(?<=:)\\s*",
-							"end": "(?=\\{)",
-							"patterns": [
-								{
-									"name": "meta.function.parameter.tig",
-									"match": "([a-zA-Z_][a-zA-Z0-9_>*]*)\\s+([a-zA-Z_][a-zA-Z0-9_]*)",
-									"captures": {
-										"1": { "name": "storage.type.parameter.tig" },
-										"2": { "name": "variable.parameter.function.tig" }
-									}
-								},
-								{
-									"name": "punctuation.separator.parameters.tig",
-									"match": ","
-								},
-								{
-									"name": "keyword.operator.varargs.tig",
-									"match": "\\.\\.\\."
-								}
-							]
+							"include": "#function-params"
 						},
 						{
 							"name": "meta.function.body.tig",
@@ -275,7 +313,7 @@
 			"patterns": [
 				{
 					"name": "storage.type.tig",
-					"match": "\\b(void|error|bool|i8|i16|i32|i64|u8|u16|u32|u64|f32|f64|char|byte|size_t|ssize_t|stack|queue)\\b"
+					"match": "\\b(void|error|bool|i8|i16|i32|i64|u8|u16|u32|u64|f32|f64|char|byte|size_t|ssize_t|stack|queue|strun)\\b"
 				},
 				{
 					"name": "storage.type.pointer.tig",
@@ -284,6 +322,153 @@
 				{
 					"name": "storage.type.array.tig",
 					"match": "[a-zA-Z_][a-zA-Z0-9_]*\\s*\\[[^\\]]*\\]"
+				}
+			]
+		},
+		"collection-definition": {
+			"patterns": [
+				{
+					"name": "meta.collection.definition.tig",
+					"begin": "^(\\s*)(%)\\s+([a-zA-Z_][a-zA-Z0-9_]*)",
+					"beginCaptures": {
+						"2": { "name": "keyword.declaration.collection.tig" },
+						"3": { "name": "entity.name.type.collection.tig" }
+					},
+					"end": "(?<=\\})",
+					"patterns": [
+						{
+							"name": "meta.collection.type-parameters.tig",
+							"begin": "\\(",
+							"end": "\\)",
+							"beginCaptures": {
+								"0": { "name": "punctuation.definition.type-parameters.begin.tig" }
+							},
+							"endCaptures": {
+								"0": { "name": "punctuation.definition.type-parameters.end.tig" }
+							},
+							"patterns": [
+								{
+									"name": "storage.type.parameter.tig",
+									"match": "([a-zA-Z_][a-zA-Z0-9_]*)",
+									"captures": {
+										"1": { "name": "entity.name.type.parameter.tig" }
+									}
+								},
+								{
+									"name": "punctuation.separator.type-parameters.tig",
+									"match": ","
+								}
+							]
+						},
+						{
+							"name": "meta.collection.inheritance.tig",
+							"begin": "\\s*(:)\\s+",
+							"beginCaptures": {
+								"1": { "name": "keyword.operator.inheritance.tig" }
+							},
+							"end": "(?=\\{)",
+							"patterns": [
+								{
+									"name": "entity.name.type.inherited.tig",
+									"match": "([a-zA-Z_][a-zA-Z0-9_]*)",
+									"captures": {
+										"1": { "name": "entity.name.type.collection.tig" }
+									}
+								}
+							]
+						},
+						{
+							"name": "meta.collection.body.tig",
+							"begin": "\\{",
+							"end": "\\}",
+							"beginCaptures": {
+								"0": { "name": "punctuation.section.block.begin.tig" }
+							},
+							"endCaptures": {
+								"0": { "name": "punctuation.section.block.end.tig" }
+							},
+							"patterns": [
+								{
+									"include": "$base"
+								}
+							]
+						}
+					]
+				}
+			]
+		},
+		"collection-usage": {
+			"patterns": [
+				{
+					"name": "meta.collection.instantiation.tig",
+					"begin": "([a-zA-Z_][a-zA-Z0-9_]*)\\s*(?=\\()",
+					"beginCaptures": {
+						"1": { "name": "entity.name.type.collection.instantiation.tig" }
+					},
+					"end": "(?=[^a-zA-Z0-9_])",
+					"patterns": [
+						{
+							"name": "meta.collection.type-args.tig",
+							"begin": "\\(",
+							"end": "\\)",
+							"beginCaptures": {
+								"0": { "name": "punctuation.definition.type-args.begin.tig" }
+							},
+							"endCaptures": {
+								"0": { "name": "punctuation.definition.type-args.end.tig" }
+							},
+							"patterns": [
+								{
+									"name": "storage.type.arg.tig",
+									"match": "([a-zA-Z_][a-zA-Z0-9_>*]*)",
+									"captures": {
+										"1": { "name": "entity.name.type.arg.tig" }
+									}
+								},
+								{
+									"name": "constant.language.wildcard.tig",
+									"match": "\\*"
+								},
+								{
+									"name": "punctuation.separator.type-args.tig",
+									"match": ","
+								}
+							]
+						}
+					]
+				},
+				{
+					"name": "meta.collection.instance-variable.tig",
+					"begin": "([a-zA-Z_][a-zA-Z0-9_]*)\\s+([a-zA-Z_][a-zA-Z0-9_]*)",
+					"beginCaptures": {
+						"1": { "name": "entity.name.type.collection.instance.tig" },
+						"2": { "name": "variable.other.collection-instance.tig" }
+					},
+					"end": "(?=,|;|\\)|\\{|$)",
+					"patterns": [
+						{
+							"include": "#collection-usage"
+						}
+					]
+				},
+				{
+					"name": "meta.collection.alias.tig",
+					"begin": "([a-zA-Z_][a-zA-Z0-9_]*)\\s*(&)\\s*([a-zA-Z_][a-zA-Z0-9_]*)",
+					"beginCaptures": {
+						"1": { "name": "entity.name.type.collection.alias.tig" },
+						"2": { "name": "keyword.operator.reference.tig" },
+						"3": { "name": "variable.other.collection-alias.tig" }
+					},
+					"end": "(?=,|;|\\)|\\{|$)"
+				},
+				{
+					"name": "meta.collection.method-call.tig",
+					"match": "([a-zA-Z_][a-zA-Z0-9_]*)\\s*(\\.)([a-zA-Z_][a-zA-Z0-9_]*)\\s*(?=\\()",
+					"captures": {
+						"1": { "name": "variable.other.collection-instance.tig" },
+						"2": { "name": "punctuation.accessor.tig" },
+						"3": { "name": "entity.name.function.method.tig" }
+					}
 				}
 			]
 		},
@@ -315,6 +500,13 @@
 							]
 						}
 					]
+				},
+				{
+					"name": "meta.struct.type-reference.tig",
+					"match": "([a-zA-Z_][a-zA-Z0-9_]*)\\s*(?=\\.)",
+					"captures": {
+						"1": { "name": "entity.name.type.struct.reference.tig" }
+					}
 				},
 				{
 					"name": "meta.enum.definition.tig",
@@ -672,10 +864,6 @@
 				{
 					"name": "keyword.control.async.tig",
 					"match": "\\basync\\b\\s*(?=fn)"
-				},
-				{
-					"name": "keyword.control.await.tig",
-					"match": "\\bawait\\b"
 				}
 			]
 		},

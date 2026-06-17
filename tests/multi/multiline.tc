@@ -1,18 +1,14 @@
 use "stdlib/io.tc"
 
 /// testing multiline decls and 
-error E001: {
-    print("Wierd error")
-}
-fn i32 main:
-{
-    f64 a; /// optional semicolon
-    i32 x; i32 y
-    i32 i; loop if(i<10){
-        printf("number: %d", i)
+
+fn void main: {
+    i32 a = 1, b = 2, k // k inits to 0
+    f64 c,d,r,f // all init to 0.0
+    i32 x; i32 y // all init to 0
+
+    i32 i; loop if(i<100){
+        printf("value: %d\n", i)
         i++
-        if(i>10){
-            throw E001
-        }
     }
 }

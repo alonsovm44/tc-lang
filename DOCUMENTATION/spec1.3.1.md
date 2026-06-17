@@ -127,9 +127,21 @@ fn void foo: {
 // this->: queue and stack pointers are useful for passing to functions and avoiding copying large objects
 ```
 ## All is public
+[DONE]
 For now all data is public in Tig
 
+## Multiline decl
+```
+fn void main: {
+    i32 a = 1, b = 2
+    f64 c,d,r,f // all init to 0.0
+    i32 x; i32 y // all init to 0
 
+    i32 i; loop if(i<100){
+        i++
+    }
+}
+```
 # Keywords
 
 # new keywords for 1.3.1

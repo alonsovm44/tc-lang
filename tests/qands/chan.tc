@@ -32,8 +32,6 @@ fn void main: {
 
     }
 
-
-
     i32 j = 0
 
     loop if(j < 5) {
@@ -53,5 +51,4 @@ fn void main: {
 this used to work without pointers
 
 but now because stacks and queues are destroyed at the end of the scope, we need to pass them by reference
-
 */

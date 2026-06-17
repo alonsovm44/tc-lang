@@ -17,9 +17,10 @@ fn i32 foo(io): *data{
 }
 
 // return type inferred
+% coll{}
 
-fn *myFunc(collection): i32 x{
-    x = collection.get(0)
+fn *myFunc(coll): i32 x{
+    x = coll.get(0)
     ret x // return type inferred from x
 }
 

@@ -5,8 +5,14 @@ CLI update
 
 The compiler can now compile multiple files at once. The rules are:
   - Only one file can have main function, linker error otherwise
+  - Error on duplicated symbols across files. (no namespaces, this is what collections will be for)
   - Other files are treated as libs
   - Compiler merges ASTs from all files
+  - Circular deps trigger linker error
+```bash
+  tigc a.tc b.tc -c app
+# Error: circular dependency detected: a.tc -> b.tc -> a.tc
+```
   - main from whichever file has it becomes the entry point.
 
 ```bash 
@@ -163,6 +169,20 @@ typedef __UINTPTR_TYPE__ uintptr_t;
 ```
 Or define your own fixed-width types
 Change in emitter.c: Add a freestanding flag to emit_program() that skips all libc includes and defines minimal types.
+
+# priorities
+HIGH PRIORITY:
+1. Multiple file compilation with duplicate detection
+2. -- flag for C compiler flags
+3. Freestanding mode with full type definitions
+
+MEDIUM PRIORITY:
+4. Verbose output (-v)
+5. Circular dependency detection
+
+LOW PRIORITY:
+6. Output directory (-o)
+7. string type in stdlib
 
 # Keywords for 1.3.2
 

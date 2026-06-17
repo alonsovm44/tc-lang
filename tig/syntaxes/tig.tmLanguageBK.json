@@ -21,6 +21,18 @@
 			"include": "#types"
 		},
 		{
+			"include": "#struct-enum-definitions"
+		},
+		{
+			"include": "#error-definitions"
+		},
+		{
+			"include": "#try-catch-block"
+		},
+		{
+			"include": "#throw-statement"
+		},
+		{
 			"include": "#strings"
 		},
 		{
@@ -31,6 +43,27 @@
 		},
 		{
 			"include": "#operators"
+		},
+		{
+			"include": "#queue-stack"
+		},
+		{
+			"include": "#defer-block"
+		},
+		{
+			"include": "#pin-statement"
+		},
+		{
+			"include": "#async-keywords"
+		},
+		{
+			"include": "#use-statement"
+		},
+		{
+			"include": "#enum-members"
+		},
+		{
+			"include": "#struct-fields"
 		},
 		{
 			"include": "#match-wildcard"
@@ -94,7 +127,7 @@
 							},
 							"patterns": [
 								{
-									"include": "#comment"
+									"include": "#comments"
 								}
 							]
 						}
@@ -114,15 +147,15 @@
 			"patterns": [
 				{
 					"name": "keyword.control.tig",
-					"match": "\\b(if|else|loop|break|defer|ret|match|select)\\b"
+					"match": "\\b(if|else|loop|break|defer|ret|match|select|continue|return|throw|try|catch)\\b"
 				},
 				{
 					"name": "keyword.declaration.tig",
-					"match": "\\b(fn|async|strun|enum|use|pub|pin|extern)\\b"
+					"match": "\\b(fn|async|strun|struct|enum|comptime|my|use|pub|pin|extern|defer)\\b"
 				},
 				{
 					"name": "constant.language.tig",
-					"match": "\\b(true|false|null)\\b"
+					"match": "\\b(true|false|null|nil|undefined)\\b"
 				}
 			]
 		},
@@ -130,34 +163,21 @@
 			"patterns": [
 				{
 					"name": "meta.function.definition.tig",
-					"begin": "\\b(async\\s+)?(fn)\\s+([a-zA-Z_][a-zA-Z0-9_]*)\\s*(?=:)",
+					"begin": "\\b(async\\s+)?(fn)\\s+([a-zA-Z_][a-zA-Z0-9_*]*)\\s+([a-zA-Z_][a-zA-Z0-9_]*)\\s*(:)",
 					"beginCaptures": {
 						"1": { "name": "keyword.control.async.tig" },
 						"2": { "name": "keyword.declaration.fn.tig" },
-						"3": { "name": "entity.name.function.definition.tig" }
+						"3": { "name": "storage.type.return.tig" },
+						"4": { "name": "entity.name.function.definition.tig" },
+						"5": { "name": "punctuation.definition.function.parameters.tig" }
 					},
 					"end": "(?<=\\})",
 					"patterns": [
 						{
-							"name": "meta.function.return-type.tig",
-							"match": "(?<=fn\\s+[a-zA-Z_][a-zA-Z0-9_]*\\s*:)\\s*([a-zA-Z_][a-zA-Z0-9_>*]*)",
-							"captures": {
-								"1": { "name": "storage.type.return.tig" }
-							}
-						},
-						{
 							"name": "meta.function.parameters.tig",
-							"begin": "(?<=:)\\s*([a-zA-Z_][a-zA-Z0-9_>*]*)\\s+([a-zA-Z_][a-zA-Z0-9_]*)",
-							"beginCaptures": {
-								"1": { "name": "storage.type.parameter.tig" },
-								"2": { "name": "variable.parameter.function.tig" }
-							},
+							"begin": "(?<=:)\\s*",
 							"end": "(?=\\{)",
 							"patterns": [
-								{
-									"name": "punctuation.separator.parameters.tig",
-									"match": ","
-								},
 								{
 									"name": "meta.function.parameter.tig",
 									"match": "([a-zA-Z_][a-zA-Z0-9_>*]*)\\s+([a-zA-Z_][a-zA-Z0-9_]*)",
@@ -165,6 +185,14 @@
 										"1": { "name": "storage.type.parameter.tig" },
 										"2": { "name": "variable.parameter.function.tig" }
 									}
+								},
+								{
+									"name": "punctuation.separator.parameters.tig",
+									"match": ","
+								},
+								{
+									"name": "keyword.operator.varargs.tig",
+									"match": "\\.\\.\\."
 								}
 							]
 						},
@@ -185,6 +213,23 @@
 							]
 						}
 					]
+				},
+				{
+					"name": "meta.function.definition.old-syntax.tig",
+					"begin": "\\b(async\\s+)?([a-zA-Z_][a-zA-Z0-9_]*)\\s+(fn)\\s+([a-zA-Z_][a-zA-Z0-9_]*)\\s*(:)",
+					"beginCaptures": {
+						"1": { "name": "keyword.control.async.tig" },
+						"2": { "name": "storage.type.return.tig" },
+						"3": { "name": "keyword.declaration.fn.tig" },
+						"4": { "name": "entity.name.function.definition.tig" },
+						"5": { "name": "punctuation.definition.function.parameters.tig" }
+					},
+					"end": "(?<=\\})",
+					"patterns": [
+						{
+							"include": "#function-definition"
+						}
+					]
 				}
 			]
 		},
@@ -199,9 +244,18 @@
 				},
 				{
 					"name": "meta.method-call.tig",
-					"match": "\\b([a-zA-Z_][a-zA-Z0-9_]*)\\s*(?=\\()(?<=[\\]\\)][a-zA-Z_]*)",
+					"match": "(\\.)([a-zA-Z_][a-zA-Z0-9_]*)\\s*(?=\\()",
 					"captures": {
-						"1": { "name": "entity.name.function.method.tig" }
+						"1": { "name": "punctuation.accessor.tig" },
+						"2": { "name": "entity.name.function.method.tig" }
+					}
+				},
+				{
+					"name": "meta.pointer-method-call.tig",
+					"match": "(\\.>)([a-zA-Z_][a-zA-Z0-9_]*)\\s*(?=\\()",
+					"captures": {
+						"1": { "name": "keyword.operator.pointer-field.tig" },
+						"2": { "name": "entity.name.function.method.tig" }
 					}
 				}
 			]
@@ -210,7 +264,10 @@
 			"patterns": [
 				{
 					"name": "constant.other.symbol.tig",
-					"match": "(?<=match\\s*\\([^)]*\\)\\s*\\{[^}]*)\\s*_\\s*="
+					"match": "\\b_\\b(?=\\s*=)",
+					"captures": {
+						"0": { "name": "constant.language.wildcard.tig" }
+					}
 				}
 			]
 		},
@@ -218,30 +275,263 @@
 			"patterns": [
 				{
 					"name": "storage.type.tig",
-					"match": "\\b(void|bool|i8|i16|i32|i64|u8|u16|u32|u64|f32|f64|stack|queue)\\b"
+					"match": "\\b(void|error|bool|i8|i16|i32|i64|u8|u16|u32|u64|f32|f64|char|byte|size_t|ssize_t|stack|queue)\\b"
 				},
 				{
 					"name": "storage.type.pointer.tig",
 					"match": "(->|=>)\\s*[a-zA-Z_][a-zA-Z0-9_]*"
+				},
+				{
+					"name": "storage.type.array.tig",
+					"match": "[a-zA-Z_][a-zA-Z0-9_]*\\s*\\[[^\\]]*\\]"
+				}
+			]
+		},
+		"struct-enum-definitions": {
+			"patterns": [
+				{
+					"name": "meta.struct.definition.tig",
+					"begin": "\\b(struct|strun)\\s+([a-zA-Z_][a-zA-Z0-9_]*)",
+					"beginCaptures": {
+						"1": { "name": "keyword.declaration.struct.tig" },
+						"2": { "name": "entity.name.type.struct.tig" }
+					},
+					"end": "\\}",
+					"patterns": [
+						{
+							"name": "meta.struct.body.tig",
+							"begin": "\\{",
+							"end": "\\}",
+							"beginCaptures": {
+								"0": { "name": "punctuation.section.block.begin.tig" }
+							},
+							"endCaptures": {
+								"0": { "name": "punctuation.section.block.end.tig" }
+							},
+							"patterns": [
+								{
+									"include": "#struct-fields"
+								}
+							]
+						}
+					]
+				},
+				{
+					"name": "meta.enum.definition.tig",
+					"begin": "\\benum\\s+([a-zA-Z_][a-zA-Z0-9_]*)\\s*(?=\\{)",
+					"beginCaptures": {
+						"1": { "name": "keyword.declaration.enum.tig" },
+						"2": { "name": "entity.name.type.enum.tig" }
+					},
+					"end": "\\}",
+					"patterns": [
+						{
+							"include": "#enum-members"
+						}
+					]
+				}
+			]
+		},
+		"error-definitions": {
+			"patterns": [
+				{
+					"name": "meta.error.definition.tig",
+					"begin": "\\b(error)\\s+([a-zA-Z_][a-zA-Z0-9_]*)\\s*(:)",
+					"beginCaptures": {
+						"1": { "name": "keyword.declaration.error.tig" },
+						"2": { "name": "entity.name.type.error.tig" },
+						"3": { "name": "punctuation.definition.error.parameters.tig" }
+					},
+					"end": "\\}",
+					"patterns": [
+						{
+							"name": "meta.error.parameters.tig",
+							"begin": "(?<=:)\\s*",
+							"end": "(?=\\{)",
+							"patterns": [
+								{
+									"name": "meta.error.parameter.tig",
+									"match": "([a-zA-Z_][a-zA-Z0-9_>*]*)\\s+([a-zA-Z_][a-zA-Z0-9_]*)",
+									"captures": {
+										"1": { "name": "storage.type.parameter.tig" },
+										"2": { "name": "variable.parameter.error.tig" }
+									}
+								},
+								{
+									"name": "punctuation.separator.parameters.tig",
+									"match": ","
+								}
+							]
+						},
+						{
+							"name": "meta.error.body.tig",
+							"begin": "\\{",
+							"end": "\\}",
+							"beginCaptures": {
+								"0": { "name": "punctuation.section.block.begin.tig" }
+							},
+							"endCaptures": {
+								"0": { "name": "punctuation.section.block.end.tig" }
+							},
+							"patterns": [
+								{
+									"include": "$base"
+								}
+							]
+						}
+					]
+				}
+			]
+		},
+		"try-catch-block": {
+			"patterns": [
+				{
+					"name": "meta.try-catch.tig",
+					"begin": "\\b(try)\\s*(?=\\{)",
+					"beginCaptures": {
+						"1": { "name": "keyword.control.try.tig" }
+					},
+					"end": "(?<=\\})",
+					"patterns": [
+						{
+							"name": "meta.try.body.tig",
+							"begin": "\\{",
+							"end": "\\}",
+							"beginCaptures": {
+								"0": { "name": "punctuation.section.block.begin.tig" }
+							},
+							"endCaptures": {
+								"0": { "name": "punctuation.section.block.end.tig" }
+							},
+							"patterns": [
+								{
+									"include": "$base"
+								}
+							]
+						},
+						{
+							"name": "meta.catch.tig",
+							"begin": "\\b(catch)\\s*(?=\\{)",
+							"beginCaptures": {
+								"1": { "name": "keyword.control.catch.tig" }
+							},
+							"end": "\\}",
+							"patterns": [
+								{
+									"name": "meta.catch.body.tig",
+									"begin": "\\{",
+									"end": "\\}",
+									"beginCaptures": {
+										"0": { "name": "punctuation.section.block.begin.tig" }
+									},
+									"endCaptures": {
+										"0": { "name": "punctuation.section.block.end.tig" }
+									},
+									"patterns": [
+										{
+											"include": "$base"
+										}
+									]
+								}
+							]
+						}
+					]
+				}
+			]
+		},
+		"throw-statement": {
+			"patterns": [
+				{
+					"name": "meta.throw.tig",
+					"match": "\\b(throw)\\s+([a-zA-Z_][a-zA-Z0-9_]*)",
+					"captures": {
+						"1": { "name": "keyword.control.throw.tig" },
+						"2": { "name": "entity.name.error.tig" }
+					}
+				}
+			]
+		},
+		"struct-fields": {
+			"patterns": [
+				{
+					"name": "meta.struct.field.tig",
+					"match": "^\\s*([a-zA-Z_][a-zA-Z0-9_>*]*)\\s+([a-zA-Z_][a-zA-Z0-9_]*)(?=\\s*[;,}])",
+					"captures": {
+						"1": { "name": "storage.type.field.tig" },
+						"2": { "name": "variable.other.member.tig" }
+					}
+				},
+				{
+					"name": "meta.struct.union-field.tig",
+					"match": "^\\s*&\\s*([a-zA-Z_][a-zA-Z0-9_>*]*)\\s+([a-zA-Z_][a-zA-Z0-9_]*)",
+					"captures": {
+						"1": { "name": "storage.type.field.union.tig" },
+						"2": { "name": "variable.other.member.union.tig" }
+					}
+				},
+				{
+					"name": "meta.struct.padding.tig",
+					"match": "\\b_padding[0-9]+\\b",
+					"captures": {
+						"0": { "name": "variable.other.padding.tig" }
+					}
+				}
+			]
+		},
+		"enum-members": {
+			"patterns": [
+				{
+					"name": "meta.enum.member.tig",
+					"match": "\\b([a-zA-Z_][a-zA-Z0-9_]*)\\b\\s*(?=[,}])",
+					"captures": {
+						"1": { "name": "constant.other.enum-member.tig" }
+					}
 				}
 			]
 		},
 		"strings": {
-			"name": "string.quoted.double.tig",
-			"begin": "\"",
-			"end": "\"",
 			"patterns": [
 				{
-					"name": "constant.character.escape.tig",
-					"match": "\\\\."
+					"name": "string.quoted.double.tig",
+					"begin": "\"",
+					"end": "\"",
+					"patterns": [
+						{
+							"name": "constant.character.escape.tig",
+							"match": "\\\\[nrt\"\\\\]"
+						},
+						{
+							"name": "constant.character.escape.hex.tig",
+							"match": "\\\\x[0-9A-Fa-f]{2}"
+						}
+					]
+				},
+				{
+					"name": "string.quoted.single.tig",
+					"begin": "'",
+					"end": "'",
+					"patterns": [
+						{
+							"name": "constant.character.escape.tig",
+							"match": "\\\\[nrt'\\\\]"
+						}
+					]
 				}
 			]
 		},
 		"numbers": {
 			"patterns": [
 				{
-					"name": "constant.numeric.integer.tig",
+					"name": "constant.numeric.integer.decimal.tig",
 					"match": "\\b[0-9]+\\b"
+				},
+				{
+					"name": "constant.numeric.integer.hex.tig",
+					"match": "\\b0x[0-9A-Fa-f]+\\b"
+				},
+				{
+					"name": "constant.numeric.integer.binary.tig",
+					"match": "\\b0b[01]+\\b"
 				},
 				{
 					"name": "constant.numeric.float.tig",
@@ -253,6 +543,9 @@
 			"name": "meta.embedded.c.tig",
 			"begin": "\"C\"\\s*\\{",
 			"end": "\\}",
+			"beginCaptures": {
+				"0": { "name": "keyword.declaration.inline-c.tig" }
+			},
 			"patterns": [
 				{
 					"include": "source.c"
@@ -286,6 +579,10 @@
 					"match": "="
 				},
 				{
+					"name": "keyword.operator.compound-assignment.tig",
+					"match": "\\+=|-=|\\*=|/=|%=|&=|\\|=|\\^=|<<=|>>="
+				},
+				{
 					"name": "keyword.operator.match.tig",
 					"match": "(?<=match\\s*\\([^)]*\\)\\s*)\\="
 				},
@@ -295,7 +592,7 @@
 				},
 				{
 					"name": "keyword.operator.comparison.tig",
-					"match": "==|<>|<|>|<=|>="
+					"match": "==|<>|!=|<|>|<=|>="
 				},
 				{
 					"name": "keyword.operator.logical.tig",
@@ -304,6 +601,99 @@
 				{
 					"name": "keyword.operator.bitwise.tig",
 					"match": "&|\\||\\^|~|<<|>>"
+				},
+				{
+					"name": "keyword.operator.increment-decrement.tig",
+					"match": "\\+\\+|--"
+				}
+			]
+		},
+		"queue-stack": {
+			"patterns": [
+				{
+					"name": "meta.queue.creation.tig",
+					"match": "queue\\s*<([^>]+)>\\s*([a-zA-Z_][a-zA-Z0-9_]*)\\s*=\\s*\\{([^}]*)\\}",
+					"captures": {
+						"1": { "name": "storage.type.queue.tig" },
+						"2": { "name": "variable.other.queue.tig" }
+					}
+				},
+				{
+					"name": "meta.stack.creation.tig",
+					"match": "stack\\s*<([^>]+)>\\s*([a-zA-Z_][a-zA-Z0-9_]*)\\s*=\\s*\\{\\}",
+					"captures": {
+						"1": { "name": "storage.type.stack.tig" },
+						"2": { "name": "variable.other.stack.tig" }
+					}
+				},
+				{
+					"name": "support.method.queue-stack.tig",
+					"match": "\\b(push|pop|peek|enq|deq|size|clear|isEmpty|len)\\b\\s*(?=\\()"
+				}
+			]
+		},
+		"defer-block": {
+			"patterns": [
+				{
+					"name": "meta.defer.tig",
+					"begin": "\\bdefer\\s*(?=\\{)",
+					"beginCaptures": {
+						"0": { "name": "keyword.control.defer.tig" }
+					},
+					"end": "\\}",
+					"patterns": [
+						{
+							"include": "$base"
+						}
+					]
+				},
+				{
+					"name": "meta.defer.statement.tig",
+					"match": "\\bdefer\\s+([a-zA-Z_][a-zA-Z0-9_]*\\s*\\([^)]*\\))\\s*(?![{])",
+					"captures": {
+						"1": { "name": "meta.function-call.tig" }
+					}
+				}
+			]
+		},
+		"pin-statement": {
+			"patterns": [
+				{
+					"name": "meta.pin.tig",
+					"match": "\\bpin\\s+([a-zA-Z_][a-zA-Z0-9_]*)",
+					"captures": {
+						"1": { "name": "variable.other.pinned.tig" }
+					}
+				}
+			]
+		},
+		"async-keywords": {
+			"patterns": [
+				{
+					"name": "keyword.control.async.tig",
+					"match": "\\basync\\b\\s*(?=fn)"
+				},
+				{
+					"name": "keyword.control.await.tig",
+					"match": "\\bawait\\b"
+				}
+			]
+		},
+		"use-statement": {
+			"patterns": [
+				{
+					"name": "meta.use.tig",
+					"begin": "(use|@use)\\s+",
+					"beginCaptures": {
+						"1": { "name": "keyword.directive.use.tig" }
+					},
+					"end": "$",
+					"patterns": [
+						{
+							"name": "string.quoted.double.tig",
+							"match": "\"[^\"]*\""
+						}
+					]
 				}
 			]
 		}

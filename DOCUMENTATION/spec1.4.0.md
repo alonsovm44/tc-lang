@@ -37,7 +37,7 @@ This is very, `non-explicit` and not following Tig's historic philosophy. But is
 
 ## Collections
 Collections are a mix of: Mixins, Generics and Namespaces.
-We add a % ions system to define behavior for types. And to unify namespaces and generics.
+We add a $ system to define behavior for types. And to unify namespaces and generics.
 
 Currently in Tig we can import other functions from other files via raw immports
 
@@ -59,7 +59,7 @@ fn void main: {
 For using libs made by other people, this gets messy fast.
 
 Solution
-Use % ions to classify code
+Use collections to classify code
 ```
 /// lib.tc
 %lib {
@@ -83,10 +83,10 @@ fn void main: {
 
 ```
 
-% ions can be genericly parametric and inherit via `:`
+$ collections can be genericly parametric and inherit via `:`
 
 ```
-% balls(T){
+$ balls(T){
     fn void kick: T n {
         print("Kicking the ball")
         if (typeof(T)=="i32"){
@@ -110,15 +110,15 @@ fn i32 main(foo(i32)): {
 }
 ```
 
-Example spec of % defs and uses:
+Example spec of $ defs and uses:
 ```tig
 /// Tig 1.3.2 patch 
 /// %s
 
 # macro(T){ print(T)} // this is a Macro, text replacement codegen, compile-time, fully implemented, works now.
 
-%myColl(T){ // This is a % ion. It is called myColl, they can have parameters.
-// because it % s functions and other items that can be used to group and define behavior
+%myColl(T){ // This is a $ ion. It is called myColl, they can have parameters.
+// because it $ s functions and other items that can be used to group and define behavior
 // it is like an inline library
     pin f32 PI = 3.14
 
@@ -183,13 +183,13 @@ fn i32 main(foo(i32)): {
 
 /// Another example -------------------------------------------------------------------
 
-% parent {
+$ parent {
     fn void hello {
         print("Hello from parent")
     }
 }
 
-% child : parent {
+$ child : parent {
     fn void goodbye {
         print("Goodbye from child")
     }
@@ -205,7 +205,7 @@ fn void main(child): void {
 // ===== std/%ss.tc =====
 
 // Simple %s
-% printer {
+$ printer {
     fn void print_str(str s) {
         print(s)
     }
@@ -216,7 +216,7 @@ fn void main(child): void {
 }
 
 // %s with state
-% counter {
+$ counter {
     pin i32 count = 0
     
     fn void increment {
@@ -385,7 +385,7 @@ printf("%f\n", result2)
 
 // Struns and %s
 
-% col {
+$ col {
     strun Point:{
         i32 x,
         i32 y
@@ -399,7 +399,7 @@ printf("%f\n", result2)
 
 }
 
-% col2 : col {
+$ col2 : col {
     // inherits Point strun
     fn void foo: ->Point p{
         p.>x = 30
@@ -417,10 +417,23 @@ fn void main(col,col2): {
 
 ```
 
+# priorities
+HIGH PRIORITY:
+1. % collection syntax (parser)
+2. Type parameter support (T, U, V...)
+3. Method resolution (collection.method())
 
+MEDIUM PRIORITY:
+4. Inheritance (: parent)
+5. Composition (collection embedding)
+
+LOW PRIORITY:
+6. Collection specialization (arith(i32) vs arith(f64))
+7. C++ backend (debatable)
+8. string type in stdlib
 
 # Keywords in 1.4.0
-- **20 keywords** — 
+- **19 keywords** — 
 `if`, 
 `loop`, 
 `break`, 
@@ -429,7 +442,6 @@ fn void main(col,col2): {
 `strun`, 
 `fn`, 
 `use`, 
-`private`, 
 `pin`, 
 `match`, 
 `else`, 
