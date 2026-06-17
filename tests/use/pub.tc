@@ -1,0 +1,9 @@
+
+pub fn i32 foo: {
+    ret 42
+}
+
+fn i32 local: 
+{
+    ret 44
+}

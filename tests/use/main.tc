@@ -1,0 +1,9 @@
+@use "pub.tc"
+
+fn void main:
+{
+    foo()
+    local() // should throw error since local is private by default.
+    ret 0
+
+}

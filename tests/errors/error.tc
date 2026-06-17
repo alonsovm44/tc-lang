@@ -1,11 +1,25 @@
 use "stdlib/io.tc"
 
-
+error ZeroDivision: i32 x, i32 y {
+    printf("Error: division by zero: %d / %d\n", x, y)
+}
 
 fn i32 main: {
 
-    printn("Testing runtime functions")
+    printn("Testing error functions")
+    i32 x
+    i32 y
 
+    try {
+        x/y 
+    }
+    catch {
+        ZeroDivision(x, y) ret 1,
+        _ {
+            printf("Unknown error\n")
+            ret 1
+        }
+    }
     ret 0
 
 }

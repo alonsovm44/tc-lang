@@ -6,7 +6,7 @@ Runtime patch
 
 ## Library for hash maps
 
-[ ] - Create a library for hash maps type
+[ ] - Create a library and generic type for hash maps
 
 ```
 use "stdlib/map.tc"
@@ -25,3 +25,4 @@ fn void main:
 }
 
 ```
+This is the last built in to be added before 1.4.0

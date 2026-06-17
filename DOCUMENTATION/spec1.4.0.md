@@ -1,9 +1,185 @@
+# v1.4.0
+This is the last major update before beggining self hosting phase.
+
+## C++ backend
+Migrate the C backend to a C++ backend in order to better support the new features and provide a more robust compilation process.
+
+## Comptime execution
+Following the "explicit" nature of the language, comptime execution is explicit and requires the `comptime` keyword.
+```tcs
+comptime {
+    // Code that executes at compile time
+}
+```
+
+Example
+```tc
+fn void make_array(int size) {
+    comptime {
+        "C"{
+            // Code that executes at compile time
+            int[] arr = new int[size];
+            for (int i = 0; i < size; i++) {
+                arr[i] = i;
+            }
+        }
+    }
+}
+// or this
+
+comptime {
+    // Imagine this reads a config file or a JSON string
+    ->u8 data = "10,20,30,40"
+    
+    // Generate a C array initialization
+    "C"{
+        int lookup_table[] = {collections};
+    }
+}
+
+fn void main: {
+    // lookup_table is now a real C array in your binary
+    printi(lookup_table[1]) // Prints 20
+}
+
+// other example
+
+fn void generate_adders: {
+    i32 i = 0
+    loop if(i<=100){
+        // generate functions at comptime
+        "C"{
+            int add_collectiond(int a, int b) {
+                return a + b + collectiond;
+            }
+        }
+        i++
+    }
+}
+
+comptime {
+    generate_adders()
+}
+
+fn void main:{
+    printi(add_99(1, 2)) // Prints 102
+}
+```
+
+
+## Stack and Queue update
+Currently we have basic stacks and queue implementation
+
+To be added:
+
+- Fixed size stacks and queues
+```
+// example
+stack<i32> s[10] = {}
+queue<f32> q[5] = {} // a queue of 5  
+
+// multiple types
+stack<i32, f32, char> s2[10] = {} // this stack accepts integers, floats and characters only
+
+// wildcard
+
+stack<*> s3[10] = {} // this stack accepts any type
+
+// stack of stacks
+stack<stack<i32>> s4[5] = {} // this stack accepts stacks of integers only
+
+Same applies to queues.
+```
+
+Bad:
+    stack<*, i32> s = {} // this is not allowed, since * already includes i32
+
+This is very, `non-explicit` and not following Tig's historic philosophy. But is pragmatic, and my goal is to be pragmatic 
+
+
+## Collections
+Collections are a mix of: Mixins, Generics and Namespaces.
+We add a collections system to define behavior for types. And to unify namespaces and generics.
+
+Currently in Tig we can import other functions from other files via raw immports
+
+```tc
+/// lib.tc 
+
+pub fn void foo: {}
+
+/// lib2.tc
+pub fn void foo: {}
+
+/// main.tc
+@use "lib.tc"
+@use "lib2.tc"
+fn void main: {
+    foo() // conflict - which foo?
+}
+```
+For using libs made by other people, this gets messy fast.
+
+Solution
+Use collections to classify code
+```
+/// lib.tc
+collection lib {
+    fn void foo: {}
+}
+
+/// lib2.tc
+collection lib2 {
+    fn void foo: {}
+}
+
+/// main.tc
+@use "lib.tc"
+@use "lib2.tc"
+
+fn void main: {
+    lib.foo() // we call the first collection's foo function
+    lib2.foo() // we call the second collection's foo function
+}
+
+
+```
+
+Collections can be genericly parametric and inherit via `:`
+
+```
+collection balls(T){
+    fn void kick: T n {
+        print("Kicking the ball")
+        if (typeof(T)=="i32"){
+            printf("Kicked collectiond times", n)
+        }
+        else {
+            printf("Error, expected i32, got collections", typeof(T))
+        }
+    }
+}
+
+collection foo(T) : balls(i32){
+    fn void kick {
+        balls::kick(i32, 5)
+    }
+}
+
+fn i32 main(foo(i32)): {
+    foo.kick()
+    ret 0
+}
+```
+
+Example spec of collection defs and uses:
+```tig
 /// Tig 1.3.2 patch 
-/// Collections update
+/// Collections
 
 # macro(T){ print(T)} // this is a Macro, text replacement codegen, compile-time, fully implemented, works now.
 
-% myCollection(T){ // This is a collection. It is called collection, they can have parameters.
+collection myCollection(T){ // This is a collection. It is called collection, they can have parameters.
 // because it collects functions and other items that can be used to group and define behavior
 // it is like an inline library
     pin f32 PI = 3.14
@@ -16,7 +192,7 @@
             print("This is a string")
         }
         else{
-            printf("This is a pointer to: %d", T)
+            printf("This is a pointer to: collectiond", T)
         }
     }
     fn void greet(){
@@ -25,7 +201,7 @@
     async fn doWork(): ->T data, ->queue<T> res {
         ->data = ->data * 2
         res.>push(->data) // since async functions cannot return values, we use a queue/channel to pass the result
-        // or (->res).push(->data)
+        
     }
     fn void sayGoodBye: {
         farwell // calls the macro and expands in comptime
@@ -44,19 +220,19 @@ fn void foo(myCollection(i32)): ->i32 data { // if collection(_) wildcard was us
 }
 /// collections inheritance ------a---------------------------------------------
 
-% balls(T){
+collection balls(T){
     fn void kick: T n {
         print("Kicking the ball")
         if (typeof(T)=="i32"){
-            printf("Kicked %d times", n)
+            printf("Kicked collectiond times", n)
         }
         else {
-            printf("Error, expected i32, got %s", typeof(T))
+            printf("Error, expected i32, got collections", typeof(T))
         }
     }
 }
 
-% foo(T) : balls(i32){
+collection foo(T) : balls(i32){
     fn void kick {
         balls::kick(i32, 5)
     }
@@ -69,13 +245,13 @@ fn i32 main(foo(i32)): {
 
 /// Another example -------------------------------------------------------------------
 
-% parent {
+collection parent {
     fn void hello {
         print("Hello from parent")
     }
 }
 
-% child : parent {
+collection child : parent {
     fn void goodbye {
         print("Goodbye from child")
     }
@@ -91,7 +267,7 @@ fn void main(child): void {
 // ===== std/collectionss.tc =====
 
 // Simple collections
-% printer {
+collection printer {
     fn void print_str(str s) {
         print(s)
     }
@@ -102,7 +278,7 @@ fn void main(child): void {
 }
 
 // collections with state
-% counter {
+collection counter {
     pin i32 count = 0
     
     fn void increment {
@@ -115,7 +291,7 @@ fn void main(child): void {
 }
 
 // collections with type parameter
-% stack(T) {
+collection stack(T) {
     queue<T> items = {}
     
     fn void push(T item) {
@@ -132,7 +308,7 @@ fn void main(child): void {
 }
 
 // collections with macro
-% logger(level) {
+collection logger(level) {
     # log(msg) {
         print("[" + level + "] " + msg)
     }
@@ -147,7 +323,7 @@ fn void main(child): void {
 }
 
 // collections composition
-% debug_logger(level) {
+collection debug_logger(level) {
     printer  // Include printer collections
     
     # log(msg) {
@@ -206,12 +382,12 @@ To avoid collisions, we need to use a different approach.
 We can declare functions inside collections, like this:
 */
 /// lib.tc
-% lib {
+collection lib {
     fn void foo: {}
 }
 
 /// lib2.tc
-% lib2 {
+collection lib2 {
     fn void foo: {}
 }
 
@@ -226,7 +402,7 @@ fn void main: {
 
 
 /// mathutils.tc
-% arith(T) {
+collection arith(T) {
     fn T add: T a, T b {
         if(typeof(T)=="i32"){
             a = (i32)a 
@@ -251,27 +427,27 @@ i32 b = 3
 i32 result = arith(i32).add(a, b) // 
 f64 result2 = arith(f64).add(2.5, 3.5) // no collision possible since we carry the namespace 
 printi(result)
-printf("%f\n", result2)
+printf("collectionf\n", result2)
 
 }
 
 //// collections serve thre purposes
 
-% lib {           // 1. NAMESPACE (organizes code)
+collection lib {           // 1. NAMESPACE (organizes code)
     fn foo() {}   //    No collisions with other libs
 }
 
-% arith(T) {      // 2. GENERICS (type-parameterized)
+collection arith(T) {      // 2. GENERICS (type-parameterized)
     fn add() {}   //    Works with i32, f64, etc.
 }
 
-% logger :: parent {     // 3. MIXINS (behavior injection)
+collection logger :: parent {     // 3. MIXINS (behavior injection)
     fn log() {}   //    Can be added to functions
 }
 
 // Struns and collections
 
-% col {
+collection col {
     strun Point:{
         i32 x,
         i32 y
@@ -285,7 +461,7 @@ printf("%f\n", result2)
 
 }
 
-% col2 : col {
+collection col2 : col {
     // inherits Point strun
     fn void foo: ->Point p{
         p.>x = 30
@@ -301,33 +477,89 @@ fn void main(col,col2): {
 
 }
 
-/// collection inside collection
+```
 
-% coll1(T){
-    fn void method: {}
-    % coll2(U) {
-        fn void method2: T t, U u {
-            ret t + b
-        }
+## Type inference
+Use * to infer type
+
+```tc
+fn void main: {
+    *x = 10 // x is inferred as i32
+    *y = 3.14 // y is inferred as f64
+    *z = "hello" // z is inferred as string
+}
+```
+
+Example uses
+```
+// v1.3.2 features
+use "stdlib/io.tc"
+
+fn void main: {
+    *x = 10 // * means infer type, like C++ auto
+    
+    if(typeof(x)=="i32"){
+        printi(x)
+    }else{
+        printf("collectiond", x)
     }
 }
 
-fn void main(coll1): {
-
-    *result = coll1(f32).coll2(f64).method2(1.22,3.55) // the interesting part is how we assign the types of the method explicitly
+fn i32 foo(io): *data{
+    data = io.read_data()
+    ret data
 }
 
-///clean example
-% outer(T) {
-    % inner(U) {
-        fn T combine: T a, U b {
-            ret a + b  // T from outer, U from inner
-        }
+// return type inferred
+
+fn *myFunc(collection): i32 x{
+    x = collection.get(0)
+    ret x // return type inferred from x
+}
+
+// using both
+
+fn *myFunc2(coll): *x {
+    x = coll.get(0) // type of x inferred from called return value
+    ret x // return type inferred from x
+}
+
+/// inference with type constrains
+
+collection numeric(T) {
+    fn T add: T a, T b {
+        ret a + b
     }
 }
 
-fn void main(outer): void {
-    // T = f32, U = i32
-    *result = outer(f32).inner(i32).combine(3.14, 42)
-    printf("%f", result)  // 45.14
+fn void main(numeric(_)): {
+    *x = numeric(i32).add(5, 10)   // i32
+    *y = numeric(f64).add(3.14, 2.0) // f64
+    *z = numeric(->i8).add("a", "b") // Would be str if supported
 }
+
+
+```
+
+# Keywords in 1.4.0
+- **19 keywords** — 
+`if`, 
+`loop`, 
+`break`, 
+`defer`, 
+`ret`, 
+`strun`, 
+`fn`, 
+`use`, 
+`private`, 
+`pin`, 
+`match`, 
+`else`, 
+`enum`, 
+`async`, 
+`select`,
+`throw`,
+`try`,
+`catch`,
+`comptime`,
+`collection`

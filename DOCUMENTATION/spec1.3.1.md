@@ -126,6 +126,27 @@ fn void foo: {
 
 // this->: queue and stack pointers are useful for passing to functions and avoiding copying large objects
 ```
+## All is public
+In saviet rasha evriting ist publik komrade
+
+Wrap `my` to indicate what is private
+
+```
+my i32 priv_global = 42 // private global variable
+
+my async fn void myPrivate function:{} // private function
+
+my strun privStruct{i32 x} // private struct
+my strun privUnion{&i32 x} // private struct
+
+my collection pCol { // everything decl here is private
+    fn void priv_method:{} // private method
+} // private collection
+
+
+```
+
+# Keywords
 
 # new keywords for 1.3.1
 + `error` (type)
@@ -143,8 +164,8 @@ Total: 4 new keywords
 `ret`, 
 `strun`, 
 `fn`, 
+`private`,
 `use`, 
-`pub`, 
 `pin`, 
 `match`, 
 `else`, 
@@ -154,3 +175,7 @@ Total: 4 new keywords
 `throw`,
 `try`,
 `catch`,
+(error, but it is a type)
+
+**Deleted**
+`pub` 
