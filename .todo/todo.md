@@ -1,6 +1,6 @@
 
 # 1.4.0 
-[ ] Implement 1.4.0alpha features.
+- [ ] Implement 1.4.0alpha features.
     - [ ] update stacks and queues
         - [ ] fixed size (buffered) stacks and queues
             - [ ] tested
@@ -8,12 +8,15 @@
             - [ ] tested
         - [ ] wildcard
             - [ ] tested
-[ ] 
+- [ ] Collections
+    - [ ]
 
 # todo for 1.3.3
 
 - [ ] Implement `map` type and library
-- [ ] 
+- [ ] Make async runtime bullet proof
+    - [ ] Make a test suite
+    - [ ] Implement `my` keyword to replace `pub`
 # todo for 1.3.2
 - [ ] C/LLVM flags
     - [ ] Optimization flags
@@ -24,7 +27,6 @@
     - [ ] Linking (essential for making projects with C libs)
 - [ ] Freestanding mode
     - [ ] No stdlib output
-- [ ] 
 # todo for 1.3.1
 
 ## Done

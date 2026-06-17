@@ -203,5 +203,7 @@ I will implement 1.4.0, including the map type, which is crucial for ergonomicly
   - [ ] ship 1.3.2
   - [ ] ship 1.3.3
   - [ ] ship 1.4.0
-  - [ ] stabilize stdlib
+  - [ ] stabilize stdlib (with maps)
 
+
+I decided to make everything public for now, i'll remove `pub` and leave `my` impl in standby. 

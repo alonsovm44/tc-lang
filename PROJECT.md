@@ -35,7 +35,7 @@ Tig is a source-to-source compiler (transpiler) written in approximately 4,000 l
 
 ### Core Language Features
 
-- **18 Keywords**: `if`, `loop`, `break`, `defer`, `ret`, `strun`, `fn`, `use`, `pub`, `pin`, `match`, `else`, `enum`, `async`, `select`, `throw`, `try`, `catch`
+- **17 Keywords**: `if`, `loop`, `break`, `defer`, `ret`, `strun`, `fn`, `use`, `pin`, `match`, `else`, `enum`, `async`, `select`, `throw`, `try`, `catch`
 - **Manual Memory Management**: `alloc()` / `free()` with `defer` for guaranteed cleanup
 - **Raw Pointers (`->`)**: Traditional C-style pointers for direct memory access
 - **Fat Pointers (`=>`)**: Pointers with built-in length information for safer array/slice operations

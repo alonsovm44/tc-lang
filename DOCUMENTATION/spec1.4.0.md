@@ -1,71 +1,9 @@
 # v1.4.0
 This is the last major update before beggining self hosting phase.
 
-## C++ backend
+## C++ backend [DEBATIBLE][NON-DECIDED-YET]
+Keep the stage0 core in C, but Tig outputs C++17
 Migrate the C backend to a C++ backend in order to better support the new features and provide a more robust compilation process.
-
-## Comptime execution
-Following the "explicit" nature of the language, comptime execution is explicit and requires the `comptime` keyword.
-```tcs
-comptime {
-    // Code that executes at compile time
-}
-```
-
-Example
-```tc
-fn void make_array(int size) {
-    comptime {
-        "C"{
-            // Code that executes at compile time
-            int[] arr = new int[size];
-            for (int i = 0; i < size; i++) {
-                arr[i] = i;
-            }
-        }
-    }
-}
-// or this
-
-comptime {
-    // Imagine this reads a config file or a JSON string
-    ->u8 data = "10,20,30,40"
-    
-    // Generate a C array initialization
-    "C"{
-        int lookup_table[] = {%s};
-    }
-}
-
-fn void main: {
-    // lookup_table is now a real C array in your binary
-    printi(lookup_table[1]) // Prints 20
-}
-
-// other example
-
-fn void generate_adders: {
-    i32 i = 0
-    loop if(i<=100){
-        // generate functions at comptime
-        "C"{
-            int add_%d(int a, int b) {
-                return a + b + %d;
-            }
-        }
-        i++
-    }
-}
-
-comptime {
-    generate_adders()
-}
-
-fn void main:{
-    printi(add_99(1, 2)) // Prints 102
-}
-```
-
 
 ## Stack and Queue update
 Currently we have basic stacks and queue implementation
@@ -97,8 +35,8 @@ Bad:
 This is very, `non-explicit` and not following Tig's historic philosophy. But is pragmatic, and my goal is to be pragmatic 
 
 
-## % ions s
-% ions s are a mix of: Mixins, Generics and Namespaces.
+## Collections
+Collections are a mix of: Mixins, Generics and Namespaces.
 We add a % ions system to define behavior for types. And to unify namespaces and generics.
 
 Currently in Tig we can import other functions from other files via raw immports
@@ -447,7 +385,7 @@ printf("%f\n", result2)
 
 // Struns and %s
 
-%col {
+% col {
     strun Point:{
         i32 x,
         i32 y
@@ -461,7 +399,7 @@ printf("%f\n", result2)
 
 }
 
-%col2 : col {
+% col2 : col {
     // inherits Point strun
     fn void foo: ->Point p{
         p.>x = 30
@@ -479,67 +417,7 @@ fn void main(col,col2): {
 
 ```
 
-## Type inference
-Use * to infer type
 
-```tc
-fn void main: {
-    *x = 10 // x is inferred as i32
-    *y = 3.14 // y is inferred as f64
-    *z = "hello" // z is inferred as string
-}
-```
-
-Example uses
-```
-// v1.3.2 features
-use "stdlib/io.tc"
-
-fn void main: {
-    *x = 10 // * means infer type, like C++ auto
-    
-    if(typeof(x)=="i32"){
-        printi(x)
-    }else{
-        printf("%d", x)
-    }
-}
-
-fn i32 foo(io): *data{
-    data = io.read_data()
-    ret data
-}
-
-// return type inferred
-
-fn *myFunc(%): i32 x{
-    x = %.get(0)
-    ret x // return type inferred from x
-}
-
-// using both
-
-fn *myFunc2(coll): *x {
-    x = coll.get(0) // type of x inferred from called return value
-    ret x // return type inferred from x
-}
-
-/// inference with type constrains
-
-% numeric(T) {
-    fn T add: T a, T b {
-        ret a + b
-    }
-}
-
-fn void main(numeric(_)): {
-    *x = numeric(i32).add(5, 10)   // i32
-    *y = numeric(f64).add(3.14, 2.0) // f64
-    *z = numeric(->i8).add("a", "b") // Would be str if supported
-}
-
-
-```
 
 # Keywords in 1.4.0
 - **19 keywords** — 

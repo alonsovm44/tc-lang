@@ -26,3 +26,33 @@ fn void main:
 
 ```
 This is the last built in to be added before 1.4.0
+
+## Select is a stub, implement it
+Make select stmt not a stub anymore before moving to self hosting
+
+
+## My
+Implement my to specify which objects are private.
+
+# Keywords for 1.3.3
+
+
+- **18 keywords** — 
+`if`, 
+`loop`, 
+`break`, 
+`defer`, 
+`ret`, 
+`strun`, 
+`fn`, 
+`use`, 
+`pin`, 
+`match`, 
+`else`, 
+`enum`, 
+`async`, 
+`select`,
+`throw`,
+`try`,
+`catch`,
+`my` (new)

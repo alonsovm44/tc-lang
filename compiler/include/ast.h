@@ -449,7 +449,6 @@ typedef enum {
  *   kind: Type of declaration
  *   name: Declaration name (function, struct, variable)
  *   type: Type information (return type for functions, etc.)
- *   public: Whether declared with 'pub' keyword
  *   is_hot: Whether this is in a hot-reload library
  *   is_async: Whether this is an async function
  *
@@ -482,7 +481,6 @@ typedef enum {
  */
 struct Decl {
     DeclKind kind;
-    bool public;     // Deprecated: everything is public by default now
     bool is_hot;     // For hot reload: function is in shared library
     bool is_async;   // For 1.3: async function
     bool is_my;      // For 1.3.1: marked as private with 'my' keyword

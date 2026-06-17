@@ -20,6 +20,7 @@ Added:
 
 Removed:
 
+- removed pub keyword, now everything is public by default
 - removed need for manual async_init() and async_shutdown() calls
 - removed debug print statements from runtime stub functions
 - removed async.h from current working directory

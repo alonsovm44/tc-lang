@@ -1,4 +1,4 @@
 
-pub i32 fn add: i32 a, i32 b {
+i32 fn add: i32 a, i32 b {
     ret a + b 
 }

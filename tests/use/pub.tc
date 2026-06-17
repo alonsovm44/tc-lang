@@ -1,5 +1,5 @@
 
-pub fn i32 foo: {
+fn i32 foo: {
     ret 42
 }
 

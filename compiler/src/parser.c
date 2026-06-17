@@ -22,6 +22,7 @@ typedef struct {
     int pin_count;
     int pin_cap;
     MacroVec macros;
+    const char *source_file; // Source file being parsed
 } Parser;
 
 static Token *cur(Parser *p) { return &p->tokens[p->pos]; }
@@ -704,9 +705,10 @@ static StmtVec parse_block(Parser *p) {
     return body;
 }
 
-static Decl *parse_fn(Parser *p, DeclKind kind, bool public, Type *ret) {
+static Decl *parse_fn(Parser *p, DeclKind kind, bool is_my, Type *ret) {
     Decl *d = new_decl(kind);
-    d->public = public;
+    d->is_my = is_my;
+    d->source_file = xstrdup(p->source_file);
     if (ret) {
         // Old syntax: return_type fn name: params
         d->type = ret;
@@ -742,9 +744,10 @@ static Decl *parse_fn(Parser *p, DeclKind kind, bool public, Type *ret) {
     return d;
 }
 
-static Decl *parse_struct(Parser *p, bool public, bool packed) {
+static Decl *parse_struct(Parser *p, bool is_my, bool packed) {
     Decl *d = new_decl(DC_STRUCT);
-    d->public = public;
+    d->is_my = is_my;
+    d->source_file = xstrdup(p->source_file);
     d->packed = packed;
     d->name = expect_ident(p);
     add_struct(p, d->name);
@@ -796,9 +799,10 @@ static Decl *parse_struct(Parser *p, bool public, bool packed) {
     return d;
 }
 
-static Decl *parse_enum(Parser *p, bool public) {
+static Decl *parse_enum(Parser *p, bool is_my) {
     Decl *d = new_decl(DC_ENUM);
-    d->public = public;
+    d->is_my = is_my;
+    d->source_file = xstrdup(p->source_file);
     // Check for explicit type (e.g., enum u8 Color)
     if (is_type_name(cur(p)->text)) {
         d->type = parse_type(p);
@@ -818,9 +822,10 @@ static Decl *parse_enum(Parser *p, bool public) {
     return d;
 }
 
-static Decl *parse_error(Parser *p, bool public) {
+static Decl *parse_error(Parser *p, bool is_my) {
     Decl *d = new_decl(DC_ERROR);
-    d->public = public;
+    d->is_my = is_my;
+    d->source_file = xstrdup(p->source_file);
     d->name = expect_ident(p);
     expect(p, ":");
     // Parse parameters (like a function)
@@ -865,15 +870,15 @@ static void resolve_path(const char *base, const char *rel, char *out, size_t ou
     }
 }
 
-DeclVec parse_program(Token *tokens) {
+DeclVec parse_program(Token *tokens, const char *source_file) {
     Parser p = {0};
     p.tokens = tokens;
+    p.source_file = source_file;
     while (cur(&p)->kind != TOK_EOF) {
         if (at(&p, "@") && (strcmp((p.tokens + p.pos + 1)->text, "strun") == 0)) {
             p.pos++;  // skip '@'
             match(&p, "strun");
-            bool pub = false;
-            decl_push(&p.decls, parse_struct(&p, pub, true));
+            decl_push(&p.decls, parse_struct(&p, false, true));
             continue;
         }
         if (at(&p, "@")) {
@@ -895,7 +900,7 @@ DeclVec parse_program(Token *tokens) {
             char *inc_src = try_read_file(resolved);
             if (!inc_src) tc_error("E009", at_tok->line, at_tok->col, 4, "cannot open file '%s'", resolved);
             TokenVec inc_tokens = lex_source(inc_src);
-            DeclVec inc_decls = parse_program(inc_tokens.items);
+            DeclVec inc_decls = parse_program(inc_tokens.items, resolved);
             for (int j = 0; j < inc_decls.count; j++) {
                 decl_push(&p.decls, inc_decls.items[j]);
             }
@@ -923,7 +928,6 @@ DeclVec parse_program(Token *tokens) {
             parse_macro(&p);
             continue;
         }
-        bool public = match(&p, "pub");
         if (match(&p, "extern")) {
             if (cur(&p)->kind != TOK_STRING || strcmp(cur(&p)->text, "\"C\"")) tc_error("E011", cur(&p)->line, cur(&p)->col, (int)strlen(cur(&p)->text), "extern expects \"C\", got '%s'", cur(&p)->text);
             p.pos++;
@@ -946,15 +950,15 @@ DeclVec parse_program(Token *tokens) {
             continue;
         }
         if (match(&p, "struct") || match(&p, "strun")) {
-            decl_push(&p.decls, parse_struct(&p, public, false));
+            decl_push(&p.decls, parse_struct(&p, false, false));
             continue;
         }
         if (match(&p, "enum")) {
-            decl_push(&p.decls, parse_enum(&p, public));
+            decl_push(&p.decls, parse_enum(&p, false));
             continue;
         }
         if (match(&p, "error")) {
-            decl_push(&p.decls, parse_error(&p, public));
+            decl_push(&p.decls, parse_error(&p, false));
             continue;
         }
         // Check for async fn syntax first
@@ -967,7 +971,6 @@ DeclVec parse_program(Token *tokens) {
             // New syntax: [async] fn <type> <name>: <type> arg1, <type> arg2, ...
             Type *ret_type = parse_type(&p);
             Decl *d = new_decl(DC_FN);
-            d->public = public;
             d->is_async = is_async;
             d->type = ret_type;
             d->name = expect_ident(&p);
@@ -996,12 +999,11 @@ DeclVec parse_program(Token *tokens) {
             
             Type *type = parse_type(&p);
             if (match(&p, "fn")) {
-                Decl *fn_decl = parse_fn(&p, DC_FN, public, type);
+                Decl *fn_decl = parse_fn(&p, DC_FN, false, type);
                 fn_decl->is_async = is_async;
                 decl_push(&p.decls, fn_decl);
             } else {
                 Decl *d = new_decl(DC_VAR);
-                d->public = public;
                 d->type = type;
                 d->name = expect_ident(&p);
                 if (match(&p, "=")) d->init = parse_initializer(&p);

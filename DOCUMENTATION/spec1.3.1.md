@@ -2,7 +2,7 @@
 This patch introduces an intuitive error system. I tried to make something that is easy to learn and intuitive to use.
 [DONE] 
 <!-- TODO: 
-1. Fix if statements not working in try blocks
+1. Fix if statements not working in try blocks : FIXED
 -->
 ## Error system
 [DONE]
@@ -101,7 +101,7 @@ In this case the default return value is `void`.
 
 
 ## Pointers to stacks and queues
-
+[DONE]
 It partially works now but needs to be tighten up.
 
 ```
@@ -156,7 +156,7 @@ my collection pCol { // everything decl here is private
 
 Total: 4 new keywords
 
-- **18 keywords** — 
+- **17 keywords** — 
 `if`, 
 `loop`, 
 `break`, 
@@ -164,7 +164,6 @@ Total: 4 new keywords
 `ret`, 
 `strun`, 
 `fn`, 
-`private`,
 `use`, 
 `pin`, 
 `match`, 
@@ -179,3 +178,6 @@ Total: 4 new keywords
 
 **Deleted**
 `pub` 
+
+**defered**
+`my`

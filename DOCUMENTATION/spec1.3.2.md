@@ -166,7 +166,7 @@ Change in emitter.c: Add a freestanding flag to emit_program() that skips all li
 
 # Keywords for 1.3.2
 
-- **18 keywords** — 
+- **17 keywords** — 
 `if`, 
 `loop`, 
 `break`, 
@@ -174,7 +174,6 @@ Change in emitter.c: Add a freestanding flag to emit_program() that skips all li
 `ret`, 
 `strun`, 
 `fn`, 
-`my`,
 `use`, 
 `pin`, 
 `match`, 

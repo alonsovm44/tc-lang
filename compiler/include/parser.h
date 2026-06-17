@@ -41,6 +41,7 @@
  *
  * Args:
  *   tokens: Token stream from lexer (must end with TOK_EOF)
+ *   source_file: Path to the source file being parsed (for privacy tracking)
  *
  * Returns:
  *   DeclVec containing all top-level declarations in the program.
@@ -53,8 +54,8 @@
  *
  * Example:
  *   TokenVec tokens = lex_source(source);
- *   DeclVec program = parse_program(tokens);
+ *   DeclVec program = parse_program(tokens, "main.tc");
  */
-DeclVec parse_program(Token *tokens);
+DeclVec parse_program(Token *tokens, const char *source_file);
 
 #endif

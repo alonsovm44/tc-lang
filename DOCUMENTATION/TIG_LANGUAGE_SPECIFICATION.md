@@ -77,7 +77,7 @@ MAX_VALUE
 ### Keywords
 
 ```
-if, else, loop, break, defer, ret, strun, fn, use, pub, pin, match,
+if, else, loop, break, defer, ret, strun, fn, use, pin, match,
 async
 ```
 
@@ -216,7 +216,7 @@ Inner scopes can access variables from outer scopes, but not vice versa.
 ### Function Declaration
 
 ```tc
-[pub] [async] fn <return_type> <name>: <type> <arg>, ... {
+[async] fn <return_type> <name>: <type> <arg>, ... {
     // body
     ret <value>
 }
@@ -228,7 +228,7 @@ fn void main: {
     ret
 }
 
-pub fn i32 add: i32 a, i32 b {
+fn i32 add: i32 a, i32 b {
     ret a + b
 }
 
@@ -937,22 +937,9 @@ Inline `.tc` files without `.h` counterpart:
 @use "lib.tc"
 ```
 
-### Public Visibility
+### Visibility
 
-All objects are private by default. Use `pub` to export:
-
-```tc
-pub fn i32 add: i32 a, i32 b {
-    ret a + b
-}
-
-pub strun Point {
-    i32 x
-    i32 y
-}
-
-pub i32 global_var = 10
-```
+All objects are public by default. There is no visibility modifier - everything is accessible across modules.
 
 ---
 

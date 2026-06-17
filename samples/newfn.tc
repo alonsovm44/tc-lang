@@ -10,7 +10,7 @@ fn void main: {
     greet("world")
 }
 
-pub fn i32 add: i32 a, i32 b {
+fn i32 add: i32 a, i32 b {
     ret a + b
 }
 

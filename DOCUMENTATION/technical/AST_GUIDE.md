@@ -15,7 +15,6 @@ Top-level declarations represent the program's definitions:
 ```c
 struct Decl {
     DeclKind kind;           // What kind of declaration
-    bool public;             // Exported with 'pub'?
     bool is_hot;             // Hot-reload function?
     bool is_async;           // Async function? (v1.3)
     char *name;              // Declaration name
