@@ -6,6 +6,12 @@ Thank you for your interest in contributing to Tight-C! This guide will help you
 
 Tight-C is a systems programming language that transpiles to C. It focuses on simplicity, performance, and developer productivity with features like hot reloading, methods in structs, and modern language constructs.
 
+## Rules
+1. AI codegen is OK as long as it is C11 for the C core
+2. Follow the rules displayed in the stdlib section if you want to contribute to the stdlib
+3. NO AI CODEGEN for self hosting code. PRs with AI generated code for stage1 will not be taken into account.
+4. Have fun!
+
 ## Development Setup
 
 ### Prerequisites

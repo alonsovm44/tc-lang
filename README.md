@@ -14,6 +14,7 @@
 </p>
 
 ---
+> Disclaimer: For stage0, Tig uses AI codegen for the C core, for stage1 of self hosting, handwritten code only.
 
 Tig is a minimalistic systems programming language. 🦁🦁🦁
 
