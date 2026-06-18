@@ -227,7 +227,7 @@ comptime {
 }
 
 But what if i want the code to run on runtime?? we could do this
-
+```
 if (_WIN){ // _WIN is a reserved macro or constant 
  // this branch runs at runtime
 }else if(_UNIX){ // _UNIX is a reserved macro or constant 
@@ -235,9 +235,10 @@ if (_WIN){ // _WIN is a reserved macro or constant
 }else{
  // this branch runs at runtime
 }
-
+```
 Or better, have _WIN and _UNIX as comptime constants and do this
 // If _WIN is a compile-time constant, the compiler drops the unchosen branch entirely.
+```
 if (comptime _WIN) {
     // This code is only parsed/type-checked if compiling for Windows
     win32.DoSomething(); 
@@ -245,3 +246,14 @@ if (comptime _WIN) {
     // This code is completely ignored when compiling for Windows
     posix.DoSomething();
 }
+```
+
+I decided to add rust like traits to functions with the #[T] syntax. This way we move the boilerplate from the function
+signature
+aka
+not writing
+async naked volatile fn void foo(math, coll): i32 x, i32 y{//body}
+instead you'd do
+
+#[async, naked, volatile]
+fn void foo(math): ->data d{}
