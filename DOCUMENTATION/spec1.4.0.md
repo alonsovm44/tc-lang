@@ -430,7 +430,7 @@ MEDIUM PRIORITY:
 LOW PRIORITY:
 6. Collection specialization (arith(i32) vs arith(f64))
 7. C++ backend (debatable)
-8. string type in stdlib
+
 
 # Keywords in 1.4.0
 - **19 keywords** — 

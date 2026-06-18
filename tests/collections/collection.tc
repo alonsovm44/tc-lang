@@ -10,7 +10,7 @@
 
 # macro(T){ print(T)} // this is a Macro, text replacement codegen, compile-time, fully implemented, works now.
 
-% myCollection(T){ // This is a collection. It is called myCollection, they can have parameters.
+$ myCollection(T){ // This is a collection. It is called myCollection, they can have parameters.
 // It is called collection because it collects functions and other items that can be used to group and define behavior
 // it is like an inline library
     pin f32 PI = 3.14
@@ -51,7 +51,7 @@ fn void foo(myCollection(i32)): ->i32 data { // if collection(_) wildcard was us
 }
 /// collections inheritance ------a---------------------------------------------
 
-% balls(T){
+$ balls(T){
     fn void kick: T n {
         print("Kicking the ball")
         if (typeof(T)=="i32"){
@@ -63,7 +63,7 @@ fn void foo(myCollection(i32)): ->i32 data { // if collection(_) wildcard was us
     }
 }
 
-% foo(T) : balls(i32){
+$ foo(T) : balls(i32){
     fn void kick {
         balls::kick(i32, 5)
     }
@@ -76,13 +76,13 @@ fn i32 main(foo(i32)): {
 
 /// Another example -------------------------------------------------------------------
 
-% parent {
+$ parent {
     fn void hello {
         print("Hello from parent")
     }
 }
 
-% child : parent {
+$ child : parent {
     fn void goodbye {
         print("Goodbye from child")
     }
@@ -98,7 +98,7 @@ fn void main(child): void {
 // ===== std/collectionss.tc =====
 
 // Simple collections
-% printer {
+$ printer {
     fn void print_str(str s) {
         print(s)
     }
@@ -109,7 +109,7 @@ fn void main(child): void {
 }
 
 // collections with state
-% counter {
+$ counter {
     pin i32 count = 0
     
     fn void increment {
@@ -122,7 +122,7 @@ fn void main(child): void {
 }
 
 // collections with type parameter
-% stack(T) {
+$ stack(T) {
     queue<T> items = {}
     
     fn void push(T item) {
@@ -139,7 +139,7 @@ fn void main(child): void {
 }
 
 // collections with macro
-% logger(level) {
+$ logger(level) {
     # log(msg) {
         print("[" + level + "] " + msg)
     }
@@ -154,7 +154,7 @@ fn void main(child): void {
 }
 
 // collections composition
-% debug_logger(level) {
+$ debug_logger(level) {
     printer  // Include printer collections
     
     # log(msg) {
@@ -213,12 +213,12 @@ To avoid collisions, we need to use a different approach.
 We can declare functions inside collections, like this:
 */
 /// lib.tc
-% lib {
+$ lib {
     fn void foo: {}
 }
 
 /// lib2.tc
-% lib2 {
+$ lib2 {
     fn void foo: {}
 }
 
@@ -233,7 +233,7 @@ fn void main: {
 
 
 /// mathutils.tc
-% arith(T) {
+$ arith(T) {
     fn T add: T a, T b {
         if(typeof(T)=="i32"){
             a = (i32)a 
@@ -264,21 +264,21 @@ printf("%f\n", result2)
 
 //// collections serve thre purposes
 
-% lib {           // 1. NAMESPACE (organizes code)
+$ lib {           // 1. NAMESPACE (organizes code)
     fn foo() {}   //    No collisions with other libs
 }
 
-% arith(T) {      // 2. GENERICS (type-parameterized)
+$ arith(T) {      // 2. GENERICS (type-parameterized)
     fn add() {}   //    Works with i32, f64, etc.
 }
 
-% logger :: parent {     // 3. MIXINS (behavior injection)
+$ logger :: parent {     // 3. MIXINS (behavior injection)
     fn log() {}   //    Can be added to functions
 }
 
 // Struns and collections
 
-% col {
+$ col {
     strun Point:{
         i32 x,
         i32 y
@@ -292,7 +292,7 @@ printf("%f\n", result2)
 
 }
 
-% col2 : col {
+$ col2 : col {
     // inherits Point strun
     fn void foo: ->Point p{
         p.>x = 30
@@ -310,9 +310,9 @@ fn void main(col,col2): {
 
 /// collection inside collection
 
-% coll1(T){
+$ coll1(T){
     fn void method: {}
-    % coll2(U) {
+    $ coll2(U) {
         fn void method2: T t, U u {
             ret t + b
         }
@@ -325,8 +325,8 @@ fn void main(coll1): {
 }
 
 ///clean example
-% outer(T) {
-    % inner(U) {
+$ outer(T) {
+    $ inner(U) {
         fn T combine: T a, U b {
             ret a + b  // T from outer, U from inner
         }
@@ -341,7 +341,7 @@ fn void main(outer): void {
 
 /// Using anonymous collections
 
-% (T){
+$ (T){
   fn void method: T x{ ret x*x}  
 }
 
@@ -352,12 +352,12 @@ fn void main(): { // this includes the anonymous collection
 /// Another example case
 
 /// Named collection
-% math(T) {
+$ math(T) {
     fn T square: T x { ret x * x }
 }
 
 // Anonymous collection
-% (T) {
+$ (T) {
     fn T square: T x { ret x * x }
 }
 
@@ -372,7 +372,7 @@ fn void main: {
 // This is like lambdas but for TYPE-LEVEL functions
 
 /// function composition
-% (T,U) {
+$ (T,U) {
     fn U pipe: T value, fn(T)U func {
         ret func(value)
     }
@@ -391,7 +391,7 @@ fn void main: {
 }
 /// Instances?
 
-% myColl(T){
+$ myColl(T){
     fn void greet: {
         print("Hello!")
     }
@@ -437,7 +437,7 @@ fn void main(myColl(_)):
 
 /// errors using collections
 
-% ErrorCollections(T, Code) {
+$ ErrorCollections(T, Code) {
     fn void print: T type {
         if(T == "runtime"){
             printf("Runtime error, code: %s", Code)
@@ -474,7 +474,7 @@ fn void foo(): {
 
 /// using collections and comptime
 
-% coll{
+$ coll{
 
     my fn i32 foo:{
         /// helper
@@ -493,6 +493,6 @@ fn void main(coll): {
     coll.Point p // error cannot instantiate a private strun 
 }
 
-my % private_collection { // this collection can only be instantiated and called inside this file
+my $ private_collection { // this collection can only be instantiated and called inside this file
 
 }

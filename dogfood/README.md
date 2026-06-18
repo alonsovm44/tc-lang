@@ -14,8 +14,12 @@ Tiger - Build system for Tig.
 Fang - Package manager for Tig. 
 Tdbug - A debugger for Tig. 
 Meic - Make but remade in Tig and with nicer syntax
+TIDE - A DOS/Free Pascal 90's style TUI IDE just for Tig and with AI coding support.
+# Work in progress
+
+- Futh - A RPN calculator or forth like VM
 
 # Done
-bf - A brainfuck interpreter written in Tig
+bf - A brainfuck interpreter written in Tig (updated)
 raylib demo - A simple raylib demo wrapper in Tig
-HOTSWAPPING - A hotswapping demo
+HOTSWAPPING - A simple hotswapping demo

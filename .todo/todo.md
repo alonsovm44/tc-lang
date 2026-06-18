@@ -1,4 +1,3 @@
-
 # 1.4.0 
 - [ ] Implement 1.4.0alpha features.
     - [ ] update stacks and queues
@@ -28,6 +27,7 @@
 - [ ] Freestanding mode
     - [ ] No stdlib output
 - [ ] More built ins: typeof()
+- [ ] Extern C calls works for structs/struns and unions
 # todo for 1.3.1
 
 ## Done
@@ -66,7 +66,7 @@
 
 ### Medium Priority (language features)
 - [ ] Make extern C calls work for variables, not just for functions
-- [ ] add multiline decls (enforce optional semicolon)
+- [x] add multiline decls (enforce optional semicolon)
 - [x] Add a function to the stdlib that converts a fatptr string into a normal string
 - [x] Add multidimensional array support (note: already supported, needs testing)
 - [x] add boolean types, 0 or 1 (i8 is ok since it's just 0 or 1, C's bool is i8 anyway)
