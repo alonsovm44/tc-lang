@@ -314,8 +314,22 @@ static char *get_stdlib_path(void) {
     return xstrdup("stdlib");
 }
 
+typedef struct {
+    char **items;
+    int count;
+    int cap;
+} StringVec;
+
+static void string_push(StringVec *v, const char *s) {
+    if (v->count == v->cap) {
+        v->cap = v->cap ? v->cap * 2 : 8;
+        v->items = xrealloc(v->items, sizeof(char*) * (size_t)v->cap);
+    }
+    v->items[v->count++] = xstrdup(s);
+}
+
 int main(int argc, char **argv) {
-    const char *input = NULL;
+    StringVec inputs = {0};
     const char *output = NULL;
     const char *compile_out = NULL;
     const char *hot_lib = NULL;
@@ -326,9 +340,9 @@ int main(int argc, char **argv) {
     bool debug_c = false;
     for (int i = 1; i < argc; i++) {
         if (!strcmp(argv[i], "--help") || !strcmp(argv[i], "-h")) {
-            puts("Tight-C compiler v1.3.1\n"
+            puts("Tight-C compiler v1.3.2\n"
                  "\n"
-                 "Usage: tigc <input.tc> [options]\n"
+                 "Usage: tigc <input.tc> [input2.tc ...] [options]\n"
                  "\n"
                  "Options:\n"
                  "  -o, --output <file>    Write transpiled C to file (.h gets #pragma once)\n"
@@ -356,10 +370,11 @@ int main(int argc, char **argv) {
                  "  ./app                            Run the application\n"
                  "  tigc main.tc -H hotlib --hot     Rebuild hotlib (app updates automatically)\n"
                  "  tigc main.tc --debug ast          Output AST for debugging\n"
-                 "  tigc main.tc --debug c            Output C code without compiling\n");
+                 "  tigc main.tc --debug c            Output C code without compiling\n"
+                 "  tigc a.tc b.tc -c app            Compile multiple files\n");
             return 0;
         } else if (!strcmp(argv[i], "--version") || !strcmp(argv[i], "-v")) {
-            puts("tight-c 1.3.1\nHecho en México");
+            puts("tight-c 1.3.2\nHecho en México");
             return 0;
         } else if (!strcmp(argv[i], "--error") || !strcmp(argv[i], "--explain")) {
             if (++i >= argc) die("missing error code after --error");
@@ -392,20 +407,151 @@ int main(int argc, char **argv) {
             if (++i >= argc) die("missing path after --stdlib-path");
             stdlib_path = argv[i];
         } else {
-            input = argv[i];
+            string_push(&inputs, argv[i]);
         }
     }
-    if (!input) die("usage: tigc <input.tc> [-o output.c] [-c binary]\n       tigc --help for more info");
+    if (inputs.count == 0) die("usage: tigc <input.tc> [input2.tc ...] [-o output.c] [-c binary]\n       tigc --help for more info");
 
     // Get stdlib path if not specified
     if (!stdlib_path) {
         stdlib_path = get_stdlib_path();
     }
-    char *source = read_file(input);
-    tc_set_source(input, source);
-    g_current_input = input;
-    TokenVec tokens = lex_source(source);
-    DeclVec program = parse_program(tokens.items, input);
+
+    // Parse all input files and merge ASTs
+    DeclVec program = {0};
+    int main_count = 0;
+
+    for (int i = 0; i < inputs.count; i++) {
+        const char *input = inputs.items[i];
+        char *source = read_file(input);
+        tc_set_source(input, source);
+        g_current_input = input;
+        TokenVec tokens = lex_source(source);
+        DeclVec file_program = parse_program(tokens.items, input);
+
+        // Check for main function in this file
+        for (int j = 0; j < file_program.count; j++) {
+            Decl *d = file_program.items[j];
+            if (d->kind == DC_FN && strcmp(d->name, "main") == 0) {
+                main_count++;
+            }
+            // Set source file for all declarations
+            d->source_file = xstrdup(input);
+        }
+
+        // Merge declarations into program
+        for (int j = 0; j < file_program.count; j++) {
+            decl_push(&program, file_program.items[j]);
+        }
+    }
+
+    // Linker error: only one main function allowed
+    if (main_count > 1) {
+        die("linker error: multiple main functions found (main defined in %d files)", main_count);
+    }
+
+    // Linker error: check for duplicate symbols across files
+    for (int i = 0; i < program.count; i++) {
+        Decl *d1 = program.items[i];
+        if (!d1->name) continue; // Skip anonymous declarations
+        
+        for (int j = i + 1; j < program.count; j++) {
+            Decl *d2 = program.items[j];
+            if (!d2->name) continue;
+            
+            // Check for duplicate symbols (same name and kind)
+            if (strcmp(d1->name, d2->name) == 0 && d1->kind == d2->kind) {
+                // Allow extern function declarations to match function definitions
+                if (d1->kind == DC_FN && d2->kind == DC_EXTERN_FN) continue;
+                if (d1->kind == DC_EXTERN_FN && d2->kind == DC_FN) continue;
+                
+                die("linker error: duplicate symbol '%s' defined in %s and %s",
+                    d1->name, d1->source_file, d2->source_file);
+            }
+        }
+    }
+
+    // Linker error: check for circular dependencies via @use
+    // Build dependency graph
+    typedef struct {
+        char *from;
+        char *to;
+    } DepEdge;
+    DepEdge *deps = NULL;
+    int dep_count = 0;
+    int dep_cap = 0;
+    
+    for (int i = 0; i < program.count; i++) {
+        Decl *d = program.items[i];
+        if (d->kind == DC_USE && d->path) {
+            // Find which file this use statement is in
+            const char *from_file = d->source_file;
+            const char *to_file = d->path;
+            
+            // Add edge to dependency graph
+            if (dep_count == dep_cap) {
+                dep_cap = dep_cap ? dep_cap * 2 : 16;
+                deps = xrealloc(deps, sizeof(DepEdge) * (size_t)dep_cap);
+            }
+            deps[dep_count].from = xstrdup(from_file);
+            deps[dep_count].to = xstrdup(to_file);
+            dep_count++;
+        }
+    }
+    
+    // Detect cycles using DFS
+    if (dep_count > 0) {
+        for (int i = 0; i < inputs.count; i++) {
+            const char *start = inputs.items[i];
+            
+            // Build cycle path for error reporting
+            char *path[256];
+            int path_len = 0;
+            char *visited = calloc(inputs.count + dep_count, sizeof(char));
+            
+            // Simple cycle detection - follow chains
+            const char *current = start;
+            path[path_len++] = xstrdup(current);
+            
+            for (int step = 0; step < dep_count + 10; step++) {
+                bool found_edge = false;
+                for (int j = 0; j < dep_count; j++) {
+                    if (strcmp(deps[j].from, current) == 0) {
+                        current = deps[j].to;
+                        path[path_len++] = xstrdup(current);
+                        found_edge = true;
+                        
+                        // Check if we're back to start
+                        if (strcmp(current, start) == 0) {
+                            // Build error message
+                            Str cycle_str = {0};
+                            for (int k = 0; k < path_len; k++) {
+                                str_add(&cycle_str, path[k]);
+                                if (k < path_len - 1) str_add(&cycle_str, " -> ");
+                            }
+                            die("linker error: circular dependency detected: %s", cycle_str.data);
+                        }
+                        break;
+                    }
+                }
+                if (!found_edge) break;
+            }
+            
+            // Cleanup path
+            for (int k = 0; k < path_len; k++) {
+                free(path[k]);
+            }
+            free(visited);
+        }
+    }
+    
+    // Clean up dependency graph
+    for (int i = 0; i < dep_count; i++) {
+        free(deps[i].from);
+        free(deps[i].to);
+    }
+    free(deps);
+
     check_program(&program);
     
     // Debug: Output AST

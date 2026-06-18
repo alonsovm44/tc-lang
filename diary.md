@@ -257,3 +257,6 @@ instead you'd do
 
 #[async, naked, volatile]
 fn void foo(math): ->data d{}
+
+### ON maker
+I was working on maker, the first thing i did was to check if the Makerfile exists, and it worked first try and it managed exceptions well, i cant believe it. 

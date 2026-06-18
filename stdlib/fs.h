@@ -5,6 +5,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
+#include <setjmp.h>
 #define TC_ALLOC(type, count) ((type *)calloc((count), sizeof(type)))
 #define TC_LENOF(x) (sizeof(x) / sizeof((x)[0]))
 #define TC_FAT_LENOF(x) ((x).len)
@@ -15,12 +16,13 @@ int32_t closef(FILE *f);
 int32_t filegetc(FILE *stream);
 int32_t fputchr(int32_t c, FILE *stream);
 int32_t fputstr(char *s, FILE *stream);
-int32_t eof(FILE *stream);
+int32_t iseof(FILE *stream);
 uint64_t readf(void *ptr, uint64_t size, uint64_t count, void *file);
 uint64_t writef(void *ptr, uint64_t size, uint64_t count, void *file);
 int32_t seekf(void *file, int64_t offset, int32_t whence);
 int64_t tellf(void *file);
 int32_t errorf(void *file);
+char fileExists(char *path);
 
 
 FILE *openf(char *file, char *mode) {
@@ -48,7 +50,7 @@ int32_t fputstr(char *s, FILE *stream) {
     return fputs(s, stream);
 }
 
-int32_t eof(FILE *stream) {
+int32_t iseof(FILE *stream) {
     
     return feof(stream);
 }
@@ -76,4 +78,14 @@ int64_t tellf(void *file) {
 int32_t errorf(void *file) {
     
     return ferror(file);
+}
+
+char fileExists(char *path) {
+    FILE *f = openf(path, "r");
+    if ((!f)) {
+        
+        return 0;
+    }
+    
+    return 1;
 }
