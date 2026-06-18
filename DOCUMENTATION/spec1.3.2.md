@@ -167,6 +167,9 @@ Just these:
 typedef __SIZE_TYPE__ size_t;
 typedef __UINTPTR_TYPE__ uintptr_t;
 ```
+> Note: we need more type definitions for free standing, 
+> Note 2: In this update we must provide any needed feature to be able to write a kernel on Tig
+
 Or define your own fixed-width types
 Change in emitter.c: Add a freestanding flag to emit_program() that skips all libc includes and defines minimal types.
 
@@ -175,6 +178,7 @@ HIGH PRIORITY:
 1. Multiple file compilation with duplicate detection
 2. -- flag for C compiler flags
 3. Freestanding mode with full type definitions
+3.1 comptime constants for windows and unix (needed to emulate #if _WIN macros on C)
 
 MEDIUM PRIORITY:
 4. Verbose output (-v)

@@ -28,6 +28,9 @@
     - [ ] No stdlib output
 - [ ] More built ins: typeof()
 - [ ] Extern C calls works for structs/struns and unions
+- [ ] Add OS specific conditional branching
+    - [ ] add _WIN comptime constant
+    - [ ] add _UNIX comtpime constant ( this is necessary to emulate #IF macros)
 # todo for 1.3.1
 
 ## Done

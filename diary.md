@@ -214,3 +214,34 @@ I decided to change the collection symbol from % to $ to avoid parser complicati
 I added multiline declarations and added a module to the stdlib to talk to the OS
 This made me realize that i need a way to distinguish between OSes like C's `#if _WIN32` to make conditional compilation code. Although the wrapper i think it is OS agnostic, since it calls C's system() which i belive runs on Windows and Unix.
 
+I noticed that i have a problem. In order to port Tig to Tig i need a way of emulating the C macro language somehow, i pointed this already but i need to stress it more. perhaps with comptime checks? I think so.  something like
+
+comptime {
+   if (_WIN){
+    //code
+   }else if (UNIX){
+    // mac, linux, bsd
+   }else{
+    // unknown OS
+   }
+}
+
+But what if i want the code to run on runtime?? we could do this
+
+if (_WIN){ // _WIN is a reserved macro or constant 
+ // this branch runs at runtime
+}else if(_UNIX){ // _UNIX is a reserved macro or constant 
+ // this branch runs at runtime
+}else{
+ // this branch runs at runtime
+}
+
+Or better, have _WIN and _UNIX as comptime constants and do this
+// If _WIN is a compile-time constant, the compiler drops the unchosen branch entirely.
+if (comptime _WIN) {
+    // This code is only parsed/type-checked if compiling for Windows
+    win32.DoSomething(); 
+} else if (comptime _UNIX) {
+    // This code is completely ignored when compiling for Windows
+    posix.DoSomething();
+}
