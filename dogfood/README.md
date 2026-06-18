@@ -10,11 +10,12 @@ Tig's ecosystem philosophy is Unix like, we dont have one tool that does everyth
 ## Projects ideas
 
 Lintig - A linter for Tig, checks for memory safety and anti-patterns.
-Tiger - Build system for Tig. 
 Fang - Package manager for Tig. 
 Tdbug - A debugger for Tig. 
 Meic - Make but remade in Tig and with nicer syntax
 TIDE - A DOS/Free Pascal 90's style TUI IDE just for Tig and with AI coding support.
+
+
 # Work in progress
 
 - Futh - A RPN calculator or forth like VM

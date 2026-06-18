@@ -131,6 +131,7 @@ fn void foo: {
 For now all data is public in Tig
 
 ## Multiline decl
+[DONE]
 ```
 fn void main: {
     i32 a = 1, b = 2

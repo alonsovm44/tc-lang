@@ -1,7 +1,7 @@
 use "stdlib/io.tc"
 
 extern "C" {
-    i32 fn Sleep: u32 ms {}
+    i32 fn Sleep: u32 ms
 }
 
 hot fn i32 add: i32 x, i32 y {

@@ -17,8 +17,15 @@ extern "C" {
 
 // Global thread pool instance
 extern "C" {
-    ->ThreadPool g_thread_pool
+    ->ThreadPool g_thread_pool /// this is pendinig to work
 }
+
+strun Task {
+    fn(->void)void func
+    ->void arg
+    ->Task next
+}
+
 
 // Convenience functions for common operations
 fn void async_init: {

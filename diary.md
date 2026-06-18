@@ -210,3 +210,7 @@ I decided to make everything public for now, i'll remove `pub` and leave `my` im
 
 ## June 17
 I decided to change the collection symbol from % to $ to avoid parser complications with the modulo operator.
+
+I added multiline declarations and added a module to the stdlib to talk to the OS
+This made me realize that i need a way to distinguish between OSes like C's `#if _WIN32` to make conditional compilation code. Although the wrapper i think it is OS agnostic, since it calls C's system() which i belive runs on Windows and Unix.
+

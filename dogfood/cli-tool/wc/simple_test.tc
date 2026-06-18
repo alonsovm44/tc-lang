@@ -1,9 +1,0 @@
-use "stdlib/io.tc"
-
-fn i32 main: {
-    printn("Starting test")
-    i32 x = 10
-    printi(x)
-    printn("Done")
-    ret 0
-}

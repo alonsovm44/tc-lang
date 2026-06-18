@@ -1,22 +1,37 @@
 use "stdlib/io.tc"
+use "stdlib/fs.tc"
 use "stdlib/str.tc"
 
-fn i32 main: {
-    ->i8 file = "test.txt"
 
-    ->FILE f = open_file(file, "r")
+fn i8 isTextFile: ->i8 path{
 
-    if(!f){
-        print("Error, could not open file")
+    if(strhas(path, ".txt") || strhas(path, ".md")){
         ret 1
     }
-    
+    ret 0
+}
+
+fn i32 main: =>->i8 args {
+    ->i8 file = args.ptr[1]
+
+    if(!isTextFile(file)){
+        print("Error: file is not a text file\n")
+        ret 1
+    }
+    ->FILE f = openf(file, "r")
+    if(!f){
+        print("Error, could not open file")
+        free(f)
+        ret 1
+    }
+    defer closef(f)
+
     i32 counter = 0
     i8 in_word = 0
     i32 c
     
     loop {
-        c = fgetc(f)
+        c = filegetc(f)
         
         if (c == -1) {
             break
@@ -31,8 +46,6 @@ fn i32 main: {
             }
         }
     }
-    
-    fclose(f)
     
     printn("Words: ")
     printi(counter)

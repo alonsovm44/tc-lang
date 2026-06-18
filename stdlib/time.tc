@@ -1,17 +1,22 @@
-extern "C" {
-    i64 fn time: ->void t {}
-    ->void fn localtime: i64 t {}
-    ->void fn gmtime: i64 t {}
-    i32 fn clock: {}
+"C" {
+    #include <time.h>
 }
+extern "C" {
+    i64 fn time: ->void t 
+    ->void fn localtime: i64 t
+    ->void fn gmtime: i64 t 
+    i32 fn clock: void x
+    i32 fn Sleep: u32 ms
+}
+
 
 // get current time in seconds since epoch
 i64 fn now: {
-    ret time(cast(0, ->void))
+    ret time((->void)0)
 }
 
 // get processor time used by program (in clock ticks)
-i32 fn clock: {
+i32 fn Clock: {
     ret clock()
 }
 
@@ -27,5 +32,9 @@ i64 fn sec_to_us: i64 sec {
 
 // convert milliseconds to seconds
 f64 fn ms_to_sec: i64 ms {
-    ret cast(ms, f64) / 1000.0
+    ret (f64)ms / 1000.0
+}
+
+i32 fn sleep: u32 ms{
+    ret Sleep(ms)
 }
