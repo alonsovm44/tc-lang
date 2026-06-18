@@ -17,22 +17,34 @@
 
 Tig is a minimalistic systems programming language. 🦁🦁🦁
 
->Note: see demo/ folder for some non trivial examples of Tig being used.
-## What's New in v1.3.0 🚀
+>Note: see dogfood/ folder for some non trivial examples of Tig being used.
+## What's New in v1.3.1 🚀
 
-- **Zero-Boilerplate Async** — Write concurrent code with zero setup! No manual `async_init()` or `async_shutdown()` needed. Runtime initializes automatically on first async call.
-- **Async Functions** — Simple async syntax: `async fn void worker: i32 x { printi(x) }` and call with `worker(42)`
-- **Thread Pool Management** — Built-in thread pool with automatic resource management and cleanup
-- **Smart Compilation** — Runtime automatically linked only when async functions are used (zero overhead for sync programs)
-- **Clean Output** — No debug noise, just your program output
-- **Stdlib Module** — `use "stdlib/async.tc"` for async functionality
-- **Ownership Transfer** — `@` operator for transferring ownership of resources between async tasks
-- **Select Statements** — Wait on multiple async operations with `select`
-- **Queue & Stack Types** — Built-in concurrent data structures with `queue<i32>` and `stack<i32>` (still buggy)
-- **Pin Keyword** — Keep variables alive across async boundaries with `pin`
+1. OS module for stdlib
+2. Multiple declarations within one line
+3. All data is public in Tig (no privacy keywords yet, `pub` eliminated) 
+4. improved async runtime
+And more... check Changelog for full change reports.
+
 ## Project Goals
-> Make the first mainstream systems langauge from Mexico.
+> Make the first usable systems language from Mexico.
 > Explore the bare minimum of what a systems language must have to be usable, modern and ergonomic
+> Learn C and master Tig
+> Make a useful contribution to CS and coders out there.
+> Get a job
+
+## Philosophy
+
+**Why it was made**: I wanted an ergonomic systems language capable of anything, with less keywords than Go, no GC and without heavy runtime overhead; as safe as possible (but not necessarily proving safety). A language I could master and teach to others, a lang that puts Mexico in the map for once.
+
+**Backend**: For now it is C11 
+**Core Ideal**: Tig has to be able to fit in a single man's head. Small but powerful.
+
+### Core principle:
+> Everything that can be built with libraries has to be built with libraries. The core language is small.
+> Explicit is better than implicit, but exceptions can be made...
+> Flexibility over rigidity.
+> Anything C can run, we run: Anywhere C has ran, we will run
 
 ## Features
 
@@ -53,25 +65,6 @@ Tig is a minimalistic systems programming language. 🦁🦁🦁
 - **Inline imports** — `@use "lib.tc"` inlines another `.tc` file at compile time
 - **CLI args** — `i32 fn main: =>->i8 args { ... }` for command-line tools
 
-## Philosophy
-
-**Why it was made**: I wanted a simple systems language with less keywords than Go, without GC and without heavy runtime overhead.
-**Backend**: For now it is C11 
-**Core Ideal**: Tig has to be able to fit in a single man's head. Small but powerful.
-
-### Inspiration
-- Pony
-- Nim
-- Go
-- C
-- Rust
-
-### Core principle:
-> Everything that can be built with libraries has to be built with libraries. The core language is small.
-> Explicit is better than implicit, but exceptions can be made...
-> Flexibility over rigidity.
-> Anything C can run, we run: Anywhere C has ran, we will run
-
 
 ## Quick Start
 
@@ -81,23 +74,21 @@ Clone the repo and build the compiler:
 make # requires make
 
 # Compile stdlib headers in the stdlib folder (only needed once)
-./tigc stdlib/io.tc -o stdlib/io.h
+./tigc stdlib/io.tc -o stdlib/io.h # or you can do `@use "stdlib/io.tc"` to inline the lib and skip the .h file
+# runtimes require the .h files (for now) since the runtime impl is in the .h file
+# dont compile async.tc yet
 
 # One-step: transpile + compile to binary
 ./tigc samples/fizzbuzz.tc -c fizzbuzz
 ./fizzbuzz
-
-# Or two-step: transpile to C, then compile yourself
-./tigc samples/fizzbuzz.tc -o fizzbuzz.c
-gcc fizzbuzz.c -std=c11 -o fizzbuzz
 ```
 
 ## How It Works
 
-Tig is a **source-to-source compiler** (transpiler) written in ~4156 lines of C. It reads `.tc` files and outputs portable C11.
+Tig is a source-to-source compiler (transpiler) written in ~4200 lines of C. It reads `.tc` files and outputs portable C11.
 
 ```
-source.tc → [Lexer] → [Parser] → [AST] → [Emitter] → output.c → gcc/clang → binary
+source.tc -> [Lexer] -> [Parser] -> [AST] -> [Checker] -> [Emitter] -> output.c -> gcc/clang -> binary
 ```
 
 ### Pipeline
@@ -115,24 +106,15 @@ source.tc → [Lexer] → [Parser] → [AST] → [Emitter] → output.c → gcc/
 | `alloc(T, n)` | `TC_ALLOC(T, n)` → `calloc(n, sizeof(T))` |
 | `=>->i8 args` in main | `main(int argc, char **argv)` + local fat pointer wrapping them |
 
-### What it is *not*
+### What it is not
+I don't claim Tig to be a memory safe language, it does not have a Borrow Checker or GC, rather memory management is manunal (although I plan to add arenas in the near future too), but it does provide some safety features like fat pointers, self cleaning error functions and defer statements as first class ergonomics to help write safer code.
 
-There is no optimizer, no IR, no type inference pass, and no code generation beyond string concatenation of C. The output is always **readable, debuggable C** that you can inspect with `tightc source.tc -o source.c`.
-
-## Design Goals
-
-| Goal | How |
-|------|-----|
-| **Predictability** | Every line maps to obvious C. No hidden allocations, no implicit copies, no vtables. |
-| **Simplicity** | 10 keywords. The entire compiler is a single-pass parser + tree-walk emitter. |
-| **Portability** | Output is C11 with no platform-specific extensions. Compiles with gcc, clang, or any conforming C compiler. |
-| **Safety without runtime cost** | Fat pointers carry length at zero overhead (struct field). `pin` catches mutation bugs at compile time. `defer` prevents resource leaks. |
-| **Interop** | `extern "C"` blocks let you call any C library directly. `use` includes `.h` files. The generated code is linkable from C. |
+Tig has no optimizer, no IR, no type inference pass, and no code generation beyond string concatenation of C. It can leverage LLVM flags (soon) from gcc/clang. The output is always readable, debuggable C that you can inspect with `tightc source.tc -o source.c`.
 
 ### What Tig is good for
 
-- **CLI tools** — parse args, process files, call system APIs
-- **Embedded / bare-metal** — no runtime, no allocator required, predictable memory layout (packed structs)
+- **CLI tools** , absolute tiny or no runtime overhead. Parse args, process files, call system APIs
+- **Embedded / bare-metal** — (almost) no runtime, no allocator required, predictable memory layout with packed structs.
 - **Game engine internals** — manual memory, no GC pauses, direct pointer control
 - **Learning compilers** — small enough to read in an afternoon, real enough to produce working binaries
 - **C codebases that want better ergonomics** — fat pointers, defer, slicing, without leaving the C ecosystem
@@ -142,8 +124,9 @@ There is no optimizer, no IR, no type inference pass, and no code generation bey
 ```
 use "stdlib/io.tc"
 
-fn void main: {
+fn i32 main: {
     print("hello, world")
+    ret 0
 }
 ```
 
@@ -155,7 +138,14 @@ i32 x = 10
 f64 pi = 3.14
 u8 byte
 ```
-Uninitialized variables default to `0`.
+Uninitialized variables default to `0`. The trade off is performance but we gain safety.
+Variables are C-like and mutable by default. 
+Declare constants with `pin`
+
+```
+pin f32 PI = 3.14 // immutable in the current scope
+
+```
 
 ### Functions
 ```
@@ -240,16 +230,38 @@ printi(slice.ptr[0])     // access elements
 ->=>i32 pslice = @slice  // raw pointer to fat pointer
 =>=> sslice = @slice     // fat pointer to fat pointer
 ```
+### Dereferencing
 
+```tig
+(->ptr) 
 
-### Strun pointers
+```
+
+### Pointers to structs and pointer access
 ```
 strun Point{
     i32 x,
     i32 y
 }
 
-Point p = {1, 2}
+fn void foo: ->Point p{
+    p.>x = 10
+    p.>y = 20 // .> is same as C's a->b
+
+    //alternative
+    (->p).x = 30
+    (->p).y = 40 // same as C (*p).y 
+}
+
+```
+Another example:
+```
+strun Point{
+    i32 x,
+    i32 y
+}
+
+Point p = {1, 2} // instanciation
 
 fn void printP: ->Point p {
     printi(p.>x)
@@ -261,6 +273,23 @@ fn void printP: ->Point p {
 }
 
 ```
+Struns can have methods inside them
+
+strun Point {
+    i32 x,
+    i32 y
+
+    fn void printPoint: self {
+        printf("[%d, %d]\n", self.x, self.y)
+    }
+}
+
+fn void main:{
+    Point p
+    p.x = 10
+    p.y = 20
+    p.printPoint() // prints [10, 20]
+}
 
 ### Control Flow
 ```
@@ -277,6 +306,8 @@ loop if (i < 10) { ... }    // conditional loop
 ```
 ->i32 arr = alloc(i32, 100)
 defer { free(arr) }
+// or
+defer free(arr) // braceless
 ```
 
 ### Imports
@@ -297,7 +328,7 @@ i32 fn main: =>->i8 args {
 ### C FFI
 ```
 extern "C" {
-    i32 fn printf: ->i8 fmt, ... {}
+    i32 fn printf: ->i8 fmt, ... // dont use {}, only the function signature
 }
 ```
 
@@ -362,7 +393,7 @@ fn void main: {
 ### Concurrent Data Structures
 
 ```tig
-use "stdlib/async.tc"
+use "stdlib/async.tc" // for the runtime
 use "stdlib/io.tc"
 
 async fn void producer: queue<i32> q {
