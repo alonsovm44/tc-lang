@@ -2,6 +2,7 @@
 
 Added:
 
+- added OS module to stdlib
 - added inline decl of variables
 - now tigc can be used from any directory
 - added pointer access to stacks and queues

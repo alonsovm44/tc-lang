@@ -1,0 +1,8 @@
+use "stdlib/os.tc"
+use "stdlib/io.tc"
+
+fn i32 main: {
+    os("start cmd")
+    print("os call worked")
+    ret 0
+}

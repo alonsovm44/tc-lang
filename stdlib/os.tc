@@ -1,0 +1,8 @@
+extern "C" {
+    i32 fn system: ->i8 cmd
+}
+
+/// run a shell command
+fn i32 os: ->i8 cmd{
+    ret system(cmd)
+}
