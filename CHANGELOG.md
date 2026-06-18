@@ -2,6 +2,7 @@
 
 Added:
 
+- added inline decl of variables
 - now tigc can be used from any directory
 - added pointer access to stacks and queues
 - added explicit casting x = (T)y

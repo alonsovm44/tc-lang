@@ -405,7 +405,7 @@ int main(int argc, char **argv) {
     tc_set_source(input, source);
     g_current_input = input;
     TokenVec tokens = lex_source(source);
-    DeclVec program = parse_program(tokens.items);
+    DeclVec program = parse_program(tokens.items, input);
     check_program(&program);
     
     // Debug: Output AST

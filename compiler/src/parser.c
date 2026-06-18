@@ -658,10 +658,37 @@ static Stmt *parse_stmt(Parser *p) {
     if (type_start) {
         Type *type = parse_type(p);
         if (cur(p)->kind == TOK_IDENT) {
+            // Parse first variable
             Stmt *s = new_stmt(ST_VAR);
             s->type = type;
             s->name = expect_ident(p);
             if (match(p, "=")) s->expr = parse_initializer(p);
+            
+            // Check for comma-separated declarations (multiline on same line)
+            if (match(p, ",")) {
+                // Create a block to hold multiple declarations
+                StmtVec block = {0};
+                stmt_push(&block, s);
+                
+                // Parse additional comma-separated variables
+                while (cur(p)->kind == TOK_IDENT) {
+                    Stmt *next_var = new_stmt(ST_VAR);
+                    next_var->type = type;  // Same type for all
+                    next_var->name = expect_ident(p);
+                    if (match(p, "=")) next_var->expr = parse_initializer(p);
+                    stmt_push(&block, next_var);
+                    
+                    if (!match(p, ",")) break;
+                }
+                
+                match(p, ";");  // Optional semicolon at end
+                
+                // Return as a block statement
+                Stmt *block_stmt = new_stmt(ST_BLOCK);
+                block_stmt->body = block;
+                return block_stmt;
+            }
+            
             match(p, ";");  // Semicolon is optional after variable declaration
             return s;
         }
@@ -701,7 +728,18 @@ static Stmt *parse_stmt(Parser *p) {
 static StmtVec parse_block(Parser *p) {
     StmtVec body = {0};
     expect(p, "{");
-    while (!match(p, "}")) stmt_push(&body, parse_stmt(p));
+    while (!match(p, "}")) {
+        Stmt *s = parse_stmt(p);
+        // If the statement is a block from comma-separated declarations,
+        // flatten it into the current body to avoid creating nested scopes
+        if (s->kind == ST_BLOCK) {
+            for (int i = 0; i < s->body.count; i++) {
+                stmt_push(&body, s->body.items[i]);
+            }
+        } else {
+            stmt_push(&body, s);
+        }
+    }
     return body;
 }
 

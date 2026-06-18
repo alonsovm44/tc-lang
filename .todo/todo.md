@@ -27,6 +27,7 @@
     - [ ] Linking (essential for making projects with C libs)
 - [ ] Freestanding mode
     - [ ] No stdlib output
+- [ ] More built ins: typeof()
 # todo for 1.3.1
 
 ## Done

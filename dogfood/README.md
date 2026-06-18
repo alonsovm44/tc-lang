@@ -13,7 +13,7 @@ Lintig - A linter for Tig, checks for memory safety and anti-patterns.
 Tiger - Build system for Tig. 
 Fang - Package manager for Tig. 
 Tdbug - A debugger for Tig. 
-
+meic - Make but remade in Tig
 # Done
 bf - A brainfuck interpreter written in Tig
 raylib demo - A simple raylib demo wrapper in Tig

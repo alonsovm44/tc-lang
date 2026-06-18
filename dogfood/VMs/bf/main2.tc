@@ -121,7 +121,7 @@ fn void precomputeLoops: ->TOKENS program, i32 len, ->i32 matches{  // for now j
 
 fn i32 main: =>->i8 args 
 {
-
+    
     if (args.len <2){
         print("usage: tigbf <file.bf>")
         ret 1
