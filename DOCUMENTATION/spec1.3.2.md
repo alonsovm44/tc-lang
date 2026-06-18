@@ -1,5 +1,5 @@
 # 1.3.2 spec
-CLI update
+CLI and Freestanding update
 
 ## Multiple file compilation
 
@@ -151,7 +151,128 @@ tigc samples/hello.tc -c hello -- -O2 -fstack-protector -Wall
 tigc demos/raylib-demo/main.tc -c raylib_app -- -lraylib -L/usr/lib
 ```
 
+## Function traits
 
+Traits are compile-time attributes that modify function behavior. They are inspired by Rust's attribute system and provide a way to annotate functions with specific properties.
+
+### Syntax
+
+#### Single trait (inline syntax)
+```tig
+async fn void foo: {
+    // async function
+}
+```
+
+#### Multiple traits (block syntax)
+```tig
+#[async; naked; test]
+fn void bar: {
+    // async, naked, and test function
+}
+```
+
+#### Deprecated but valid (inline for single trait)
+```tig
+async fn void baz: {
+    // async code
+}
+```
+
+**Note:** Use the block syntax `#[...]` when you have multiple traits to avoid overloading the function signature. Inline syntax is acceptable for single traits.
+
+### Available traits
+
+#### async
+Marks the function as asynchronous, enabling async/await syntax and runtime support.
+```tig
+async fn void fetch_data: {
+    // async code
+}
+```
+
+#### test
+Marks the function as a test case. Test functions are only compiled when running tests.
+```tig
+#[test]
+fn void test_addition: {
+    // test code
+}
+```
+
+#### debug
+Marks the function as debug-only. This function is removed in release builds.
+```tig
+#[debug]
+fn void log_debug: str message {
+    // debug logging code
+}
+```
+
+#### volatile
+Prevents the compiler from optimizing away the function, useful for hardware access.
+```tig
+#[volatile]
+fn void read_hardware_register: u32 address -> u32 {
+    // hardware register read
+}
+```
+
+#### interrupt
+Marks the function as an interrupt handler. The compiler generates appropriate prologue/epilogue for ISR context.
+```tig
+#[interrupt]
+fn void timer_handler: {
+    // interrupt service routine
+}
+```
+
+#### naked
+Generates a function without prologue/epilogue. Useful for low-level code like ISR stubs.
+```tig
+#[naked]
+fn void isr_stub: {
+    asm "iret"
+}
+```
+
+#### nostd
+Marks the function as not depending on the standard library. Required for freestanding/kernel code.
+```tig
+#[nostd]
+fn void kernel_main: {
+    // no libc dependencies
+}
+```
+
+### Trait combinations
+
+Traits can be combined to create specific function behaviors:
+
+```tig
+#[async; test]
+fn void test_async_operation: {
+    // async test function
+}
+
+#[interrupt; naked]
+fn void isr_entry: {
+    asm "jmp isr_handler"
+}
+
+#[volatile; nostd]
+fn void direct_memory_write: u32 address, u32 value {
+    // direct memory access in freestanding mode
+}
+```
+
+### Implementation notes
+- Traits are parsed at compile-time
+- Multiple traits are separated by semicolons in the block syntax
+- Traits can affect code generation, linking, and optimization
+- Some traits are mutually exclusive (e.g., a function cannot be both `naked` and have standard prologue)
+
+- NO custom traits for 1.3.2 patch
 
 ## Free standing mode
 
@@ -161,17 +282,143 @@ The compiler can now compile with no libc using --freestanding flag.
 tigc file1.tc file2.tc -c app --freestanding
 ```
 
-No stdio, no stdlib, no math, no setjmp
-Just these:
-```c
-typedef __SIZE_TYPE__ size_t;
-typedef __UINTPTR_TYPE__ uintptr_t;
-```
-> Note: we need more type definitions for free standing, 
-> Note 2: In this update we must provide any needed feature to be able to write a kernel on Tig
+No stdio, no stdlib, no math, no setjmp.
 
-Or define your own fixed-width types
-Change in emitter.c: Add a freestanding flag to emit_program() that skips all libc includes and defines minimal types.
+### Minimal type definitions provided in freestanding mode:
+
+```c
+// Fixed-width integer types
+typedef __INT8_TYPE__ int8_t;
+typedef __INT16_TYPE__ int16_t;
+typedef __INT32_TYPE__ int32_t;
+typedef __INT64_TYPE__ int64_t;
+typedef __UINT8_TYPE__ uint8_t;
+typedef __UINT16_TYPE__ uint16_t;
+typedef __UINT32_TYPE__ uint32_t;
+typedef __UINT64_TYPE__ uint64_t;
+
+// Pointer types
+typedef __INTPTR_TYPE__ intptr_t;
+typedef __UINTPTR_TYPE__ uintptr_t;
+
+// Size types
+typedef __SIZE_TYPE__ size_t;
+typedef __PTRDIFF_TYPE__ ptrdiff_t;
+
+// NULL definition
+#define NULL ((void*)0)
+
+// Volatile for hardware register access
+#define volatile __volatile__
+```
+
+### Critical kernel development features:
+
+#### 1. Inline assembly support
+```tig
+fn void write_port: u16 port, u8 value {
+    asm volatile "outb %0, %1" (value, port)
+}
+```
+
+#### 2. Memory section attributes
+```tig
+// Place data in specific sections
+pin .data u32 kernel_data = 0x1000
+pin .bss u32 zero_data
+pin .rodata u8 const_data = 42
+```
+
+### 2.1 Hex and binary values
+
+0x00001
+0b10101 // assignable to variables
+
+#### 3. Interrupt handling attributes
+```tig
+// Mark functions as interrupt handlers
+#[interrupt]
+fn void timer_handler: {
+    // ISR code
+}
+
+// Mark functions as naked (no prologue/epilogue)
+#[naked]
+fn void isr_stub: {
+    asm "iret"
+}
+```
+
+#### 4. Memory alignment
+```tig
+// Align variables to specific boundaries
+align(16) u32 page_table[1024]
+align(4096) u8 kernel_stack[8192]
+```
+
+#### 5. Direct memory access
+```tig
+// Access memory at specific addresses
+extern "C" {
+    u32 fn *0xB8000 video_memory
+}
+```
+
+#### 6. Comptime if stmts
+comptime if (condition){
+  // this code gets into the final binary if the condition is true
+}else if (condition){
+  // this code gets into the final binary if the condition is true
+}else{
+  // this code gets into the final binary if the condition is true
+}
+```
+Example
+```tig
+comptime if(OS == _WIN){
+  // code that gets to the final binary if OS is windows
+}else if (OS == _UNIX){
+  // code that gets to the final binary if OS is unix
+}
+```
+
+#### 7. No_stdlib attribute
+```tig
+// Mark entire modules as no_stdlib
+#[nostd]
+fn void kernel_main: {
+    // No libc dependencies
+}
+
+```
+
+#### 8. Linker script support
+```bash
+tigc kernel.tc -c kernel --freestanding --linker-script linker.ld
+```
+
+#### 9. Stack pointer manipulation
+```tig
+// Direct access to stack pointer
+extern "C" {
+    u8 fn get_stack_pointer: ->u8
+    fn void set_stack_pointer: u8 sp
+}
+```
+
+#### 10. Memory barriers
+```tig
+// Memory barrier for synchronization
+memory_barrier()
+```
+
+### Implementation notes:
+- Change in emitter.c: Add a freestanding flag to emit_program() that skips all libc includes and defines minimal types.
+- Add inline assembly parser support
+- Add section attribute parser
+- Add interrupt/naked attribute support
+- Add alignment attribute support
+- Add comptime OS detection constants
 
 # priorities
 HIGH PRIORITY:
@@ -190,7 +437,7 @@ LOW PRIORITY:
 
 # Keywords for 1.3.2
 
-- **17 keywords** — 
+- **18 keywords** — 
 `if`, 
 `loop`, 
 `break`, 
@@ -208,3 +455,5 @@ LOW PRIORITY:
 `throw`,
 `try`,
 `catch`,
+`comptime` (new) 
+> Note: comptime was added for 1.3.2 OS type cases but not comptime{} blocks
