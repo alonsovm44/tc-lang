@@ -18,6 +18,7 @@ TIDE - A DOS/Free Pascal 90's style TUI IDE just for Tig and with AI coding supp
 
 # Work in progress
 
+- Maker - Make but remade and made in Tig
 - Futh - A RPN calculator or forth like VM
 
 # Done
