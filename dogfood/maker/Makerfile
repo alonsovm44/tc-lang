@@ -1,4 +1,8 @@
-# comment
-abc def % 01
 
-this are tokens
+comp := "tigc"
+flags := "-O2 -Wall"
+target := "app"
+src := "main.tc"
+
+<build:
+    {comp} {src} -c {target} -- {flags}

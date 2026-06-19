@@ -1,6 +1,8 @@
-# test file for maker
+
+comp := "tigc"
+flags := "-O2 -Wall"
+target := "app"
+src := "main.tc"
+
 <build:
-    echo "building..."
-    tigc main.tc -c app
-    echo "build complete"
->
+    {comp} {src} -c {target} -- {flags}
