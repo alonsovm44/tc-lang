@@ -13,6 +13,7 @@
 
 typedef struct { char *ptr; size_t len; } tc_fat_i8;
 
+char *sclone(char *s);
 uint64_t slen(char *s);
 int32_t seq(char *a, char *b);
 void scpy(char *dest, char *src);
@@ -25,6 +26,11 @@ int32_t ceq(char a, char b);
 char *fptos(tc_fat_i8 fatptr);
 tc_fat_i8 stofp(char *s);
 
+
+char *sclone(char *s) {
+    
+    return strdup(s);
+}
 
 uint64_t slen(char *s) {
     

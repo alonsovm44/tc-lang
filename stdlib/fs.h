@@ -19,10 +19,11 @@ int32_t fputstr(char *s, FILE *stream);
 int32_t iseof(FILE *stream);
 uint64_t readf(void *ptr, uint64_t size, uint64_t count, void *file);
 uint64_t writef(void *ptr, uint64_t size, uint64_t count, void *file);
-int32_t seekf(void *file, int64_t offset, int32_t whence);
-int64_t tellf(void *file);
-int32_t errorf(void *file);
+int32_t seekf(FILE *file, int64_t offset, int32_t whence);
+int64_t tellf(FILE *file);
+int32_t errorf(FILE *file);
 char fileExists(char *path);
+int32_t getFileSize(FILE *f);
 
 
 FILE *openf(char *file, char *mode) {
@@ -65,17 +66,17 @@ uint64_t writef(void *ptr, uint64_t size, uint64_t count, void *file) {
     return fwrite(ptr, size, count, file);
 }
 
-int32_t seekf(void *file, int64_t offset, int32_t whence) {
+int32_t seekf(FILE *file, int64_t offset, int32_t whence) {
     
     return fseek(file, offset, whence);
 }
 
-int64_t tellf(void *file) {
+int64_t tellf(FILE *file) {
     
     return ftell(file);
 }
 
-int32_t errorf(void *file) {
+int32_t errorf(FILE *file) {
     
     return ferror(file);
 }
@@ -83,9 +84,27 @@ int32_t errorf(void *file) {
 char fileExists(char *path) {
     FILE *f = openf(path, "r");
     if ((!f)) {
+        closef(f);
         
         return 0;
     }
+    closef(f);
     
     return 1;
+}
+
+int32_t getFileSize(FILE *f) {
+    int32_t i = 0;
+    int32_t c = 0;
+    int32_t start_pos = tellf(f);
+    while (1) {
+        if ((c == (-1))) {
+            break;
+        }
+        (c = filegetc(f));
+        (i++);
+    }
+    seekf(f, start_pos, 0);
+    
+    return i;
 }

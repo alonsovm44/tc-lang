@@ -9,6 +9,11 @@ extern "C" {
     ->i8 fn strchr: ->i8 s, i32 c 
     ->i8 fn strrchr: ->i8 s, i32 c 
     ->i8 fn strstr: ->i8 haystack, ->i8 needle 
+    i8 fn strdup: ->i8 s 
+}
+
+->i8 fn sclone: ->i8 s {
+    ret strdup(s)
 }
 
 // string length

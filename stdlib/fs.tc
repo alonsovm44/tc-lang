@@ -29,9 +29,9 @@ fn i32 iseof: ->FILE stream { ret feof(stream) }
 // and the other wrappers...
 fn u64 readf: ->void ptr, u64 size, u64 count, ->void file { ret fread(ptr, size, count, file) }
 fn u64 writef: ->void ptr, u64 size, u64 count, ->void file { ret fwrite(ptr, size, count, file) }
-fn i32 seekf: ->void file, i64 offset, i32 whence { ret fseek(file, offset, whence) }
-fn i64 tellf: ->void file { ret ftell(file) }
-fn i32 errorf: ->void file { ret ferror(file) }
+fn i32 seekf: ->FILE file, i64 offset, i32 whence { ret fseek(file, offset, whence) }
+fn i64 tellf: ->FILE file { ret ftell(file) }
+fn i32 errorf: ->FILE file { ret ferror(file) }
 fn i8 fileExists: ->i8 path {
     ->FILE f = openf(path, "r")
     if (!f){
@@ -40,4 +40,19 @@ fn i8 fileExists: ->i8 path {
     }
     closef(f)
     ret 1
+}
+
+fn i32 getFileSize: ->FILE f {
+    i32 i = 0
+    i32 c = 0
+    i32 start_pos = tellf(f)
+    loop{
+        if (c == -1) {
+            break
+        }
+        c = filegetc(f)
+        i++
+    }
+    seekf(f, start_pos, 0)
+    ret i
 }

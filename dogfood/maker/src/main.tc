@@ -4,7 +4,7 @@ use "stdlib/fs.tc"
 @use "lexer.tc"
 @use "utils.tc"
 /*algorithm 
-lexer returns an array of tokens
+lexer returns a queue of tokens
         
 */
 
@@ -26,9 +26,17 @@ fn i32 main: =>->i8 args{
     ->i8 mkf_content = stringify_file(mkf)
     defer closef(mkf)
 
-    queue<->i8> tokens = tokenize(mkf_content)
+    queue<->i8> tokens = tokenize(mkf_content) // works now
     
-    ->i8 first_token = tokens.pop()
-    print(first_token)
+    printi(tokens.size())
+    /// now lets print tokens
+    ->i8 token = ""
+    i32 qlen = tokens.size()
+    i32 i=0; loop if(i < qlen){
+        token = tokens.pop()
+        printf("%s\n", token)
+        i++
+    }
+    
     ret 0
 }

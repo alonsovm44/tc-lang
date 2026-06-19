@@ -1,6 +1,23 @@
 # 1.3.2 spec
 CLI and Freestanding update
 
+## Continue
+Usage proved that a contnue keyword is necessary for proper control flow.
+```
+loop if(i < 100){
+    if(i % 2 == 0){
+        continue
+    }
+    if(i == 50){
+        break
+    }
+    
+    i++
+}
+```
+
+We can use if else-if stmts to handle multiple conditions.
+
 ## Multiple file compilation
 [DONE]
 The compiler can now compile multiple files at once. The rules are:
