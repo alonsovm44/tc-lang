@@ -7,7 +7,18 @@ use "stdlib/fs.tc"
 lexer returns a queue of tokens
         
 */
-
+fn void printTokens: queue<->i8 tokens{
+    printi(tokens.size())
+    print("Tokens: \n")
+    /// now lets print tokens // IT WORKS
+    ->i8 token = ""
+    i32 qlen = tokens.size()
+    i32 i=0; loop if(i < qlen){
+        token = tokens.pop()
+        printf("%s\n", token)
+        i++
+    }
+}
 fn i32 main: =>->i8 args{ 
     
     try{
@@ -26,20 +37,14 @@ fn i32 main: =>->i8 args{
     ->i8 mkf_content = stringify_file(mkf)
     defer closef(mkf)
 
-    queue<->i8> tokens = tokenize(mkf_content) // works now
+    queue<->i8> tokens = tokenize(mkf_content) // works now i have this, now what?
     
+    /// --lex flag
     if(strcmp(first_arg, "--lex") == 0){
-    printi(tokens.size())
-    print("Tokens: \n")
-    /// now lets print tokens // IT WORKS
-    ->i8 token = ""
-    i32 qlen = tokens.size()
-    i32 i=0; loop if(i < qlen){
-        token = tokens.pop()
-        printf("%s\n", token)
-        i++
+        printTokens(tokens)
     }
-    }
+
+
     
     ret 0
 }

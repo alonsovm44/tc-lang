@@ -61,7 +61,7 @@ fn queue<->i8> tokenize: ->i8 str {
     loop if (i < len) {
         i8 c = str[i]
         
-        // === SPECIAL CHARACTERS ===
+        // SPECIAL CHARACTERS
         if (c == 58 || c == 59 || c == 61 || c == 123 || c == 125 || 
             c == 60 || c == 62 || c == 64 || c == 35 || c == 44 || 
             c == 46 || c == 42 || c == 47 || c == 92) {
@@ -82,7 +82,7 @@ fn queue<->i8> tokenize: ->i8 str {
             
             i++  // Only increment HERE
             
-        // === WHITESPACE ===
+        //  WHITESPACE 
         } else if (c == 32 || c == 9 || c == 10 || c == 13) {
             
             // Save current word if any
@@ -95,7 +95,7 @@ fn queue<->i8> tokenize: ->i8 str {
             
             i++  // Only increment HERE
             
-        // === REGULAR CHARACTER ===
+        //  REGULAR CHARACTER 
         } else {
             
             word[wordlen] = c
