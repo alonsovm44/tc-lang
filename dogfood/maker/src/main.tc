@@ -1,31 +1,34 @@
 use "stdlib/io.tc"
+use "stdlib/str.tc"
 use "stdlib/fs.tc"
-
-
-error NoMakerfile:  {
-    print("No Makerfile was found in this directory.")
-}
-
-fn i8 checkMF: {
-    /// check if Makerfile exists in CWD
-    if(fileExists("Makerfile")==1){
-        ret 1
-    }
-    throw NoMakerfile()
-}
+@use "lexer.tc"
+@use "utils.tc"
+/*algorithm 
+lexer returns an array of tokens
+        
+*/
 
 fn i32 main: =>->i8 args{ 
     
     try{
         checkMF()
     }catch{
-        NoMakerfile() ret 1
+        NoMakerfile() ret 1,
         _ {
             print("Unknown Error")
             ret -99
         }
     }
 
+    ->i8 first_arg = args.ptr[1]
+    ///
+    ->FILE mkf = openf("Makerfile", "r")
+    ->i8 mkf_content = stringify_file(mkf)
+    defer closef(mkf)
 
+    queue<->i8> tokens = tokenize(mkf_content)
+    
+    ->i8 first_token = tokens.pop()
+    print(first_token)
     ret 0
 }

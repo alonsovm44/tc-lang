@@ -1,0 +1,47 @@
+
+
+error NoMakerfile:  {
+    print("No Makerfile was found in this directory.")
+}
+
+fn i8 checkMF: {
+    /// check if Makerfile exists in CWD
+    if(fileExists("Makerfile")==1){
+        ret 1
+    }
+    throw NoMakerfile()
+}
+error couldNotOpenFile: ->FILE file{
+    print("Error, could not open file")
+    free(file)
+}
+
+fn i32 countTokens: ->FILE f {
+
+    if(!f){
+        throw couldNotOpenFile(f) 
+    }
+    defer closef(f)
+
+    i32 counter = 0
+    i8 in_word = 0
+    i32 c
+    
+    loop {
+        c = filegetc(f)
+        
+        if (c == -1) {
+            break
+        }
+        
+        if (c == 32) {  // space
+            in_word = 0
+        } else {
+            if (in_word == 0) {
+                counter++
+                in_word = 1
+            }
+        }
+    }
+    ret counter
+}

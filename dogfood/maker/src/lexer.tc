@@ -1,0 +1,68 @@
+
+
+/// helper functions
+fn i8 isAlpha: i32 c {
+    if(c >= 65 || c <= 90 || c >= 97 || c <= 122) //a z, A Z in ascii code
+    {
+        ret 1
+    }
+    ret 0
+}
+
+fn i8 isNumber: i32 c {
+    if(c >= 48 || c <= 57) //0 9 in ascii code
+    {
+        ret 1
+    }
+    ret 0
+}
+
+fn i8 isAlphaNum: i32 c {
+    if(isAlpha(c) || isNumber(c)) {
+        ret 1
+    }
+    ret 0
+}
+
+fn ->i8 stringify_file: ->FILE f { // turns the file into a string
+    ->i8 fcontent
+
+    i32 c = 0
+    i32 i = 0
+    loop {
+        if(c == -1){
+            break
+        }
+
+        c = filegetc(f)
+        fcontent[i] = c
+        i++
+    }
+    ret fcontent
+}
+
+fn queue<->i8> tokenize: ->i8 str{
+    /*
+    1. iterate over each char of the string
+    2. we have to find each word separated by spaces (32), tabs(9), newlines(10)
+    */
+    queue<->i8> tokensq
+    i32 len = slen(str) // we need to know the length of the file/string
+    ->i8 word = "" // we will assemble the word char by char
+    i8 pchar // probe char
+    i32 i = 0; loop if(i < len){
+        pchar = str[i] // current char probe 
+        word[i] = pchar // assembling the word
+        if(pchar == 32 || pchar == 9 || pchar == 10){ // we hit a divisor, word ended
+            // TODO: add word to tokens
+            tokensq.push(word) // save word to the queue
+            i32 j; loop if(j < slen(word)){ // we reset the word
+                word[j] = 0
+                j++
+            }
+        }
+        i++
+    }    
+    ret tokensq
+}
+

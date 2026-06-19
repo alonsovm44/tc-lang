@@ -1,52 +1,6 @@
-#! /path/to/Poweshell/
-# this is the shell used by Mayk to run the commands, if no shebang is used we use the systems default shell
-# this is a comment
-
-comp := "tigc" # := means infer type
-target := "app"
-other: str = "a string"
-x: int = 3
-debug: bool = true
-
-# Paths (no escaping needed)
-install_path := "C:\tools\myapp"     # Windows path
-install_dir := "/usr/local/bin"      # Unix path
-
-flags := "-O2 -Wall"
-src  := "main.tc"   
-install_path = "C:\tools\myapp"
-install_dir = "/usr/local/bin"
-
-deps := "math.tc utils.tc"
-# <cmd means we are declaring cmd to be a cmd
-
-
-<build: # {X} means insert the var inside into the cmd string
-    {comp} {src} {deps} -c {target} -- {flags};
+# test file for maker
+<build:
+    echo "building..."
+    tigc main.tc -c app
     echo "build complete"
-> # command ends here
-<run: 
-    @build; ./{target} # ; is optional for ending a line, it is the same as &&
-    # @ means call the other declared command
-
->    
-<clean:
-    rm -f *.o # *.extension means all files of extension .o
-    # also this
 >
-path := "C:\users\dir\somewhere\"
-<example:
-    rm -f {path}*.o     
->
-
-<install:
-    cp {target} {install_path}
->
-<test:
-    echo "testing...";
-    @build;
-    @run;
-    echo "test complete"
->   
-
-

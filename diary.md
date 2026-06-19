@@ -260,3 +260,8 @@ fn void foo(math): ->data d{}
 
 ### ON maker
 I was working on maker, the first thing i did was to check if the Makerfile exists, and it worked first try and it managed exceptions well, i cant believe it. 
+
+## June 18
+
+I realized that, since we have fixed size arrays, we need a way to make dynamic arrays, i was trying to make a function
+that returns an array of tokens, but i am not sure how to build it. 

@@ -57,12 +57,6 @@ i32 fn sneq: ->i8 a, ->i8 b, u64 n {
 i32 fn ceq: i8 a, i8 b {
     ret a == b
 }
-
-//added on June 12 2026 ---- 
-->i8 fn ctostr: i8 c {
-    ret &c
-}
-
 // fat pointer operations
 
 ->i8 fn fptos: =>i8 fatptr {
@@ -74,7 +68,6 @@ i32 fn ceq: i8 a, i8 b {
         i++
     }
     ret str
-
 }
 
 // string to fp 

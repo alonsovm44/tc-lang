@@ -1,6 +1,0 @@
-use "stdlib/io.tc"
-
-fn i32 main: {
-    foo()
-    bar() 
-}

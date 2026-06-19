@@ -5,6 +5,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
+#include <setjmp.h>
 #define TC_ALLOC(type, count) ((type *)calloc((count), sizeof(type)))
 #define TC_LENOF(x) (sizeof(x) / sizeof((x)[0]))
 #define TC_FAT_LENOF(x) ((x).len)
@@ -21,7 +22,6 @@ char *sfind(char *s, int32_t c);
 char *sfindlast(char *s, int32_t c);
 char *strhas(char *haystack, char *needle);
 int32_t ceq(char a, char b);
-char *ctostr(char c);
 char *fptos(tc_fat_i8 fatptr);
 tc_fat_i8 stofp(char *s);
 
@@ -71,11 +71,6 @@ char *strhas(char *haystack, char *needle) {
 int32_t ceq(char a, char b) {
     
     return (a == b);
-}
-
-char *ctostr(char c) {
-    
-    return (&c);
 }
 
 char *fptos(tc_fat_i8 fatptr) {

@@ -2,7 +2,7 @@
 CLI and Freestanding update
 
 ## Multiple file compilation
-
+[DONE]
 The compiler can now compile multiple files at once. The rules are:
   - Only one file can have main function, linker error otherwise
   - Error on duplicated symbols across files. (no namespaces, this is what collections will be for)

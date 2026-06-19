@@ -1,0 +1,13 @@
+use "stdlib/io.tc"
+
+fn =>i32 arr: {
+    =>i32 ar = alloc(i32, 10)
+    ret ar
+}
+
+fn i32 main: {
+    =>i32 ar = arr()
+    defer free(ar.ptr)
+    printi(ar.ptr[5])
+    ret 0
+}

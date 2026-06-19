@@ -26,7 +26,11 @@
     - [ ] Linking (essential for making projects with C libs)
 - [ ] Freestanding mode
     - [ ] No stdlib output
-- [ ] More built ins: typeof()
+- [ ] More built ins:
+    - [ ] typeof()
+    - [ ] lenof()
+    - [ ] offsetof()
+    
 - [ ] Extern C calls works for structs/struns and unions
 - [ ] Add OS specific conditional branching
     - [ ] add _WIN comptime constant

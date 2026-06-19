@@ -1,5 +1,0 @@
-use "stdlib/io.tc"
-
-fn void bar: {
-    printn("hello from b.tc")
-}
