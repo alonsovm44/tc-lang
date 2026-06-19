@@ -37,7 +37,7 @@ Queue fn queue_create: i32 capacity {
 
 void fn queue_destroy: ->Queue q {
     if(!q){
-        ret 
+        ret // todo
     }
     free(q.>items)
 }
@@ -46,7 +46,7 @@ void fn queue_destroy: ->Queue q {
 extern "C" {
     ->Queue fn queue_create: i32 capacity 
     void fn queue_destroy: ->Queue q 
-    void fn queue_push: ->Queue q, ->void item
+    void fn queue_push: ->Queue q, ->void item, i32 elem_size
     ->void fn queue_pop: ->Queue q 
     ->void fn queue_peek: ->Queue q 
     i32 fn queue_size: ->Queue q 

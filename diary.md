@@ -265,3 +265,32 @@ I was working on maker, the first thing i did was to check if the Makerfile exis
 
 I realized that, since we have fixed size arrays, we need a way to make dynamic arrays, i was trying to make a function
 that returns an array of tokens, but i am not sure how to build it. 
+
+I made a working lexer for Maker on Tig, it is very rudimentary but it works flawlessly.
+
+I found a weird edge case: when doing this
+
+strun T {
+  i32 x,
+  queue<i32> q,
+  queue<->i32> p
+}
+
+then you try to do this
+
+T t
+t.x = 1 // normal
+t.q.push(1) // this should work, but it doesnt
+
+I've been tinkering with this for an hour and it is too specific to put into words, the thing is that stack/queue methods
+dont seem t work for struct instances. you need to call the stack/queue functions directly and pass the queue, data and sizeof data manually.
+
+Popping is another story, since it returns a void ptr you need to cast it to the type you want, and then dereference it.
+But i tried casting it and print the result but it does not work for some reason and that is what I am debugging now. 
+
+the code is in tests/array/sarr.tc 
+
+Update: I cracked the problem. 
+
+Queues inside structs/struns are not initialized immediately. The issue is that the queue t.q is not initialized. In Tig, queues inside struns are not automatically initialized, you need to call queue_create() before using them. And queue_destroy to clean up
+

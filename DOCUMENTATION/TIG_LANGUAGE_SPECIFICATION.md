@@ -77,7 +77,7 @@ MAX_VALUE
 ### Keywords
 
 ```
-if, else, loop, break, defer, ret, strun, fn, use, pin, match,
+if, else, loop, break, continue, defer, ret, strun, fn, use, pin, match,
 async
 ```
 
@@ -349,6 +349,21 @@ Example:
 ```tc
 i32 i = 0
 loop if (i < 10) {
+    printi(i)
+    i++
+}
+```
+
+### Continue
+
+The `continue` keyword skips to the next iteration of a loop:
+
+```tc
+i32 i = 0
+loop if (i < 10) {
+    if (i % 2 == 0) {
+        continue  // Skip even numbers
+    }
     printi(i)
     i++
 }
@@ -1178,7 +1193,7 @@ error[E017]: Owned variable 'x' must be passed with @ operator
 ### Basic Compilation
 
 ```bash
-tigc <input.tc> [-o output.c] [-c binary]
+tigc <input.tc> [input2.tc ...] [-o output.c] [-c binary]
 ```
 
 ### Flags
@@ -1190,6 +1205,8 @@ tigc <input.tc> [-o output.c] [-c binary]
 | `-H <libname>` | Enable hot reload mode |
 | `--hot` | Rebuild only hot library |
 | `-t, --temp` | Keep temporary `.c` files |
+| `--debug ast` | Output AST for debugging |
+| `--debug c` | Output generated C code without compiling |
 
 ### Examples
 
@@ -1203,11 +1220,20 @@ tigc main.tc -o main.c
 # Compile to binary
 tigc main.tc -c app
 
+# Multi-file compilation
+tigc main.tc lib1.tc lib2.tc -c app
+
 # Hot reload mode
 tigc main.tc -H hotlib -c app
 
 # Hot rebuild
 tigc main.tc -H hotlib --hot
+
+# Debug AST
+tigc main.tc --debug ast
+
+# Debug C code
+tigc main.tc --debug c
 ```
 
 ### Building the Compiler
@@ -1354,6 +1380,12 @@ fn void main: {
 ## Version History
 
 ### 1.3.2
+- Added `continue` keyword for loop control flow
+- Added `lenof()` built-in function for array length
+- Multi-file compilation support with linker checks
+- Single main function enforcement across files
+- Duplicate symbol detection across files
+- Circular dependency detection via @use statements
 - Added queue/stack methods: size(), clear(), isEmpty(), peek()
 - Automatic cleanup for queue/stack variables on scope exit
 - Function argument count validation (E015, E016)

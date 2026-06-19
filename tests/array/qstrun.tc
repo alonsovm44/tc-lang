@@ -1,0 +1,40 @@
+use "stdlib/io.tc"
+use "stdlib/snq.tc"
+
+strun T{
+    i32 x,
+    queue<->i32> q, // QUEUE of pointers to i32
+    queue<i32> p // queue of i32 values
+}
+
+fn i32 main: {
+    T t;
+    t.x = 1;
+    printi(t.x)
+    print("\n")
+
+    // Initialize queues
+    t.q = queue_create(0)
+    t.p = queue_create(0)
+    defer{
+        queue_destroy(&t.q)
+        queue_destroy(&t.p)
+    }
+    i32 y = 10
+    ->i32 intptr = &y
+    /* THIS DOES NOT WORK
+    t.q.push(intptr)
+    t.p.push(10)
+
+    printi(t.q.pop())
+    printf("adress: %p", t.q.pop()) // should pop the address of y
+    */
+    // THIS IS HOW IT MUST BE DONE
+    queue_push(&t.q, intptr, sizeof(->i32)) // 1) the queue pointer, the pointer to push, and the size of the type
+    ->void result = queue_pop(&t.q) // return type is a pointer to a void | queue_pop(ptr_to_queue)
+    i32 final = ->((->i32)result)
+    printi(final)
+    print("\n")
+
+    ret 0
+}

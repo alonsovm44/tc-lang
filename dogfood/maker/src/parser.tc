@@ -1,0 +1,31 @@
+use "stdlib/io.tc"
+use "stdlib/str.tc"
+use "stdlib/fs.tc"
+
+// the parser consumes each token from the queue 
+
+enum NodeType{
+    ND_VAR,
+    ND_COMMAND_BLOCK,
+    ND_COMMAND, // command name, <ND_COMMAND: >
+    ND_VARINTERP, // var interpolation {var} 
+    ND_SHELLCMD
+
+}
+
+strun ASTNode {
+    NodeType type,
+    ->i8 name,
+    ->i8 value,
+    =>ASTNode children;
+
+}
+
+fn void parse: queue<->i8> tokens, ->ASTNode ast {
+
+    loop if(tokens.size() <> 0) {
+        ->i8 token = tokens.pop()
+
+
+    }
+}

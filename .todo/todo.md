@@ -28,7 +28,7 @@
     - [ ] No stdlib output
 - [ ] More built ins:
     - [ ] typeof()
-    - [ ] lenof()
+    - [x] lenof()
     - [ ] offsetof()
     
 - [ ] Extern C calls works for structs/struns and unions

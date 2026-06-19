@@ -3,9 +3,11 @@ use "stdlib/str.tc"
 use "stdlib/fs.tc"
 @use "lexer.tc"
 @use "utils.tc"
-/*algorithm 
+@use "interp.tc"
+/*algorithm
 lexer returns a queue of tokens
-        
+parser converts tokens to Makerfile structure
+executor runs the build targets
 */
 fn void printTokens: queue<->i8 tokens{
     printi(tokens.size())
@@ -44,6 +46,7 @@ fn i32 main: =>->i8 args{
         printTokens(tokens)
     }
 
+    
 
     
     ret 0

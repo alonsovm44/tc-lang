@@ -1,0 +1,46 @@
+
+use "stdlib/io.tc"
+use "stdlib/snq.tc"
+
+enum NodeType{
+    LETTER,
+    NUMBER,
+    SYMBOL
+}
+
+strun ASTNode{
+
+    NodeType type,
+    ->i8 name,
+    ->i8 value,
+    queue<->ASTNode> children 
+}
+
+fn i32 main: {
+ASTNode a;
+a.name = "parent";
+a.value = "1";
+a.children = queue_create(0); // 
+
+ASTNode b;
+b.name = "child1";
+b.value = "2";
+b.children = queue_create(0);
+
+ASTNode c;
+c.name = "child2";
+c.value = "3";
+c.children = queue_create(0);
+defer {
+    queue_destroy(&a.children)
+    queue_destroy(&b.children)
+    queue_destroy(&c.children)
+}
+
+
+queue_push(&a.children, &b, sizeof(ASTNode))
+queue_push(&a.children, &c, sizeof(ASTNode)) // this works
+
+
+ret 0
+}

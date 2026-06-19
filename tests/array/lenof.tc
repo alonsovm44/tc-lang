@@ -1,0 +1,5 @@
+use "stdlib/io.tc"
+fn void main:{
+    i8[5] arr = {1, 2, 3, 4, 5};
+    printi(lenof(arr));
+}
