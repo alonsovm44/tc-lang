@@ -327,3 +327,49 @@ error[E005]: bare identifier 'Point' is not a statement
 E005
 Type "tcc --error E005" for help
 ```
+I fixed the bug.
+
+## 20 June 2026
+I noticed a problem, or something that can be problematic in Tig. 
+
+When you allocate memory or open a file, not always you have to defer it to be cleaned up at the end of the scope, but rather the caller of the function should clean it up, but you can forget about it and call the function with allocation and forget to clean it up.
+
+My idea is to add to a function definition a marker that says "This function allocates memory manually but it does not free it inside because the data must outlive the function call, free from the caller".
+
+my idea is this, use "!" to mark an allocator function
+
+!fn read_file: ->i8 path{ 
+
+  ->FILE f = openf(path, "r)
+
+}
+
+or
+
+!fn ->Point foo: {
+
+  ->Point p = malloc(sizeof(Point))
+  p.x = 1
+  p.y = 2
+  ret p
+}
+
+When calling this function from another function, the ! flag is mandatory, this serves as a visual marker that the caller must free the returned value.
+
+Example:
+
+!fn ->Point foon: {
+   ->Point p = alloc(1, sizeof(Point))
+   p.>x = 1
+   p.>y = 2
+   ret p // we need allocated data to outlive the function
+}
+
+fn void main: {
+
+  ->Point p = !foon()
+  defer free(p)
+  printi(p.>x)
+  printi(p.>y)
+  // or this: free(p)
+} 

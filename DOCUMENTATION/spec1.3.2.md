@@ -1,6 +1,7 @@
 # 1.3.2 spec
 CLI and Freestanding update
 
+
 ## Multiple comptime error prompting
 Currently when Tig throws a comptime error it only shows one, when you fix it, it shows the next one, and so on. This is not ideal for debugging. The compiler should show all errors at once.
 

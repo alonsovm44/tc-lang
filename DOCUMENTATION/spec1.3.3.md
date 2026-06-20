@@ -3,7 +3,73 @@ Runtime patch
 
 - [ ] Make async runtime production grade
 
+## Allocation function Markers, aka Leaky Functions
 
+Sometimes you need owned data to outlive the function where it is defined. You have to remember that the caller must free it. Defer works nice if your data is freed in the same scope, but more often that data is returned to the caller. 
+
+To solve this, we need an annotation that tells the compiler that the function allocates memory that should be freed by the caller. Idea: use "!" to declare a leaky function
+```
+!fn ->i8 foo: {
+    ->i8 ptr = alloc(i8, 10)
+    ret ptr
+} 
+
+// caller
+fn void main: {
+    ->i8 ptr = !foo() // we use the marker to indicate that the function allocates memory that should be freed by the caller, the compiler enforces that any instance of a marker function must be called with "!"
+    defer free(ptr)
+}
+
+```
+
+If the compiler finds a function with heap allocations and no marker, it should throw a compile error. This applies if the return type is a Tig owned data type. 
+1) A raw pointer
+2) A fat pointer
+3) A strun containing a raw pointer
+4) A strun containing a fat pointer
+(File handlers and most handlers are raw pointers themselves, so no need to be specific about thems)
+
+Tig types of data (just as a reminder):
+
+Tig v1.3.0 classifies types into three categories with different ownership semantics:
+
+1. **Value Types** (Primitives: `i8`, `i16`, `i32`, `i64`, `u8`, `u16`, `u32`, `u64`, `f32`, `f64`, `bool`):
+   - Passed by value (implicitly copied) to both sync and async functions
+   - No ownership transfer needed - each copy is independent
+   - Safe to pass without `@` or `pin`
+
+2. **Reference Types** (Channels: `queue<T> / stack<T>`):
+   - Thread-safe concurrent queues/channels with internal synchronization
+   - Passing a channel copies its reference handle, not its ownership
+   - Safe to pass to multiple async functions without `@` or `pin`
+
+3. **Owned Types** (Pointers: `->T`, `=>T`, and structs containing pointers):
+   - Unique resources that must be explicitly managed
+   - MUST be moved with `@` (transfer ownership) or shared with `pin` (immutable sharing)
+   - This prevents shared mutable state and data races
+
+### Edge case: void functions that modify arguments and allocate memory
+fn void alloc_buffer: ->i8 buffer {  
+    buffer = alloc(i8, 100)  // The caller provided the buffer pointer
+    // buffer is not returned, so ownership stays with caller
+}
+
+fn void main: {
+    ->i8 buffer
+    alloc_buffer(buffer)  // Caller owns buffer
+    free(buffer) // but we still have to remember to free it.
+}
+
+## Edge case: Internal allocations
+fn void internal_alloc: {
+    ->i8 buffer
+    alloc(buffer)  // Internal allocation, no need to free
+    
+    // Use buffer...
+    free(buffer)
+    ret value // if the value is not an owned type, there is no need for "!fn"
+    // intenral memory leaks (like allocating and forgeting to free inside a function) can be handled by Tig's memory linter, which is a static analysis tool that checks for memory leaks and other anti-patterns.
+}
 ## Library for hash maps
 
 [ ] - Create a library and generic type for hash maps
