@@ -17,13 +17,14 @@ fn void printTokens: queue<->i8> tokens{
     /// now lets print tokens // IT WORKS
     ->i8 token = ""
     i32 qlen = tokens.size()
-    i32 i=0; loop if(i < qlen){
+    i32 i = 0
+    loop if(i < qlen) {
         token = tokens.pop()
         printf("%s\n", token)
         i++
     }
 }
-fn i32 main: =>->i8 args{ 
+fn i32 main: =>->i8 args { 
     
     try{
         checkMF()
@@ -49,7 +50,7 @@ fn i32 main: =>->i8 args{
     if(strcmp(first_arg, "--parse")==0){
         print("Parsed Results: \n")
         //queue<Command> cmds = parsed.cmds
-        //stack<Variables> vars = parsed.vars
+        //stack<Variable> vars = parsed.vars
         Shell shell = parsed.shell
 
         // first test with shell

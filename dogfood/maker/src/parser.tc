@@ -1,8 +1,8 @@
-use "stdlib/io.tc"
-use "stdlib/str.tc"
-use "stdlib/fs.tc"
-use "stdlib/snq.tc"
-
+strun ParsedResult {
+    queue<Command> cmds, // command queues, in main we check if the input command matches any of the commands in the queue
+    stack<Variables> vars, // a map would be useful here>
+    Shell shell
+}
 // the parser consumes each token from the queue 
 enum Shell {
     SH_BASH,
@@ -13,31 +13,19 @@ enum Shell {
 
 
 strun Command {
-    ->i8 name
-    =>->i8 body // an array of strings
+    ->i8 name,
+    =>->i8 body, // an array of strings
     Shell shell
 
 }
 
-strun Variables{
-    ->i8 name
+strun Variable{
+    ->i8 name,
     ->i8 value
 }
 
-strun ParsedResult {
-    queue<Command> cmds // command queues, in main we check if the input command matches any of the commands in the queue
-    stack<Variables> vars // a map would be useful here>
-    Shell shell
-}
-
-fn i8 inGlobalScope(){
-    // for now always return 1
-    ret 1 
-}
-
-error E001: ->i32 line 
-{
-        printf("Error E001 in line %d: expected whitespace after 'var'\n", ->line)
+error E001: ->i32 line {
+    printf("Error E001 in line %d: expected whitespace after 'var'\n", ->line)
 }
 
 error E002: ->i32 line 
@@ -45,27 +33,24 @@ error E002: ->i32 line
         printf("Error E002 in line %d: expected '=' after variable name\n", ->line)
 }
 
-error E003: ->i32 line 
+error E003: i32 line 
 {
-        printf("Error E003 in line %d: expected \" after string value\n", ->line)
+        printf("Error E003 in line %d: expected \" after string value\n", line)
 }
 
-error E004: ->i32 line {
-    printf("Error E004 in line %d: unknown shell found\n", ->line)
+error E004: i32 line {
+    printf("Error E004 in line %d: unknown shell found\n", line)
 }
 
-error E005: ->i32 line {
-    printf("Error E005 in line %d: command name cannot be blank\n", ->line)
+error E005: i32 line {
+    printf("Error E005 in line %d: command name cannot be blank\n", line)
 }
 
-error E006: ->i32 line {
-    printf("Syntax Error: On line %d Expected ':' after command name %s\n", line_ptr, c.name)
-    printf("Received: %s\n", colon)
-    printf("Good: \n\t<build: \n\t#command body\n\t> \n")
-    printf("Bad: \n\t<build \n\t#command body\n\t> \n")
+error E006: i32 line {
+    printf("Syntax Error: On line %d Expected ':' after command name\n", line)
 }
 
-fn Variable parse_variable: queue<->i8> q, ->i32 line_ptr {
+fn Variable parse_variable: queue<->i8> q, ->i32 line_ptr  {
     Variable var
     if (q.peek()== " "){
         q.pop() // consume the whitespace
@@ -110,22 +95,23 @@ fn Variable parse_variable: queue<->i8> q, ->i32 line_ptr {
     // result.vars.push(var) // TODO: make Tig recognize this without boilerplate
     // the issue is that Tig 1.3.2 is not smart enough to infer that we are calling a stack/queue method from the VariableStack/VariableQueue types
     // So we have to call the stack/queue methods manually
+    ret var
 }
 
-fn Shell parse_shell: queue<->i8> q, ->i32 line_ptr {
+fn Shell parse_shell: queue<->i8> q, ->i32 line_ptr  {
     Shell shell
     if(q.peek() == "bash"){
-        shell = SH_BASH
+        shell = 0
     }else if(q.peek() == "zsh"){
-        shell = SH_ZSH
+        shell = 1
     }else if(q.peek() == "fish"){
-        shell = SH_FISH
+        shell = 2
     }else if(q.peek() == "powershell"){
-        shell = SH_POWERSHELL
+        shell = 3
     }else{
         throw E004(line_ptr)
     }
-    return shell
+    ret shell
 }
 //use "stdlib/os.tc" // for calling the os and shelling out to the given shell. ACTUALY we dont need it here
 
@@ -166,11 +152,11 @@ fn Command parse_command: queue<->i8> tokens, ->i32 line_ptr, Shell shell {
     input: ParsedResult -> interp -> Shell execution
     this means the interp must solve for string interpolation and assemble the command line by line  
     */
-    return c
+    ret c
 }
 
 fn ParsedResult parse: queue<->i8> tokens {
-    ParseResult result
+    ParsedResult result
     Shell shell
     result.vars = stack_create(0)
     result.cmds = queue_create(0)
@@ -178,12 +164,13 @@ fn ParsedResult parse: queue<->i8> tokens {
     // i need a way to know how to access the Struct fields
     i32 len = tokens.size()
     i32 line = 1
-    i32 i; loop if (i < len){
+    i32 i = 0
+    loop if (i < len) {
 
         try {
             shell = parse_shell(tokens, &line) // in this case line is 1
         } catch {
-            E004(&line) ret 1,
+            E004(line) ret 1,
             _ {
                 printf("Unknown shell parsing error at line %d\n", line)
             }
@@ -209,9 +196,9 @@ fn ParsedResult parse: queue<->i8> tokens {
             try {
                 var = parse_variable(tokens, &line)
             }catch {
-                E001(&line) ret 1,
-                E002(&line) ret 1,
-                E003(&line) ret 1,
+                E001(line) ret 1,
+                E002(line) ret 1,
+                E003(line) ret 1,
                 _{
                     printf("Unknown parse error in line: &d", line)
                     ret -99
@@ -229,8 +216,8 @@ fn ParsedResult parse: queue<->i8> tokens {
             try {
                 c = parse_command(tokens, &line, shell)
             } catch {
-                E005(&line) ret 1,
-                E006(&line) ret 1,
+                E005(line) ret 1,
+                E006(line) ret 1,
                 _ {
                     printf("Unknown command parsing error at line %d\n", line)
                     ret -99

@@ -1,10 +1,5 @@
 
-
 strun Point{
     i32 x,
     i32 y
-}
-fn i32 local: 
-{
-    ret 44
 }

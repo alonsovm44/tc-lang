@@ -294,3 +294,36 @@ Update: I cracked the problem.
 
 Queues inside structs/struns are not initialized immediately. The issue is that the queue t.q is not initialized. In Tig, queues inside struns are not automatically initialized, you need to call queue_create() before using them. And queue_destroy to clean up
 
+## 19 June
+I discovered a stunning edge case bug in the compiler, I don't know how this didn't appear before. 
+When inlining a file with a strun and using that type in the caller file, the compiler does not recognize the symbol
+Check this experiment
+```
+@use "lib.tc"
+
+fn void main:
+{
+    Point p
+    p.x = 1
+    p.y = 2
+    printi(p.x)
+    printi(p.y)
+    ret 0
+
+}
+---
+/// lib.tc
+strun Point{
+    i32 x,
+    i32 y
+}
+PS C:\Users\diego\.projects\langs\tig\tc> ./tigc tests/use/main.tc -c test
+error[E005]: bare identifier 'Point' is not a statement
+ --> tests/use/main.tc:5:5
+   |
+ 5 |     Point p
+   |     ^^^^^ bare identifier 'Point' is not a statement
+
+E005
+Type "tcc --error E005" for help
+```

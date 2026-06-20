@@ -1,9 +1,12 @@
-@use "pub.tc"
+@use "lib.tc"
 
 fn void main:
 {
-    foo()
-    local() // should throw error since local is private by default.
+    Point p
+    p.x = 1
+    p.y = 2
+    printi(p.x)
+    printi(p.y)
     ret 0
 
 }
