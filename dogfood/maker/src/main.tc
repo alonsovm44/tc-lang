@@ -51,14 +51,16 @@ fn i32 main: =>->i8 args {
     if(strcmp(first_arg, "--parse")==0){
         print("Parsed Results: \n")
         //queue<Command> cmds = parsed.cmds
-        //stack<Variable> vars = parsed.vars
-        Shell shell = parsed.shell
-
+        //stack<Variable> vars = parsed.var
         // first test with shell
-        if(shell == 0){
+        if(parsed.shell == 0){
             print("Used shell is bash")
-        }else{
-            print("Used shell is not bash")
+        }else if(parsed.shell == 1){
+            print("Used shell is zsh")
+        }else if(parsed.shell == 2){
+            print("Used shell is fish")
+        }else if(parsed.shell == 3){
+            print("Used shell is powershell")
         }
     }
     ret 0

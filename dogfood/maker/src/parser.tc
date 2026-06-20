@@ -102,13 +102,14 @@ fn Variable parse_variable: queue<->i8> q, ->i32 line_ptr  {
 
 fn Shell parse_shell: queue<->i8> q, ->i32 line_ptr  {
     Shell shell
-    if(q.peek() == "bash"){
+    ->i8 sheb = q.pop()
+    if(sheb == "bash"){
         shell = 0
-    }else if(q.peek() == "zsh"){
+    }else if(sheb == "zsh"){
         shell = 1
-    }else if(q.peek() == "fish"){
+    }else if(sheb == "fish"){
         shell = 2
-    }else if(q.peek() == "Powershell"){
+    }else if(sheb == "Powershell"){
         shell = 3
     }else{
         throw E004(line_ptr)
@@ -167,19 +168,18 @@ fn ParsedResult parse: queue<->i8> tokens {
     i32 len = tokens.size()
     i32 line = 1
     i32 i = 0
-    loop if (i < len) {
-
-        try {
-            shell = parse_shell(tokens, &line) // in this case line is 1
-        } catch {
-            E004(&line) ret result,
-            _ {
-                printf("Unknown shell parsing error at line %d\n", line)
-                ret result
-            }
-            // handle error
+    try {
+        shell = parse_shell(tokens, &line) // in this case line is 1
+    } catch {
+        E004(&line) ret result,
+        _ {
+            printf("Unknown shell parsing error at line %d\n", line)
+            ret result
         }
-        result.shell = shell
+            // handle error
+    }
+    result.shell = shell
+    loop if (i < len) { // the problem is that the shebang is being parsed as "!" "#" instead of "!#"
         ->i8 token = tokens.pop()
         if(token == "\n"){
             line++
