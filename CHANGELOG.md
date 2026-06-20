@@ -7,6 +7,7 @@ Removed:
 
 Improved/Fixed:
 
+- fixed structs not working when inlining files
 ## v1.3.0/1.3.1 2026-06-04
 
 Added:

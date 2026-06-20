@@ -1,12 +1,12 @@
 @use "lib.tc"
 
-fn void main:
+fn i32 main:
 {
     Point p
     p.x = 1
     p.y = 2
-    printi(p.x)
-    printi(p.y)
+    printf("%d\n", p.x)
+    printf("%d\n", p.y)
     ret 0
 
 }

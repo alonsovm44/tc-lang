@@ -908,10 +908,205 @@ static void resolve_path(const char *base, const char *rel, char *out, size_t ou
     }
 }
 
-DeclVec parse_program(Token *tokens, const char *source_file) {
+static void type_registry_add_struct(TypeRegistry *reg, char *name) {
+    // Check for duplicates
+    for (int i = 0; i < reg->struct_count; i++) {
+        if (strcmp(reg->structs[i], name) == 0) {
+            return; // Already registered
+        }
+    }
+    if (reg->struct_count == reg->struct_cap) {
+        reg->struct_cap = reg->struct_cap ? reg->struct_cap * 2 : 8;
+        reg->structs = xrealloc(reg->structs, sizeof(char *) * (size_t)reg->struct_cap);
+    }
+    reg->structs[reg->struct_count++] = name;
+}
+
+static void type_registry_add_enum(TypeRegistry *reg, char *name) {
+    // Check for duplicates
+    for (int i = 0; i < reg->enum_count; i++) {
+        if (strcmp(reg->enums[i], name) == 0) {
+            return; // Already registered
+        }
+    }
+    if (reg->enum_count == reg->enum_cap) {
+        reg->enum_cap = reg->enum_cap ? reg->enum_cap * 2 : 8;
+        reg->enums = xrealloc(reg->enums, sizeof(char *) * (size_t)reg->enum_cap);
+    }
+    reg->enums[reg->enum_count++] = name;
+}
+
+// Collect types from imported files (Phase 1 of two-phase import)
+void collect_imported_types(Token *tokens, const char *source_file, TypeRegistry *reg) {
     Parser p = {0};
     p.tokens = tokens;
     p.source_file = source_file;
+    
+    while (cur(&p)->kind != TOK_EOF) {
+        if (at(&p, "@") && (strcmp((p.tokens + p.pos + 1)->text, "strun") == 0)) {
+            p.pos++;  // skip '@'
+            match(&p, "strun");
+            Decl *d = parse_struct(&p, false, true);
+            type_registry_add_struct(reg, d->name);
+            continue;
+        }
+        if (at(&p, "@")) {
+            Token *at_tok = cur(&p);
+            p.pos++;
+            if (!match(&p, "use")) tc_error("E007", at_tok->line, at_tok->col, 1, "expected 'use' or 'strun' after '@'");
+            if (cur(&p)->kind != TOK_STRING) tc_error("E008", cur(&p)->line, cur(&p)->col, (int)strlen(cur(&p)->text), "'@use' expects a string path, got '%s'", cur(&p)->text);
+            char *raw = cur(&p)->text;
+            p.pos++;
+            char *rel_path = xstrndup(raw + 1, strlen(raw) - 2);
+            // Resolve relative to the current source file
+            extern const char *g_current_input;
+            char resolved[1024];
+            if (g_current_input) {
+                resolve_path(g_current_input, rel_path, resolved, sizeof(resolved));
+            } else {
+                snprintf(resolved, sizeof(resolved), "%s", rel_path);
+            }
+            char *inc_src = try_read_file(resolved);
+            if (!inc_src) tc_error("E009", at_tok->line, at_tok->col, 4, "cannot open file '%s'", resolved);
+            TokenVec inc_tokens = lex_source(inc_src);
+            // Recursively collect types from imported file
+            collect_imported_types(inc_tokens.items, resolved, reg);
+            continue;
+        }
+        if (match(&p, "struct") || match(&p, "strun")) {
+            Decl *d = parse_struct(&p, false, false);
+            type_registry_add_struct(reg, d->name);
+            continue;
+        }
+        if (match(&p, "enum")) {
+            Decl *d = parse_enum(&p, false);
+            type_registry_add_enum(reg, d->name);
+            continue;
+        }
+        // Skip other declarations (functions, variables, etc.) - we only care about types
+        if (match(&p, "fn")) {
+            // Skip function declaration
+            Type *ret_type = parse_type(&p);
+            char *name = expect_ident(&p);
+            expect(&p, ":");
+            while (!at(&p, "{") && !at(&p, ";")) {
+                if (match(&p, "...")) break;
+                parse_type(&p);
+                expect_ident(&p);
+                if (!match(&p, ",")) break;
+            }
+            if (at(&p, "{")) {
+                // Skip function body
+                int brace_count = 1;
+                p.pos++; // consume {
+                while (brace_count > 0 && cur(&p)->kind != TOK_EOF) {
+                    if (at(&p, "{")) brace_count++;
+                    if (at(&p, "}")) brace_count--;
+                    p.pos++;
+                }
+            } else {
+                match(&p, ";");
+            }
+            continue;
+        }
+        if (match(&p, "extern")) {
+            if (cur(&p)->kind != TOK_STRING || strcmp(cur(&p)->text, "\"C\"")) tc_error("E011", cur(&p)->line, cur(&p)->col, (int)strlen(cur(&p)->text), "extern expects \"C\", got '%s'", cur(&p)->text);
+            p.pos++;
+            expect(&p, "{");
+            while (!at(&p, "}")) {
+                if (match(&p, "fn")) {
+                    parse_type(&p);
+                    expect_ident(&p);
+                    expect(&p, ":");
+                    while (!at(&p, ";")) {
+                        if (match(&p, "...")) break;
+                        parse_type(&p);
+                        expect_ident(&p);
+                        if (!match(&p, ",")) break;
+                    }
+                    match(&p, ";");
+                } else {
+                    parse_type(&p);
+                    expect(&p, "fn");
+                    expect_ident(&p);
+                    expect(&p, ":");
+                    while (!at(&p, ";")) {
+                        if (match(&p, "...")) break;
+                        parse_type(&p);
+                        expect_ident(&p);
+                        if (!match(&p, ",")) break;
+                    }
+                    match(&p, ";");
+                }
+            }
+            match(&p, "}");
+            continue;
+        }
+        if (match(&p, "error")) {
+            expect_ident(&p);
+            expect(&p, ":");
+            while (!at(&p, "{")) {
+                parse_type(&p);
+                expect_ident(&p);
+                if (!match(&p, ",")) break;
+            }
+            // Skip error body
+            int brace_count = 1;
+            p.pos++; // consume {
+            while (brace_count > 0 && cur(&p)->kind != TOK_EOF) {
+                if (at(&p, "{")) brace_count++;
+                if (at(&p, "}")) brace_count--;
+                p.pos++;
+            }
+            continue;
+        }
+        if (match(&p, "use")) {
+            // Skip use directive (not @use)
+            if (cur(&p)->kind != TOK_STRING) tc_error("E010", cur(&p)->line, cur(&p)->col, (int)strlen(cur(&p)->text), "'use' expects a string path, got '%s'", cur(&p)->text);
+            p.pos++;
+            continue;
+        }
+        // Skip inline C and macros
+        if (cur(&p)->kind == TOK_INLINE_C) {
+            p.pos++;
+            continue;
+        }
+        if (cur(&p)->kind == TOK_MACRO) {
+            parse_macro(&p);
+            continue;
+        }
+        // Skip variable declarations and other statements
+        if (is_type_name(cur(&p)->text) || at(&p, "->") || at(&p, "=>") || at(&p, "queue") || at(&p, "stack")) {
+            parse_type(&p);
+            if (cur(&p)->kind == TOK_IDENT) {
+                expect_ident(&p);
+                if (match(&p, "=")) parse_initializer(&p);
+                match(&p, ";");
+            }
+        } else {
+            p.pos++; // Skip unknown tokens
+        }
+    }
+}
+
+DeclVec parse_program(Token *tokens, const char *source_file) {
+    return parse_program_with_types(tokens, source_file, NULL, 0, NULL, 0);
+}
+
+DeclVec parse_program_with_types(Token *tokens, const char *source_file, 
+                                   char **pre_structs, int pre_struct_count,
+                                   char **pre_enums, int pre_enum_count) {
+    Parser p = {0};
+    p.tokens = tokens;
+    p.source_file = source_file;
+    
+    // Phase 2: Register pre-collected types from imported files
+    for (int i = 0; i < pre_struct_count; i++) {
+        add_struct(&p, xstrdup(pre_structs[i]));
+    }
+    for (int i = 0; i < pre_enum_count; i++) {
+        add_enum(&p, xstrdup(pre_enums[i]));
+    }
     while (cur(&p)->kind != TOK_EOF) {
         if (at(&p, "@") && (strcmp((p.tokens + p.pos + 1)->text, "strun") == 0)) {
             p.pos++;  // skip '@'
@@ -938,7 +1133,10 @@ DeclVec parse_program(Token *tokens, const char *source_file) {
             char *inc_src = try_read_file(resolved);
             if (!inc_src) tc_error("E009", at_tok->line, at_tok->col, 4, "cannot open file '%s'", resolved);
             TokenVec inc_tokens = lex_source(inc_src);
-            DeclVec inc_decls = parse_program(inc_tokens.items, resolved);
+            // Use parse_program_with_types to pass along pre-registered types
+            DeclVec inc_decls = parse_program_with_types(inc_tokens.items, resolved,
+                                                          p.structs, p.struct_count,
+                                                          p.enums, p.enum_count);
             for (int j = 0; j < inc_decls.count; j++) {
                 decl_push(&p.decls, inc_decls.items[j]);
             }

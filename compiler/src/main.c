@@ -427,7 +427,15 @@ int main(int argc, char **argv) {
         tc_set_source(input, source);
         g_current_input = input;
         TokenVec tokens = lex_source(source);
-        DeclVec file_program = parse_program(tokens.items, input);
+        
+        // Phase 1: Collect types from @use directives
+        TypeRegistry reg = {0};
+        collect_imported_types(tokens.items, input, &reg);
+        
+        // Phase 2: Parse with pre-registered types
+        DeclVec file_program = parse_program_with_types(tokens.items, input, 
+                                                        reg.structs, reg.struct_count,
+                                                        reg.enums, reg.enum_count);
 
         // Check for main function in this file
         for (int j = 0; j < file_program.count; j++) {

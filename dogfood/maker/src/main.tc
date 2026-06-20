@@ -43,6 +43,7 @@ fn i32 main: =>->i8 args {
     /// --lex flag
     if(strcmp(first_arg, "--lex") == 0){
         printTokens(tokens)
+        ret 1
     }
 
     ParsedResult parsed = parse(tokens)
@@ -54,7 +55,7 @@ fn i32 main: =>->i8 args {
         Shell shell = parsed.shell
 
         // first test with shell
-        if(shell == SH_BASH){
+        if(shell == 0){
             print("Used shell is bash")
         }else{
             print("Used shell is not bash")

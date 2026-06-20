@@ -58,4 +58,60 @@
  */
 DeclVec parse_program(Token *tokens, const char *source_file);
 
+/**
+ * parse_program_with_types: Parse a program with pre-registered type names
+ *
+ * Same as parse_program, but accepts pre-registered struct/enum names
+ * from imported files. This enables the two-phase import mechanism:
+ * Phase 1: Collect type names from @use directives
+ * Phase 2: Parse with all imported types already registered
+ *
+ * Args:
+ *   tokens: Token stream from lexer
+ *   source_file: Path to the source file being parsed
+ *   pre_structs: Array of struct names from imported files
+ *   pre_struct_count: Number of pre-registered struct names
+ *   pre_enums: Array of enum names from imported files
+ *   pre_enum_count: Number of pre-registered enum names
+ *
+ * Returns:
+ *   DeclVec containing all top-level declarations in the program
+ */
+DeclVec parse_program_with_types(Token *tokens, const char *source_file,
+                                   char **pre_structs, int pre_struct_count,
+                                   char **pre_enums, int pre_enum_count);
+
+// ============================================================================
+// Type Registry for Two-Phase Import
+// ============================================================================
+
+/**
+ * TypeRegistry: Registry for collecting type names from imported files
+ *
+ * Used in the two-phase import mechanism:
+ * Phase 1: Collect struct/enum names from @use directives
+ * Phase 2: Register them in the parser's symbol tables before parsing
+ */
+typedef struct {
+    char **structs;
+    int struct_count;
+    int struct_cap;
+    char **enums;
+    int enum_count;
+    int enum_cap;
+} TypeRegistry;
+
+/**
+ * collect_imported_types: Collect type names from @use directives
+ *
+ * Scans a file and its @use imports to collect all struct and enum names.
+ * This is Phase 1 of the two-phase import mechanism.
+ *
+ * Args:
+ *   tokens: Token stream from lexer
+ *   source_file: Path to the source file being scanned
+ *   reg: TypeRegistry to populate with collected type names
+ */
+void collect_imported_types(Token *tokens, const char *source_file, TypeRegistry *reg);
+
 #endif

@@ -1,4 +1,4 @@
-#! bash
+#! Powershell
 
 var comp = "tigc"
 var flags = "-O2 -Wall"
