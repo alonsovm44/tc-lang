@@ -64,7 +64,7 @@ fn queue<->i8> tokenize: ->i8 str {
         // SPECIAL CHARACTERS
         if (c == 58 || c == 59 || c == 61 || c == 123 || c == 125 || 
             c == 60 || c == 62 || c == 64 || c == 35 || c == 44 || 
-            c == 46 || c == 42 || c == 47 || c == 92) {
+            c == 46 || c == 42 || c == 47 || c == 92 || c == 34 || c == 39) {
             
             // Save current word if any
             if (wordlen > 0) {

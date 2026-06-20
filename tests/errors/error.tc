@@ -2,8 +2,16 @@ use "stdlib/io.tc"
 
 error ZeroDivision: i32 x, i32 y {
     printf("Error: division by zero: %d / %d\n", x, y)
+    // this can contain clean up code, Tig error self clean
+    // no return statement needed
+    // can include free(buff)
 }
-
+fn f64 div: i32 x, i32 y {
+    if (y == 0){
+        throw ZeroDivision(x, y)
+    }
+    ret (f64)x / (f64)y
+}
 fn i32 main: {
 
     printn("Testing error functions")
@@ -11,7 +19,7 @@ fn i32 main: {
     i32 y
 
     try {
-        x/y 
+        div(x,y)
     }
     catch {
         ZeroDivision(x, y) ret 1,

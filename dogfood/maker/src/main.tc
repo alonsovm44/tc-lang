@@ -3,13 +3,12 @@ use "stdlib/str.tc"
 use "stdlib/fs.tc"
 @use "lexer.tc"
 @use "utils.tc"
-@use "interp.tc"
 /*algorithm
 lexer returns a queue of tokens
 parser converts tokens to Makerfile structure
 executor runs the build targets
 */
-fn void printTokens: queue<->i8 tokens{
+fn void printTokens: queue<->i8> tokens{
     printi(tokens.size())
     print("Tokens: \n")
     /// now lets print tokens // IT WORKS

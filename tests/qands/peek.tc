@@ -1,0 +1,18 @@
+use "stdlib/snq.tc"
+use "stdlib/io.tc"
+
+fn void main: {
+    queue<i32> q
+    q.push(1)
+    q.push(2)
+    q.push(3)
+    // In queues, peek peeks FIFO
+    // instacks , peek peeks LIFO
+    printf("%d\n", q.peek())
+    stack<i32> s
+    s.push(1)
+    s.push(2)
+    s.push(3)
+    printf("%d\n", s.peek()) // should print 3
+
+}

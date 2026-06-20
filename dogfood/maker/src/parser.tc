@@ -1,6 +1,7 @@
 use "stdlib/io.tc"
 use "stdlib/str.tc"
 use "stdlib/fs.tc"
+use "stdlib/snq.tc"
 
 // the parser consumes each token from the queue 
 
@@ -13,19 +14,237 @@ enum NodeType{
 
 }
 
-strun ASTNode {
-    NodeType type,
-    ->i8 name,
-    ->i8 value,
-    =>ASTNode children;
+fn void LookAhead: queue<->i8> q, i32 offset {
+    
+}
+
+enum Shell {
+    SH_BASH,
+    SH_ZSH,
+    SH_FISH,
+    SH_POWERSHELL
+}
+
+
+strun Command {
+    ->i8 name
+    =>->i8 body // an array of strings
+    Shell shell
 
 }
 
-fn void parse: queue<->i8> tokens, ->ASTNode ast {
+strun Variables{
+    ->i8 name
+    ->i8 value
+}
 
-    loop if(tokens.size() <> 0) {
-        ->i8 token = tokens.pop()
+strun ParsedResult {
+    queue<Command> cmds // command queues, in main we check if the input command matches any of the commands in the queue
+    stack<Variables> vars // a map would be useful here>
+    Shell shell
+}
 
+fn i8 inGlobalScope(){
+    // for now always return 1
+    ret 1 
+}
 
+error E001: ->i32 line 
+{
+        printf("Error E001 in line %d: expected whitespace after 'var'\n", ->line)
+}
+
+error E002: ->i32 line 
+{
+        printf("Error E002 in line %d: expected '=' after variable name\n", ->line)
+}
+
+error E003: ->i32 line 
+{
+        printf("Error E003 in line %d: expected \" after string value\n", ->line)
+}
+
+error E004: ->i32 line {
+    printf("Error E004 in line %d: unknown shell found\n", ->line)
+}
+
+error E005: ->i32 line {
+    printf("Error E005 in line %d: command name cannot be blank\n", ->line)
+}
+
+error E006: ->i32 line {
+    printf("Syntax Error: On line %d Expected ':' after command name %s\n", line_ptr, c.name)
+    printf("Received: %s\n", colon)
+    printf("Good: \n\t<build: \n\t#command body\n\t> \n")
+    printf("Bad: \n\t<build \n\t#command body\n\t> \n")
+}
+
+fn Variable parse_variable: queue<->i8> q, ->i32 line_ptr {
+    Variable var
+    if (q.peek()== " "){
+        q.pop() // consume the whitespace
+    }else {
+        throw E001(line_ptr)
     }
+    // instantiate a var
+    var.name = q.pop() // next token is var name
+    // next token can be a " " or = directly
+    if(q.peek() == " "){
+        q.pop() // consume the whitespace
+    }else if(q.peek() == "="){
+        q.pop() // consume the =
+    }else {
+        throw E002(line_ptr)
+    }
+    /// now we get the var value
+    if(q.peek() == "\""){
+        q.pop() // consume the "
+    }else{
+        // the value is a number
+        i32 numericValue = q.pop() // get the var value
+    }
+    ->i8 varValue = q.pop() // get the string value
+    if(q.peek() == "\""){
+        q.pop() // consume the ""
+    }else{
+        throw E003(line_ptr)
+    }
+    // i have var.name and var.value
+    // push the variable data to the variable stack
+    // result.vars.push(var) // TODO: make Tig recognize this without boilerplate
+    // the issue is that Tig 1.3.2 is not smart enough to infer that we are calling a stack/queue method from the VariableStack/VariableQueue types
+    // So we have to call the stack/queue methods manually
+}
+
+fn Shell parse_shell: queue<->i8> q, ->i32 line_ptr {
+    Shell shell
+    if(q.peek() == "bash"){
+        shell = SH_BASH
+    }else if(q.peek() == "zsh"){
+        shell = SH_ZSH
+    }else if(q.peek() == "fish"){
+        shell = SH_FISH
+    }else if(q.peek() == "powershell"){
+        shell = SH_POWERSHELL
+    }else{
+        throw E004(line_ptr)
+    }
+    return shell
+}
+//use "stdlib/os.tc" // for calling the os and shelling out to the given shell. ACTUALY we dont need it here
+
+fn Command parse_command: queue<->i8> tokens, ->i32 line_ptr, Shell shell {
+    Command c
+    c.shell = shell // we have shell type
+    c.name = tokens.pop() // now we have the command name : NAME DONE
+    if (c.name == ""){
+        throw E005(line_ptr)
+    }
+    // see if next token is :
+    ->i8 colon = tokens.peek()
+    if (colon == ":"){
+        // TODO: parse the command block
+        tokens.pop() // consume the :
+    }else {
+        throw E006(line_ptr)
+        
+    }
+    /// Now parse the command body
+    =>->i8 LineArray // array of strings, each string is a line
+    i32 k = 0   
+    loop if(tokens.peek() <> ">"){ // look ahead for the next token 
+        // we need to pop tokens and concatenate them into a string until we hit a ; or a \n, use scat()
+        ->i8 tok = tokens.pop()
+        if(tok == ";" || tok == "\n"){
+            k++
+        }
+        scat(LineArray.ptr[k], tok) // problem: this doesn't preserve spaces between tokens
+        /* // we need the commmand body 
+        // we have to solve 
+        I need a way to store each line as a string, concatenate each token in a single string until we hit a ; or a \n
+        */
+    }
+    c.body = LineArray
+    /*
+    For separation of concerns, the interpretation of the command block will be done in a separate file interp.tc 
+    input: ParsedResult -> interp -> Shell execution
+    this means the interp must solve for string interpolation and assemble the command line by line  
+    */
+    return c
+}
+
+fn ParsedResult parse: queue<->i8> tokens {
+    ParseResult result
+    Shell shell
+    result.vars = stack_create(0)
+    result.cmds = queue_create(0)
+    // no defer since the caller needs the result
+    // i need a way to know how to access the Struct fields
+    i32 len = tokens.size()
+    i32 line = 1
+    i32 i; loop if (i < len){
+
+        try {
+            shell = parse_shell(tokens, &line) // in this case line is 1
+        } catch {
+            E004(&line) ret 1,
+            _ {
+                printf("Unknown shell parsing error at line %d\n", line)
+            }
+            // handle error
+        }
+
+        ->i8 token = tokens.pop()
+        if(token == "\n"){
+            line++
+        }
+        // TODO: parse the token
+        if (token == "#"){ /// we need a way to tell the interp to keep popping until we find a newline
+            // skip until newline
+            loop if (token <> "\n"){
+                tokens.pop() /// do nothing with the comment tokens, just consume it
+                i++
+            }
+        }
+
+        if (token == "var" && inGlobalScope()==1){ // we find a variable decl, variables can only be decl in the global scope
+            //parse the variable
+            Variable var 
+            try {
+                var = parse_variable(tokens, &line)
+            }catch {
+                E001(&line) ret 1,
+                E002(&line) ret 1,
+                E003(&line) ret 1,
+                _{
+                    printf("Unknown parse error in line: &d", line)
+                    ret -99
+                }
+            }
+            stack_push(&result.vars, &var, sizeof(Variable)) // push var to the var stack
+
+        }
+
+        /// WORK UDNER PROGRESS
+        ///handle if token is a <
+        if (token == "<"){ // we are defining a command block
+            // TODO: parse the command block
+            Command c
+            try {
+                c = parse_command(tokens, &line, shell)
+            } catch {
+                E005(&line) ret 1,
+                E006(&line) ret 1,
+                _ {
+                    printf("Unknown command parsing error at line %d\n", line)
+                    ret -99
+                }
+            }
+            queue_push(&result.cmds, &c, sizeof(Command))
+        }
+        // OTHER TOKENS
+        i++
+    }
+    ret result
+
 }

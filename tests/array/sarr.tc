@@ -41,6 +41,8 @@ defer {
 queue_push(&a.children, &b, sizeof(ASTNode))
 queue_push(&a.children, &c, sizeof(ASTNode)) // this works
 
+// noww we have a tree structure, let's traverse it
+
 
 ret 0
 }

@@ -1,8 +1,11 @@
 
-comp := "tigc"
-flags := "-O2 -Wall"
-target := "app"
-src := "main.tc"
+var comp = "tigc"
+var flags = "-O2 -Wall"
+var target = "app"
+var src = "main.tc"
 
 <build:
     {comp} {src} -c {target} -- {flags}
+
+# this is a comment
+# TODO: add number support for vars
