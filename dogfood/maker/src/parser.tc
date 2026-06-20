@@ -4,20 +4,6 @@ use "stdlib/fs.tc"
 use "stdlib/snq.tc"
 
 // the parser consumes each token from the queue 
-
-enum NodeType{
-    ND_VAR,
-    ND_COMMAND_BLOCK,
-    ND_COMMAND, // command name, <ND_COMMAND: >
-    ND_VARINTERP, // var interpolation {var} 
-    ND_SHELLCMD
-
-}
-
-fn void LookAhead: queue<->i8> q, i32 offset {
-    
-}
-
 enum Shell {
     SH_BASH,
     SH_ZSH,
@@ -87,13 +73,23 @@ fn Variable parse_variable: queue<->i8> q, ->i32 line_ptr {
         throw E001(line_ptr)
     }
     // instantiate a var
-    var.name = q.pop() // next token is var name
-    // next token can be a " " or = directly
+    var.name = q.pop()
+    /*
+    var name="value" BAD case 1
+    var name= "value" BAD case 2
+    var name ="value" BAD  case 3
+    var name = "value" GOOD case 4
+    We have to handle these four cases
+    */
+    
     if(q.peek() == " "){
         q.pop() // consume the whitespace
-    }else if(q.peek() == "="){
-        q.pop() // consume the =
-    }else {
+    }else{
+        throw E002(line_ptr)
+    }
+    if(q.peek() == "="){
+        q.pop()
+    }else{
         throw E002(line_ptr)
     }
     /// now we get the var value
