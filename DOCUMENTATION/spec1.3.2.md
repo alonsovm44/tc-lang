@@ -25,6 +25,7 @@ tigc file1.tc file2.tc -c app
 ```
 
 ## C compiler flags
+[DONE]
 
 The compiler can now pass flags to the C compiler using --
 
