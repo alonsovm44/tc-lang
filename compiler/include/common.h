@@ -206,4 +206,33 @@ bool is_keyword(const char *text);
  */
 bool is_type_name(const char *text);
 
+// ============================================================================
+// Error Collection for Multiple Error Reporting
+// ============================================================================
+
+/**
+ * tc_report_errors: Report all collected errors and exit
+ *
+ * Displays all errors collected during compilation, then exits with error code.
+ * If no errors were collected, this function does nothing.
+ */
+void tc_report_errors(void);
+
+/**
+ * tc_has_errors: Check if any errors have been collected
+ *
+ * Returns:
+ *   true if at least one error has been collected
+ *   false otherwise
+ */
+bool tc_has_errors(void);
+
+/**
+ * tc_clear_errors: Clear all collected errors
+ *
+ * Resets the error buffer, removing all previously collected errors.
+ * Useful for multi-file compilation where each file should have its own error context.
+ */
+void tc_clear_errors(void);
+
 #endif

@@ -2,6 +2,7 @@
 
 Added:
 
+- added multiple error detection to tig
 - added linking to Tig, now we can compile multiple files
 Removed:
 

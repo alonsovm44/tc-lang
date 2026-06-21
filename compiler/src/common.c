@@ -37,53 +37,114 @@ static int get_line_len(const char *line_start) {
     return len;
 }
 
+// Error collection for multiple error reporting
+typedef struct {
+    char *ecode;
+    int line;
+    int col;
+    int span;
+    char *message;
+    char *filename;
+    char *source;
+} CollectedError;
+
+static CollectedError *g_errors = NULL;
+static int g_error_count = 0;
+static int g_error_cap = 0;
+
 void tc_error(const char *ecode, int line, int col, int span, const char *fmt, ...) {
+    // Collect error instead of exiting immediately
+    if (g_error_count == g_error_cap) {
+        g_error_cap = g_error_cap ? g_error_cap * 2 : 16;
+        g_errors = xrealloc(g_errors, sizeof(CollectedError) * (size_t)g_error_cap);
+    }
+    
+    CollectedError *err = &g_errors[g_error_count++];
+    err->ecode = xstrdup(ecode);
+    err->line = line;
+    err->col = col;
+    err->span = span;
+    err->filename = g_src.filename ? xstrdup(g_src.filename) : NULL;
+    err->source = g_src.source ? xstrdup(g_src.source) : NULL;
+    
+    // Format the error message
+    va_list ap;
+    va_start(ap, fmt);
+    char msg_buf[1024];
+    vsnprintf(msg_buf, sizeof(msg_buf), fmt, ap);
+    va_end(ap);
+    err->message = xstrdup(msg_buf);
+}
+
+void tc_report_errors(void) {
+    if (g_error_count == 0) return;
+    
     const char *RED    = "\033[1;31m";
     const char *BLUE   = "\033[1;34m";
     const char *CYAN   = "\033[1;36m";
     const char *BOLD   = "\033[1m";
     const char *DIM    = "\033[2m";
     const char *RESET  = "\033[0m";
-
-    va_list ap;
-    va_start(ap, fmt);
-    fprintf(stderr, "%s%serror[%s]%s%s: ", RED, BOLD, ecode, RESET, BOLD);
-    vfprintf(stderr, fmt, ap);
-    va_end(ap);
-    fprintf(stderr, "%s\n", RESET);
-
-    if (g_src.filename) {
-        fprintf(stderr, " %s-->%s %s:%d:%d\n", BLUE, RESET, g_src.filename, line, col);
+    
+    // Print summary
+    fprintf(stderr, "%s", BOLD);
+    if (g_error_count == 1) {
+        fprintf(stderr, "error: could not compile file");
+    } else {
+        fprintf(stderr, "error: could not compile file (%d errors)", g_error_count);
     }
-
-    if (g_src.source && line > 0) {
-        const char *ls = get_line_start(g_src.source, line);
-        int ll = get_line_len(ls);
-        char line_num[16];
-        int nw = snprintf(line_num, sizeof(line_num), "%d", line);
-
-        fprintf(stderr, " %*s %s|%s\n", nw, "", BLUE, RESET);
-        fprintf(stderr, " %s%d%s %s|%s %.*s\n", BLUE, line, RESET, BLUE, RESET, ll, ls);
-        fprintf(stderr, " %*s %s|%s ", nw, "", BLUE, RESET);
-
-        if (span < 1) span = 1;
-        for (int i = 1; i < col; i++) fputc(' ', stderr);
-        fprintf(stderr, "%s", RED);
-        for (int i = 0; i < span; i++) fputc('^', stderr);
-        fprintf(stderr, "%s", RESET);
-
-        va_list ap2;
-        va_start(ap2, fmt);
-        fprintf(stderr, " %s", RED);
-        vfprintf(stderr, fmt, ap2);
-        va_end(ap2);
-        fprintf(stderr, "%s\n", RESET);
+    fprintf(stderr, "%s\n\n", RESET);
+    
+    // Print each error
+    for (int i = 0; i < g_error_count; i++) {
+        CollectedError *err = &g_errors[i];
+        
+        fprintf(stderr, "%s%serror[%s]%s%s: ", RED, BOLD, err->ecode, RESET, BOLD);
+        fprintf(stderr, "%s%s\n", err->message, RESET);
+        
+        if (err->filename) {
+            fprintf(stderr, " %s-->%s %s:%d:%d\n", BLUE, RESET, err->filename, err->line, err->col);
+        }
+        
+        if (err->source && err->line > 0) {
+            const char *ls = get_line_start(err->source, err->line);
+            int ll = get_line_len(ls);
+            char line_num[16];
+            int nw = snprintf(line_num, sizeof(line_num), "%d", err->line);
+            
+            fprintf(stderr, " %*s %s|%s\n", nw, "", BLUE, RESET);
+            fprintf(stderr, " %s%d%s %s|%s %.*s\n", BLUE, err->line, RESET, BLUE, RESET, ll, ls);
+            fprintf(stderr, " %*s %s|%s ", nw, "", BLUE, RESET);
+            
+            int span = err->span;
+            if (span < 1) span = 1;
+            for (int j = 1; j < err->col; j++) fputc(' ', stderr);
+            fprintf(stderr, "%s", RED);
+            for (int j = 0; j < span; j++) fputc('^', stderr);
+            fprintf(stderr, "%s", RESET);
+            
+            fprintf(stderr, " %s%s%s\n", RED, err->message, RESET);
+        }
+        
+        fprintf(stderr, "\n%s%s%s\n", CYAN, err->ecode, RESET);
+        fprintf(stderr, "%sType \"tcc --error %s\" for help%s\n\n", DIM, err->ecode, RESET);
     }
-
-    fprintf(stderr, "\n%s%s%s\n", CYAN, ecode, RESET);
-    fprintf(stderr, "%sType \"tcc --error %s\" for help%s\n", DIM, ecode, RESET);
-
+    
     exit(1);
+}
+
+bool tc_has_errors(void) {
+    return g_error_count > 0;
+}
+
+void tc_clear_errors(void) {
+    for (int i = 0; i < g_error_count; i++) {
+        free(g_errors[i].ecode);
+        free(g_errors[i].message);
+        free(g_errors[i].filename);
+        free(g_errors[i].source);
+    }
+    g_error_count = 0;
 }
 
 void *xmalloc(size_t size) {

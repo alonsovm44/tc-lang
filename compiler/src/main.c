@@ -453,6 +453,9 @@ int main(int argc, char **argv) {
         }
     }
 
+    // Report all parsing errors
+    tc_report_errors();
+
     // Linker error: only one main function allowed
     if (main_count > 1) {
         die("linker error: multiple main functions found (main defined in %d files)", main_count);
@@ -561,6 +564,9 @@ int main(int argc, char **argv) {
     free(deps);
 
     check_program(&program);
+    
+    // Report all type checking errors
+    tc_report_errors();
     
     // Debug: Output AST
     if (debug_ast) {
