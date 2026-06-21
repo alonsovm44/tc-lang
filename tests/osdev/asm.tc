@@ -1,0 +1,7 @@
+asm fn void isr_stub: {
+    // interrupt service routine stub
+}
+
+fn void main: {
+    // main function
+}
