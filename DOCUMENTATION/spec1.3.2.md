@@ -2,6 +2,7 @@
 CLI and Freestanding update
 
 ## New scheme for extern functions
+[DONE]
 Previously we used `extern "C"` for C interop. But it broke and became difficult to maintain. It also became redundant.
 Old:
 ```
@@ -251,6 +252,7 @@ fn i32 main: {
 ```
 
 ## OSdev keywords
+
 ### Raw (volatile)
 [DONE]
 For me `raw` is a better term than volatile. 
@@ -267,7 +269,7 @@ raw fn void write_vga: u16 offset, u8 value {
 
 ### New keywords
 
-- raw (aka volatile)
+- raw (aka volatile) [DONE]
     - Marks variable or function as raw (compiler should not optimize accesses)
 
 ## Inline assembly
@@ -279,25 +281,37 @@ raw fn void write_vga: u16 offset, u8 value {
     add eax, ebx
 }
 
+raw fn void halt_cpu: {
+    "ASM"{
+        hlt
+    }
+}
+
 
 ### Critical kernel development features:
 
 #### 1. Inline assembly support
 ```tig
-fn void write_port: u16 port, u8 value {
-    asm volatile "outb %0, %1" (value, port)
+raw fn void write_port: u16 port, u8 value {
+    asm "outb %0, %1" (value, port)
 }
 ```
 
-#### 2. Memory section attributes
+#### 2. Memory section types
 ```tig
 // Place data in specific sections
-pin .data u32 kernel_data = 0x1000
-pin .bss u32 zero_data
-pin .rodata u8 const_data = 42
+.data u32 kernel_data = 0x1000
+.bss u32 zero_data
+.rodata u8 const_data = 42
 ```
 
-### 2.1 Hex and binary values
+New types
+
+.data
+.bss
+.rodata
+
+### 2.1 Hex and binary literals
 
 0x00001
 0b10101 // assignable to variables
@@ -333,43 +347,34 @@ We already have comptime macros
 ```
 Special case macros if, else if and else
 ```
-# IF (condition){
+# If (condition){
   // this code gets into the final binary if the condition is true
 }
-# ELSEIF (condition){
+# Elseif (condition){
   // this code gets into the final binary if the condition is true
 }
-# ELSE{
+# Else{
   // this code gets into the final binary if the condition is true
 }
 ```
 Example:
 ```tig
-# IF(_WIN){
+# If(_WIN){
   // code that gets to the final binary if OS is windows
 }
-# ELSEIF (_UNIX){
+# Elseif(_UNIX){
   // code that gets to the final binary if OS is unix
 }
-# ELSE{
-    // other OS
+# Else{
+  // other OS
 }
 ```
 More in depth comptime features deferred for 1.3.3
 
 
-#### 8. Stack pointer manipulation
-```tig
-// Direct access to stack pointer
-extern "C" {
-    u8 fn get_stack_pointer: ->u8 sp
-    void fn set_stack_pointer: u8 sp
-}
-```
-
 # Keywords for 1.3.2
 
-- **22 keywords** — 
+- **18 keywords** — 
 `if`, 
 `loop`, 
 `break`, 
@@ -387,7 +392,20 @@ extern "C" {
 `throw`,
 `try`,
 `catch`,
-`raw`, (new)
-`freestanding`, (new)
-`naked`, (new)
-`interrupt`, (new)
+`raw`, (new) (it is same as volatile)
+
+## New types
+
+`.rodata`
+`.bss`
+`.data`
+
+## New reserved macros
+
+```
+# If{}
+# Elseif{}
+# Else{}
+_WIN
+_UNIX
+```

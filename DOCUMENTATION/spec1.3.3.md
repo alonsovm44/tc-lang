@@ -274,7 +274,7 @@ LOW PRIORITY:
 
 # Keywords for 1.3.3
 
-- **23 keywords** — 
+- **19 keywords** — 
 `if`, 
 `loop`, 
 `break`, 
@@ -292,8 +292,5 @@ LOW PRIORITY:
 `throw`,
 `try`,
 `catch`,
-`volatile`,
-`freestanding`,
-`naked`, 
-`interrupt`,
+`raw`,
 `my`, (new)

@@ -1,8 +1,0 @@
-
-"C"{
-    # include "mylib.h"
-}
-
-fn i32 sum: i32 x, i32 y {
-    ret add(x, y)
-}
