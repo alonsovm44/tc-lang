@@ -235,13 +235,25 @@ raw fn void write_vga: u16 offset, u8 value {
 ```
 
 ### interrupt
-[PENDING]: COMPLEX
+[ABANDONED]: COMPLEX
 > Skipped for now
 
 Marks the function as an interrupt handler. The compiler generates appropriate prologue/epilogue for ISR context.
 ```tig
 interrupt fn void timer_handler: {
     // interrupt service routine
+}
+```
+We can use `naked` to create assembly stubs that call the interrupt handler.
+Example:
+```tig
+naked fn void timer_isr_stub: {
+    "ASM"{
+        pusha
+        call timer_handler
+        popa
+        iret
+    }
 }
 ```
 
