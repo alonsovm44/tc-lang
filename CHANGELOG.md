@@ -15,6 +15,7 @@ Added:
 - added linking to Tig, now we can compile multiple files
 Removed:
 
+- removed old function syntax from Tig: T fn name:
 - removed extern block parsing code
 - removed extern keyword
 Improved/Fixed:
