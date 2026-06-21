@@ -1,0 +1,54 @@
+/// raylib bindings for Tig
+/// graphics.tc
+"C"{
+    #include "raylib.h"
+}
+extern "C" {
+    // TODO: Add raylib function declarations here
+    void fn InitWindow: i32 width, i32 height, ->i8 title
+    i8 fn WindowShouldClose: 
+    void fn CloseWindow:
+    void fn SetTargetFPS: i32 fps
+
+    void fn BeginDrawing:
+    void fn EndDrawing:
+    void fn ClearBackground: Color
+    
+    void fn DrawRectangle: i32 posX, i32 posY, i32 width, i32 height, Color color
+}
+
+strun Color{
+    u8 r,
+    u8 g,
+    u8 b,
+    u8 a
+}
+
+fn void targetFPS: i32 fps {
+    SetTargetFPS(fps);
+}
+
+fn i8 windowShouldClose() {
+    return WindowShouldClose();
+}
+
+fn void makeWindow: i32 width, i32 height, ->i8 title 
+{
+    InitWindow(width, height, title);
+}
+    // TODO: Implement window creation using raylib
+
+fn void clearScreen(Color color) {
+    // TODO: Implement screen clearing using raylib
+    ClearBackground(color);
+}
+
+fn void drawPixel(i32 x, i32 y, Color color) {
+    // TODO: Implement pixel drawing using raylib
+    DrawRectangle(x, y, 1, 1, color);
+}
+use "math.tc" // for abs()
+
+fn void drawLine(i32 x1, i32 y1, i32 x2, i32 y2, Color color) {
+ 
+}

@@ -6,22 +6,22 @@ extern "C" {
 }
 
 // initialize random seed
-void fn srand: u32 seed {
+fn void srand: u32 seed {
     srand(seed)
     ret
 }
 
 // get random integer (0 to RAND_MAX)
-i32 fn rand: {
+fn i32 rand: {
     ret rand()
 }
 
 // get random integer in range [min, max]
-i32 fn rand_range: i32 min, i32 max {
+fn i32 rand_range: i32 min, i32 max {
     ret rand_range(min, max)
 }
 
 // get random boolean (0 or 1)
-i32 fn rand_bool: {
+fn i32 rand_bool: {
     ret rand_bool()
 }

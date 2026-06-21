@@ -383,3 +383,18 @@ At most i can ask for pseudocode and translate it to Tig, but that's it. I think
 
 ### Free standing
 I am adding a free standing mode/flag 
+
+## 21 June 2026
+The extern blocks are broken for some reason, it appears to be the lexer treating the whole block as one string instead of tokenizing it. I realized that it is actually not that necessary to have an extern block, because we can do this
+```
+"C"{
+    #include <some_lib.h>
+}
+
+fn void foo: ... {
+    function(args...) // wrapping function from this lib
+}
+```
+Maybe extern blocks are not necessary at all. One keyword less.
+
+Actually we need both, since C API changes require updating wrappers, which can be a burden.
