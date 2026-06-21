@@ -2,59 +2,59 @@
     #include <string.h>
 }
 
-->i8 fn sclone: ->i8 s {
+fn ->i8 sclone: ->i8 s {
     ret strdup(s)
 }
 
 // string length
-u64 fn slen: ->i8 s {
+fn u64 slen: ->i8 s {
     ret strlen(s)
 }
 
 // string equality (returns 1 if equal)
-i32 fn seq: ->i8 a, ->i8 b {
+fn i32 seq: ->i8 a, ->i8 b {
     ret strcmp(a, b) == 0
 }
 
 // copy src into dest
-void fn scpy: ->i8 dest, ->i8 src {
+fn void scpy: ->i8 dest, ->i8 src {
     strcpy(dest, src)
     ret
 }
 
 // append src onto end of dest
-void fn scat: ->i8 dest, ->i8 src {
+fn void scat: ->i8 dest, ->i8 src {
     strcat(dest, src)
     ret
 }
 
 // compare first n bytes of two strings
-i32 fn sneq: ->i8 a, ->i8 b, u64 n {
+fn i32 sneq: ->i8 a, ->i8 b, u64 n {
     ret strncmp(a, b, n) == 0
 }
 
 // find first occurrence of char c in s, returns null if not found
-->i8 fn sfind: ->i8 s, i32 c {
+fn ->i8 sfind: ->i8 s, i32 c {
     ret strchr(s, c)
 }
 
 // find last occurrence of char c in s
-->i8 fn sfindlast: ->i8 s, i32 c {
+fn ->i8 sfindlast: ->i8 s, i32 c {
     ret strrchr(s, c)
 }
 
 // find substring needle in haystack
-->i8 fn strhas: ->i8 haystack, ->i8 needle {
+fn ->i8 strhas: ->i8 haystack, ->i8 needle {
     ret strstr(haystack, needle)
 }
 
 // compare if two characters are equal (returns 1 if equal)
-i32 fn ceq: i8 a, i8 b {
+fn i32 ceq: i8 a, i8 b {
     ret a == b
 }
 // fat pointer operations
 
-->i8 fn fptos: =>i8 fatptr {
+fn ->i8 fptos: =>i8 fatptr {
     // convert a fat pointer into a string
     ->i8 str
     i32 i = 0

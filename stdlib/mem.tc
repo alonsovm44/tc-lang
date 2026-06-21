@@ -1,23 +1,23 @@
 
-// zero out n bytes at ptr
-void fn zero: ->void ptr, u64 n {
+// zero out n bytes at pt
+fn void zero: ->void ptr, u64 n {
     memset(ptr, 0, n)
     ret
 }
 
 // copy n bytes from src to dest (safe for overlapping)
-void fn copy: ->void dest, ->void src, u64 n {
+fn void movemem: ->void dest, ->void src, u64 n {
     memmove(dest, src, n)
     ret
 }
 
 // compare n bytes, returns 1 if equal
-i32 fn memeq: ->void a, ->void b, u64 n {
+fn i32 cmpmem: ->void a, ->void b, u64 n {
     ret memcmp(a, b, n) == 0
 }
 
 // fill n bytes with value
-void fn fill: ->void ptr, i32 val, u64 n {
+fn void setmem: ->void ptr, i32 val, u64 n {
     memset(ptr, val, n)
     ret
 }

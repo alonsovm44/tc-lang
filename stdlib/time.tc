@@ -1,32 +1,32 @@
-"C" {
-    #include <time.h>
+"C"{
+    # include <time.h>
 }
 
 // get current time in seconds since epoch
-i64 fn now: {
+fn i64 now: {
     ret time((->void)0)
 }
 
 // get processor time used by program (in clock ticks)
-i32 fn Clock: {
+fn i32 Clock: {
     ret clock()
 }
 
 // convert seconds to milliseconds
-i64 fn sec_to_ms: i64 sec {
+fn i64 sec_to_ms: i64 sec {
     ret sec * 1000
 }
 
 // convert seconds to microseconds
-i64 fn sec_to_us: i64 sec {
+fn i64 sec_to_us: i64 sec {
     ret sec * 1000000
 }
 
 // convert milliseconds to seconds
-f64 fn ms_to_sec: i64 ms {
+fn f64 ms_to_sec: i64 ms {
     ret (f64)ms / 1000.0
 }
 
-i32 fn sleep: u32 ms{
+fn i32 sleep: u32 ms{
     ret Sleep(ms)
 }

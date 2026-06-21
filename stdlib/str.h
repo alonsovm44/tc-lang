@@ -11,6 +11,9 @@
 #define TC_FAT_LENOF(x) ((x).len)
 
 
+    #include <string.h>
+
+
 typedef struct { char *ptr; size_t len; } tc_fat_i8;
 
 char *sclone(char *s);

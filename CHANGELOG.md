@@ -20,6 +20,7 @@ Removed:
 - removed extern keyword
 Improved/Fixed:
 
+- fixed and improved the stdlib
 - fixed inline C not being emmited by the codegen
 - fixed structs not working when inlining files
 ## v1.3.0/1.3.1 2026-06-04

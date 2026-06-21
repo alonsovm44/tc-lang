@@ -2,41 +2,41 @@
     # include <math.h>
 }
 // absolute value (integer)
-i64 fn iabs: i64 x {
+fn i64 iabs: i64 x {
     if (x < 0) { ret 0 - x }
     ret x
 }
 
 // minimum of two integers
-i64 fn min: i64 a, i64 b {
+fn i64 min: i64 a, i64 b {
     if (a < b) { ret a }
     ret b
 }
 
 // maximum of two integers
-i64 fn max: i64 a, i64 b {
+fn i64 max: i64 a, i64 b {
     if (a > b) { ret a }
     ret b
 }
 
 // clamp value between lo and hi
-i64 fn clamp: i64 x, i64 lo, i64 hi {
+fn i64 clamp: i64 x, i64 lo, i64 hi {
     if (x < lo) { ret lo }
     if (x > hi) { ret hi }
     ret x
 }
 
 // absolute value (float)
-f64 fn fabs64: f64 x {
+fn f64 fabs64: f64 x {
     ret fabs(x)
 }
 
 // square root
-f64 fn sqrt64: f64 x {
+fn f64 sqrt64: f64 x {
     ret sqrt(x)
 }
 
 // power
-f64 fn powf64: f64 base, f64 exp {
+fn f64 powf64: f64 base, f64 exp {
     ret pow(base, exp)
 }

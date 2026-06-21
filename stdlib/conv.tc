@@ -1,26 +1,26 @@
 
 // string to i64
-i64 fn stoi: ->i8 s {
+fn i64 stoi: ->i8 s {
     ret strtol(s, cast(0, ->->i8), 10)
 }
 
 // string to i64 with base (2, 8, 10, 16)
-i64 fn stoib: ->i8 s, i32 base {
+fn i64 stoib: ->i8 s, i32 base {
     ret strtol(s, cast(0, ->->i8), base)
 }
 
 // string to f64
-f64 fn stof: ->i8 s {
+fn f64 stof: ->i8 s {
     ret strtod(s, cast(0, ->->i8))
 }
 
 // i64 to string (caller provides buffer, returns bytes written)
-i32 fn itos: i64 n, ->i8 buf, u64 bufsize {
+fn i32 itos: i64 n, ->i8 buf, u64 bufsize {
     ret snprintf(buf, bufsize, "%lld", n)
 }
 
 // f64 to string (caller provides buffer, returns bytes written)
-i32 fn ftos: f64 n, ->i8 buf, u64 bufsize {
+fn i32 ftos: f64 n, ->i8 buf, u64 bufsize {
     ret snprintf(buf, bufsize, "%g", n)
 }
 /*
