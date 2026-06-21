@@ -1,10 +1,7 @@
 "C"{
     #include "raylib.h"
-}
-
-extern "C" {
-    Color BLACK
-    Color RAYWHITE
+    Color raywhite = RAYWHITE
+    Color black = BLACK
 }
 
 fn void main: {
@@ -14,8 +11,8 @@ fn void main: {
     loop if(!WindowShouldClose()){
         // hang
         BeginDrawing()
-        ClearBackground(RAYWHITE)
-        DrawText("Hello from Tig!", 10, 10, 20, BLACK)
+        ClearBackground(raywhite)
+        DrawText("Hello from Tig!", 10, 10, 20, black)
         EndDrawing()
         
     }

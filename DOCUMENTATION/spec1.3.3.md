@@ -147,6 +147,20 @@ fn void main:
 
 ```
 
+### Include macro for C code
+
+```tig
+"C"{
+    # include "mylib.h" // direct C code embedded
+}
+
+```
+Alternative:
+Dedicated macro to include C libs
+```tig
+# use {"mylib.h"}
+```
+
 ## Function modifiers
 
 <trait> fn(<mod>) <name>: <T><arg>,... {

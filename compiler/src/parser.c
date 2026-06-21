@@ -773,19 +773,13 @@ static Decl *parse_fn(Parser *p, DeclKind kind, bool is_my, Type *ret) {
         if (!match(p, ",")) break;
     }
     p->pin_count = 0;
-    if (kind == DC_EXTERN_FN) {
-        match(p, ";");  // Optional semicolon for extern declarations
-        d->body.count = 0;  // No body for extern functions
-    } else {
-        d->body = parse_block(p);
-    }
+    d->body = parse_block(p);
     return d;
 }
 
-static Decl *parse_struct(Parser *p, bool is_my, bool packed, bool is_extern) {
+static Decl *parse_struct(Parser *p, bool is_my, bool packed) {
     Decl *d = new_decl(DC_STRUCT);
     d->is_my = is_my;
-    d->is_extern = is_extern;
     d->source_file = xstrdup(p->source_file);
     d->packed = packed;
     d->name = expect_ident(p);
@@ -838,10 +832,9 @@ static Decl *parse_struct(Parser *p, bool is_my, bool packed, bool is_extern) {
     return d;
 }
 
-static Decl *parse_enum(Parser *p, bool is_my, bool is_extern) {
+static Decl *parse_enum(Parser *p, bool is_my) {
     Decl *d = new_decl(DC_ENUM);
     d->is_my = is_my;
-    d->is_extern = is_extern;
     d->source_file = xstrdup(p->source_file);
     // Check for explicit type (e.g., enum u8 Color)
     if (is_type_name(cur(p)->text)) {
@@ -948,7 +941,7 @@ void collect_imported_types(Token *tokens, const char *source_file, TypeRegistry
         if (at(&p, "@") && (strcmp((p.tokens + p.pos + 1)->text, "strun") == 0)) {
             p.pos++;  // skip '@'
             match(&p, "strun");
-            Decl *d = parse_struct(&p, false, true, false);
+            Decl *d = parse_struct(&p, false, true);
             type_registry_add_struct(reg, d->name);
             continue;
         }
@@ -976,12 +969,12 @@ void collect_imported_types(Token *tokens, const char *source_file, TypeRegistry
             continue;
         }
         if (match(&p, "struct") || match(&p, "strun")) {
-            Decl *d = parse_struct(&p, false, false, false);
+            Decl *d = parse_struct(&p, false, false);
             type_registry_add_struct(reg, d->name);
             continue;
         }
         if (match(&p, "enum")) {
-            Decl *d = parse_enum(&p, false, false);
+            Decl *d = parse_enum(&p, false);
             type_registry_add_enum(reg, d->name);
             continue;
         }
@@ -1117,7 +1110,7 @@ DeclVec parse_program_with_types(Token *tokens, const char *source_file,
         if (at(&p, "@") && (strcmp((p.tokens + p.pos + 1)->text, "strun") == 0)) {
             p.pos++;  // skip '@'
             match(&p, "strun");
-            decl_push(&p.decls, parse_struct(&p, false, true, false));
+            decl_push(&p.decls, parse_struct(&p, false, true));
             continue;
         }
         if (at(&p, "@")) {
@@ -1170,46 +1163,12 @@ DeclVec parse_program_with_types(Token *tokens, const char *source_file,
             parse_macro(&p);
             continue;
         }
-        if (match(&p, "extern")) {
-            if (cur(&p)->kind != TOK_STRING || strcmp(cur(&p)->text, "\"C\"")) tc_error("E011", cur(&p)->line, cur(&p)->col, (int)strlen(cur(&p)->text), "extern expects \"C\", got '%s'", cur(&p)->text);
-            p.pos++;
-            expect(&p, "{");
-            while (!at(&p, "}")) {
-                // Check for struct declaration
-                if (match(&p, "struct") || match(&p, "strun")) {
-                    decl_push(&p.decls, parse_struct(&p, false, false, true));
-                    continue;
-                }
-                // Check for enum declaration
-                if (match(&p, "enum")) {
-                    decl_push(&p.decls, parse_enum(&p, false, true));
-                    continue;
-                }
-                // Check for function declaration
-                if (match(&p, "fn")) {
-                    // Function declaration with new syntax: fn return_type name: params
-                    decl_push(&p.decls, parse_fn(&p, DC_EXTERN_FN, false, NULL));
-                    continue;
-                }
-                // Variable declaration: type name;
-                Type *type = parse_type(&p);
-                char *name = expect_ident(&p);
-                Decl *d = new_decl(DC_VAR);
-                d->is_extern = true;
-                d->type = type;
-                d->name = name;
-                decl_push(&p.decls, d);
-                expect(&p, ";");
-            }
-            match(&p, "}");
-            continue;
-        }
         if (match(&p, "struct") || match(&p, "strun")) {
-            decl_push(&p.decls, parse_struct(&p, false, false, false));
+            decl_push(&p.decls, parse_struct(&p, false, false));
             continue;
         }
         if (match(&p, "enum")) {
-            decl_push(&p.decls, parse_enum(&p, false, false));
+            decl_push(&p.decls, parse_enum(&p, false));
             continue;
         }
         if (match(&p, "error")) {

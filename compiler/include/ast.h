@@ -425,7 +425,6 @@ struct Stmt {
  * DC_ERROR:      Error type definition (e.g., error MyError: i32 code { ... })
  * DC_FN:         Function definition
  * DC_VAR:        Global variable declaration
- * DC_EXTERN_FN:  External C function declaration
  * DC_INLINE_C:   Inline C code at module level
  */
 typedef enum {
@@ -435,7 +434,6 @@ typedef enum {
     DC_ERROR,
     DC_FN,
     DC_VAR,
-    DC_EXTERN_FN,
     DC_INLINE_C
 } DeclKind;
 
@@ -485,7 +483,6 @@ struct Decl {
     bool is_async;   // For 1.3: async function
     bool is_my;      // For 1.3.1: marked as private with 'my' keyword
     bool is_raw;     // For OSdev: function accesses memory directly (volatile)
-    bool is_extern;  // For extern "C" blocks: struct/enum/var/function is external
     char *name;
     char *path;
     char *source_file; // Source file where this declaration was defined

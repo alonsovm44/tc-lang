@@ -1,6 +1,5 @@
 
-typedef struct {
-    int x;
-} myType;
 
-myType x;
+int add(int a, int b) {
+    return a + b;
+}

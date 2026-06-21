@@ -1,6 +1,37 @@
 # 1.3.2 spec
 CLI and Freestanding update
 
+## New scheme for extern functions
+Previously we used `extern "C"` for C interop. But it broke and became difficult to maintain. It also became redundant.
+Old:
+```
+extern "C"{
+    i32 fn printf: ->i8 fmt, ...
+}
+
+i32 fn myprintf: ->i8 fmt, ...{
+    ret printf(->i8 fmt, ...)
+}
+
+```
+This pattern proved to be more workable.
+Inline C with `"C"` block including the library we want to port.
+```
+"C"{
+    # include <stdio.h>
+}
+// then we define wrapper functions that call the C functions directly
+fn void main: {
+    printf("hello") // calling printf directly from C
+}
+
+fn i32 myprintf: ->i8 fmt, ...{ // defining a wrapper function
+    ret printf(->i8 fmt, ...)
+}
+
+```
+Thus extern "C" proved to be obsolete.
+
 ## Multiple comptime error prompting
 [DONE]
 Currently when Tig throws a comptime error it only shows one, when you fix it, it shows the next one, and so on. This is not ideal for debugging. The compiler should show all errors at once.

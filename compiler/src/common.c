@@ -203,7 +203,7 @@ void str_printf(Str *s, const char *fmt, ...) {
 
 bool is_keyword(const char *text) {
     static const char *keywords[] = {
-        "if", "else", "loop", "break", "defer", "ret", "struct", "enum", "fn", "use", "pin", "extern", "sizeof",
+        "if", "else", "loop", "break", "defer", "ret", "struct", "enum", "fn", "use", "pin", "sizeof",
         "async", "queue", "stack", "select",
         "error", "throw", "try", "catch",
         "raw",

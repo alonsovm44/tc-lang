@@ -15,6 +15,8 @@ Added:
 - added linking to Tig, now we can compile multiple files
 Removed:
 
+- removed extern block parsing code
+- removed extern keyword
 Improved/Fixed:
 
 - fixed inline C not being emmited by the codegen

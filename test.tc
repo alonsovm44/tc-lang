@@ -1,15 +1,10 @@
 "C"{
     #include <stdio.h>
 }
-/*
-"C"{    
-    int printf(const char* fmt, ...);
-}
-*/
 fn i32 my_printf: ->i8 fmt, ...{
     ret printf(fmt, ...)
 }
+
 fn void main: {
     my_printf("Hello, World!\n")
 }
-// this worked fine
