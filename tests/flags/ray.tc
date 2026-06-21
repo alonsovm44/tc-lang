@@ -1,0 +1,15 @@
+"C" {
+    #include "raylib.h"
+}
+
+extern "C" {
+    void fn InitWindow: i32 width, i32 height, ->i8 title
+}
+
+fn void main: {
+    InitWindow(800, 600, "Test")
+}
+/*
+build cmd:
+./tigc tests/flags/ray.tc -c rayapp -- -Isrc -IC:\raylib\raylib\src -LC:\raylib\raylib\build\raylib -lraylib -lws2_32 -lwinhttp -lsqlite3 -lopengl32 -lgdi32 -lwinmm
+*/
