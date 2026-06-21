@@ -167,7 +167,11 @@ tigc file1.tc file2.tc -c app --freestanding
 No stdio, no stdlib, no math, no setjmp.
 
 This passes a --ffreestanding flag to clang/gcc/tcc/any other compiler used.
+## Edge case:
 
+```bash
+tigc kernel.tc -c kernel --freestanding -- --ffreestanding # using --ffreestanding flag and --freestanding flag, this will pass --ffreestanding twice to the compiler, so the compiler ignores one of them. 
+```
 ### Minimal type definitions provided in freestanding mode:
 
 ```c

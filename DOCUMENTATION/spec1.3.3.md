@@ -161,11 +161,11 @@ function mods:
 ? - TBD (to be determined later)
 // example uses
 
-fn(#) void myCompTimeFn: {
+#fn void myCompTimeFn: {
     // this code gets evaluated at compile time
 }
 
-fn(@) ->i8 myAllocFn: {
+@fn ->i8 myAllocFn: {
     // this function allocates memory that should be freed by the caller
     ->i8 ptr = alloc(i8, 10)
     ret ptr
@@ -175,7 +175,7 @@ error myerror: {
     // this is a custom error type
 }
 
-fn(!) void myRiskyFn: ->Data data {
+!fn void myRiskyFn: ->Data data {
     // this function might throw an error
     if (condition) {
         throw myerror
@@ -229,11 +229,18 @@ fn i32 foo: {
 Using in combination
 
 ```
-my async fn(!@) void myRiskyAllocFn: { // my means it is private
+my async !@fn void myRiskyAllocFn: { // my means it is private
     // this function allocates memory that should be freed by the caller
     // and might throw an error
     ->i8 ptr = alloc(i8, 10)
     ret ptr
+}
+
+my async !fn void myRiskyFn: {
+    // this function might throw an error
+    if (condition) {
+        throw myerror
+    }
 }
 ```
 
