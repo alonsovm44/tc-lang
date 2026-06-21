@@ -16,6 +16,10 @@
 - [ ] Make async runtime bullet proof
     - [ ] Make a test suite
     - [ ] Implement `my` keyword to replace `pub`
+- [ ] Implement memory leak detection via leaky functions
+    - [ ] Manage edge cases
+
+
 # todo for 1.3.2
 - [ ] C/LLVM flags
     - [ ] Optimization flags

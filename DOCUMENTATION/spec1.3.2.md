@@ -1,7 +1,6 @@
 # 1.3.2 spec
 CLI and Freestanding update
 
-
 ## Multiple comptime error prompting
 Currently when Tig throws a comptime error it only shows one, when you fix it, it shows the next one, and so on. This is not ideal for debugging. The compiler should show all errors at once.
 
@@ -277,6 +276,16 @@ fn void direct_memory_write: u32 address, u32 value {
 - Some traits are mutually exclusive (e.g., a function cannot be both `naked` and have standard prologue)
 
 - NO custom traits for 1.3.2 patch
+
+### Some traits don't make sense together:
+
+1. async + naked → ❌ (async needs runtime, naked has no prologue)
+
+2. interrupt + test → ❌ (ISRs aren't test functions)
+
+3. volatile + debug → ❌ (debug implies logging, volatile is hardware)
+
+The compiler should catch these combinations.
 
 ## Free standing mode
 
