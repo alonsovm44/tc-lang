@@ -1,0 +1,7 @@
+interrupt fn void timer_handler: {
+    // interrupt service routine
+}
+
+fn void main: {
+    // main function
+}

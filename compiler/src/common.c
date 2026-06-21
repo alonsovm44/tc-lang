@@ -206,7 +206,7 @@ bool is_keyword(const char *text) {
         "if", "else", "loop", "break", "defer", "ret", "struct", "enum", "fn", "use", "pin", "extern", "sizeof",
         "async", "queue", "stack", "select",
         "error", "throw", "try", "catch",
-        "raw",
+        "raw", "interrupt",
         "void", "i2", "i4", "i8", "i16", "i32", "i64", "u2", "u4", "u8", "u16", "u32", "u64", "f32", "f64",
         NULL
     };

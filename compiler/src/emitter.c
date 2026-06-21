@@ -1885,6 +1885,9 @@ char *emit_program(DeclVec program, const char *stdlib_path, bool freestanding) 
                 str_add(&out, "int32_t main(int argc, char **argv);\n");
 
             } else {
+                if (d->is_interrupt) {
+                    str_add(&out, "__attribute__((interrupt)) ");
+                }
                 if (d->is_raw) {
                     str_add(&out, "volatile ");
                 }
@@ -2098,6 +2101,9 @@ char *emit_program(DeclVec program, const char *stdlib_path, bool freestanding) 
 
             } else {
 
+                if (d->is_interrupt) {
+                    str_add(&out, "__attribute__((interrupt)) ");
+                }
                 if (d->is_raw) {
                     str_add(&out, "volatile ");
                 }
