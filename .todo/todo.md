@@ -21,21 +21,21 @@
 
 
 # todo for 1.3.2
-- [ ] C/LLVM flags
+- [x] C/LLVM flags
     - [ ] Optimization flags
     - [ ] Debug 
     - [ ] Performance and Security 
     - [ ] Platform specific (medium importance)
     - [ ] Preprocessing and macros (can skip)
-    - [ ] Linking (essential for making projects with C libs)
-- [ ] Freestanding mode
-    - [ ] No stdlib output
+    - [x] Linking (essential for making projects with C libs)
+- [x] Freestanding mode
+    - [x] No stdlib output
 - [ ] More built ins:
     - [ ] typeof()
     - [x] lenof()
     - [ ] offsetof()
     
-- [ ] Extern C calls works for structs/struns and unions
+- [ ] Extern C calls works for structs/struns and enums and variables
 - [ ] Add OS specific conditional branching
     - [ ] add _WIN comptime constant
     - [ ] add _UNIX comtpime constant ( this is necessary to emulate #IF macros)

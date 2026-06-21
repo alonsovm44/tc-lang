@@ -398,3 +398,24 @@ fn void foo: ... {
 Maybe extern blocks are not necessary at all. One keyword less.
 
 Actually we need both, since C API changes require updating wrappers, which can be a burden.
+
+### It goes deep
+I'm not close to finishing. The issue is deeper than initially thought, the parser isn't recognizing the `extern` keyword at all in the test file. The errors suggest the extern block parsing code isn't being triggered, meaning either:
+1. The lexer isn't tokenizing extern as a keyword
+2. There's a parsing order issue preventing the extern match from succeeding
+
+### The epiphany 
+I realized we dont need `extern` blocks at all. We can do this
+```
+"C"{#include <clib.h>}
+
+fn i32 printf: ->i8 fmt, ...{
+    ret printf(fmt, ...)
+}
+
+fn void wrapper: i32 a, i32 b{
+    func_from_clib(a,b)
+}
+
+```
+We can then call these functions directly. The entire file is an extern block. So it is redundant.

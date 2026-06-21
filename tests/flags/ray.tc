@@ -10,6 +10,7 @@ extern "C" {
 fn void main: {
     InitWindow(800, 600, "Test")
     SetTargetFPS(60)
+
     loop if(!WindowShouldClose()){
         // hang
         BeginDrawing()
