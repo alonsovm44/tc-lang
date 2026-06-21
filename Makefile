@@ -16,9 +16,7 @@ clean:
 	rm -f $(OBJ) $(TARGET) $(TARGET).exe
 
 install:
-	echo "Installing Tig to C:\tig\""
-	@if not exist C:\tig mkdir C:\tig
-	copy $(TARGET) C:\tig\
-	@echo "Done!"
+	cp $(TARGET) C:\\tig\\
+	
 
 .PHONY: all clean

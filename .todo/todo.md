@@ -39,6 +39,8 @@
 - [ ] Add OS specific conditional branching
     - [ ] add _WIN comptime constant
     - [ ] add _UNIX comtpime constant ( this is necessary to emulate #IF macros)
+- [ ] Fix lexer breaking when reading extern blocks
+
 # todo for 1.3.1
 
 ## Done

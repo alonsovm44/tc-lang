@@ -1,5 +1,5 @@
 
-raw fn void rawfn: i32 x {
+raw fn i32 rawfn: i32 x {
     // This function should not be optimized by the compiler
     ret x+x
 }
