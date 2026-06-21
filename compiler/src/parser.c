@@ -1213,19 +1213,12 @@ DeclVec parse_program_with_types(Token *tokens, const char *source_file,
             is_raw = true;
         }
         
-        // Check for interrupt fn syntax
-        bool is_interrupt = false;
-        if (match(&p, "interrupt")) {
-            is_interrupt = true;
-        }
-        
         if (match(&p, "fn")) {
-            // New syntax: [async] [raw] [interrupt] fn <type> <name>: <type> arg1, <type> arg2, ...
+            // New syntax: [async] [raw] fn <type> <name>: <type> arg1, <type> arg2, ...
             Type *ret_type = parse_type(&p);
             Decl *d = new_decl(DC_FN);
             d->is_async = is_async;
             d->is_raw = is_raw;
-            d->is_interrupt = is_interrupt;
             d->type = ret_type;
             d->name = expect_ident(&p);
             expect(&p, ":");

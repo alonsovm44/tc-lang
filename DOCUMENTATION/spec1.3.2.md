@@ -221,6 +221,7 @@ fn i32 main: {
 
 ## OSdev keywords
 ### Raw (volatile)
+[DONE]
 For me `raw` is a better term than volatile. 
 ```
 raw fn some_function: {
@@ -234,6 +235,9 @@ raw fn void write_vga: u16 offset, u8 value {
 ```
 
 ### interrupt
+[PENDING]: COMPLEX
+> Skipped for now
+
 Marks the function as an interrupt handler. The compiler generates appropriate prologue/epilogue for ISR context.
 ```tig
 interrupt fn void timer_handler: {

@@ -485,7 +485,6 @@ struct Decl {
     bool is_async;   // For 1.3: async function
     bool is_my;      // For 1.3.1: marked as private with 'my' keyword
     bool is_raw;     // For OSdev: function accesses memory directly (volatile)
-    bool is_interrupt; // For OSdev: interrupt handler function
     char *name;
     char *path;
     char *source_file; // Source file where this declaration was defined
