@@ -7,16 +7,16 @@ Runtime patch
 
 Sometimes you need owned data to outlive the function where it is defined. You have to remember that the caller must free it. Defer works nice if your data is freed in the same scope, but more often that data is returned to the caller. 
 
-To solve this, we need an annotation that tells the compiler that the function allocates memory that should be freed by the caller. Idea: use "!" to declare a leaky function
+To solve this, we need an annotation that tells the compiler that the function allocates memory that should be freed by the caller. In other words, the function returns an owned type. Idea: use "@" to declare a leaky function
 ```
-!fn ->i8 foo: {
+@fn ->i8 foo: {
     ->i8 ptr = alloc(i8, 10)
     ret ptr
 } 
 
 // caller
 fn void main: {
-    ->i8 ptr = !foo() // we use the marker to indicate that the function allocates memory that should be freed by the caller, the compiler enforces that any instance of a marker function must be called with "!"
+    ->i8 ptr = @foo() // we use the marker to indicate that the function allocates memory that should be freed by the caller, the compiler enforces that any instance of a marker function must be called with "@"
     defer free(ptr)
 }
 
@@ -121,6 +121,122 @@ fn void main(): void {
     InternalData d    // ERROR - private type!
 }
 
+### Comptime 
+Instead of a comptime keyword we use the # symbol to indicate compile time code.
+```tig
+# IF (condition){ // special macro 
+    // this code gets evaluated at compile time
+} # ELSEIF (condition) { // special macro
+    // this code gets evaluated at compile time
+} # ELSE { // special macro
+    // this code gets evaluated at compile time
+}
+
+# {
+    // this code gets evaluated at compile time
+}
+
+#fn void myCompTimeFn: {
+    // this code gets evaluated at compile time
+}
+
+fn void main:
+{
+    myCompTimeFn()
+}
+
+```
+
+## Function modifiers
+
+<trait> fn(<mod>) <name>: <T><arg>,... {
+    // function body
+}
+
+function mods:
+```
+# - comptime fn
+@ - allocates, (this function returns an owned type) aka leaky function
+! - risky function, it might throw an error, 
+? - TBD (to be determined later)
+// example uses
+
+fn(#) void myCompTimeFn: {
+    // this code gets evaluated at compile time
+}
+
+fn(@) ->i8 myAllocFn: {
+    // this function allocates memory that should be freed by the caller
+    ->i8 ptr = alloc(i8, 10)
+    ret ptr
+}
+
+error myerror: {
+    // this is a custom error type
+}
+
+fn(!) void myRiskyFn: ->Data data {
+    // this function might throw an error
+    if (condition) {
+        throw myerror
+    }
+}
+
+fn i32 main: {
+    Data data = get_data()
+        !myRiskyFn(&data) { // this works as a compact way of saying
+           myerror(data) ret 1,
+           othererror(data) ret 1,
+            yetanothererror(data) ret 1,
+            _ {
+            // wildcard handler 
+            ret 0
+           }
+        }
+}
+// example
+
+fn i32 foo: {
+    !function_that_might_throw_error(x){
+        // pattern matching block with body of possible errors
+        E001() ret return_value,
+        E002() ret return_value,
+        E003() ret return_value,
+        E004() ret return_value,
+        _ {
+            ret default_value
+        }
+    }
+}
+    
+This is sugar for
+
+fn i32 foo: {
+    try{
+        riskyFn(x)
+    }catch{
+        // pattern matching block with body of possible errors
+        E001() ret return_value,
+        E002() ret return_value,
+        E003() ret return_value,
+        E004() ret return_value,
+        _ {
+            ret default_value
+        }
+    }
+}
+```
+Using in combination
+
+```
+my async fn(!@) void myRiskyAllocFn: { // my means it is private
+    // this function allocates memory that should be freed by the caller
+    // and might throw an error
+    ->i8 ptr = alloc(i8, 10)
+    ret ptr
+}
+```
+
 # priorities
 
 HIGH PRIORITY:
@@ -137,8 +253,7 @@ LOW PRIORITY:
 
 # Keywords for 1.3.3
 
-
-- **18 keywords** — 
+- **23 keywords** — 
 `if`, 
 `loop`, 
 `break`, 
@@ -156,4 +271,8 @@ LOW PRIORITY:
 `throw`,
 `try`,
 `catch`,
-`my` (new)
+`volatile`,
+`freestanding`,
+`naked`, 
+`interrupt`,
+`my`, (new)

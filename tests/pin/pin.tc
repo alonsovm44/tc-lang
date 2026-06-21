@@ -1,0 +1,13 @@
+use "stdlib/io.tc"
+# PI {3.14159265359}
+# GRAVITY {9.81}
+
+fn void main: {
+    // this does not work
+    // pin i32 x = 10
+    i32 x = 10; pin x // seeing if pin works inline
+    // if you want a global constant decl and then pin
+    printi(x)
+    f32 area = PI * x * x 
+    printf("Area: %f\n", area)
+}

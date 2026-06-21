@@ -1,9 +1,6 @@
 # v1.4.0
 This is the last major update before beggining self hosting phase.
 
-## C++ backend [DEBATIBLE][NON-DECIDED-YET]
-Keep the stage0 core in C, but Tig outputs C++17
-Migrate the C backend to a C++ backend in order to better support the new features and provide a more robust compilation process.
 
 ## Stack and Queue update
 Currently we have basic stacks and queue implementation
