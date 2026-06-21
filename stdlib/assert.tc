@@ -1,10 +1,3 @@
-extern "C" {
-    i32 fn printf: ->i8 fmt, ... {}
-    i32 fn fflush: ->void stream {}
-    i32 fn abort: {}
-    void fn assert: i32 cond, ->i8 msg {}
-    void fn panic: ->i8 msg {}
-}
 
 // abort if condition is false
 void fn assert: i32 cond, ->i8 msg {
@@ -17,3 +10,4 @@ void fn panic: ->i8 msg {
     panic(msg)
     ret
 }
+

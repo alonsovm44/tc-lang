@@ -11,9 +11,6 @@
 #define TC_FAT_LENOF(x) ((x).len)
 
 
-    #include <stdio.h>
-
-
 void print(char *s);
 void printi(int64_t n);
 void printn(char *s);

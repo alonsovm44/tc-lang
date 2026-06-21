@@ -1,6 +1,4 @@
-"C"{
-    #include <stdio.h>
-}
+// stdio.h already included in codegen
 
 fn void print: ->i8 s {  
     printf("%s", s)

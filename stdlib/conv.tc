@@ -1,9 +1,3 @@
-extern "C" {
-    i64 fn strtol: ->i8 str, ->->i8 endptr, i32 base 
-    f64 fn strtod: ->i8 str, ->->i8 endptr 
-    i32 fn snprintf: ->i8 buf, u64 size, ->i8 fmt, ... 
-    //i32 fn atoi: ->i8 str 
-}
 
 // string to i64
 i64 fn stoi: ->i8 s {

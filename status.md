@@ -7,3 +7,6 @@ Everything is public.
 ## 7:06 pm 17 June 2026
 Just added multiline decls and a new module for the stdlib
 removed `pub` and defered adding `my` for 1.3.3
+
+## 3:24 pm 21 June 2026
+Removed extern from Tig, now debugging why compiler is broken. Working on 1.3.2

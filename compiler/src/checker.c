@@ -110,7 +110,7 @@ static Type *get_var_type(ScopeStack *s, const char *name) {
 static bool fn_exists(DeclVec *program, const char *name) {
     for (int i = 0; i < program->count; i++) {
         Decl *d = program->items[i];
-        if ((d->kind == DC_FN || d->kind == DC_EXTERN_FN) && strcmp(d->name, name) == 0) return true;
+        if (d->kind == DC_FN && strcmp(d->name, name) == 0) return true;
     }
     return false;
 }
@@ -118,7 +118,7 @@ static bool fn_exists(DeclVec *program, const char *name) {
 static Decl *get_fn_decl(DeclVec *program, const char *name) {
     for (int i = 0; i < program->count; i++) {
         Decl *d = program->items[i];
-        if ((d->kind == DC_FN || d->kind == DC_EXTERN_FN) && strcmp(d->name, name) == 0) return d;
+        if (d->kind == DC_FN && strcmp(d->name, name) == 0) return d;
     }
     return NULL;
 }

@@ -1,14 +1,6 @@
 "C" {
     #include <time.h>
 }
-extern "C" {
-    i64 fn time: ->void t 
-    ->void fn localtime: i64 t
-    ->void fn gmtime: i64 t 
-    i32 fn clock: void x
-    i32 fn Sleep: u32 ms
-}
-
 
 // get current time in seconds since epoch
 i64 fn now: {

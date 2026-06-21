@@ -1,24 +1,16 @@
 // HashMap module for Tig
 // String keys -> i32 values
 // Uses C FFI for implementation
-
+// include C lib for hashmaps
+"C" {
+    #include "hashmap.h"
+}
 // HashMap structure (opaque from C)
 strun HashMap {
     ->void impl
 }
 
 // C function declarations
-extern "C" {
-    ->HashMap fn hashmap_create:
-    void fn hashmap_set: ->HashMap map, ->i8 key, i32 value
-    i32 fn hashmap_get: ->HashMap map, ->i8 key, i32 default_value
-    i32 fn hashmap_has: ->HashMap map, ->i8 key
-    void fn hashmap_remove: ->HashMap map, ->i8 key
-    i32 fn hashmap_size: ->HashMap map
-    void fn hashmap_clear: ->HashMap map
-    void fn hashmap_destroy: ->HashMap map
-}
-
 // Create a new map
 fn HashMap HashMap_create: {
     HashMap m = {hashmap_create()}

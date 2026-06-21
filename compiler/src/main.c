@@ -514,10 +514,6 @@ int main(int argc, char **argv) {
             
             // Check for duplicate symbols (same name and kind)
             if (strcmp(d1->name, d2->name) == 0 && d1->kind == d2->kind) {
-                // Allow extern function declarations to match function definitions
-                if (d1->kind == DC_FN && d2->kind == DC_EXTERN_FN) continue;
-                if (d1->kind == DC_EXTERN_FN && d2->kind == DC_FN) continue;
-                
                 die("linker error: duplicate symbol '%s' defined in %s and %s",
                     d1->name, d1->source_file, d2->source_file);
             }

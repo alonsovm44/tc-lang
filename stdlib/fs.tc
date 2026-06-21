@@ -1,20 +1,4 @@
-extern "C" {
-    ->FILE fn fopen: ->i8 file, ->i8 mode 
-    i32 fn fclose: ->FILE f 
-    i32 fn fgetc: ->FILE stream 
-    i32 fn fputs: ->i8 s, ->FILE stream 
-    i32 fn fprintf: ->FILE stream, ->i8 fmt, ... 
-    i32 fn feof: ->FILE stream 
-    i32 fn fputc: i32 c, ->FILE stream 
-    i32 fn ungetc: i32 c, ->FILE stream
 
-    u64 fn fread: ->void ptr, u64 size, u64 count, ->void file 
-    u64 fn fwrite: ->void ptr, u64 size, u64 count, ->void file 
-    i32 fn fseek: ->void file, i64 offset, i32 whence 
-    i64 fn ftell: ->void file 
-    i32 fn ferror: ->void file 
-}
-    //i32 fn feof: ->void file 
 /*
 todo:
 1. add function to see if a file exists in CWD

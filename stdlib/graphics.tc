@@ -3,19 +3,6 @@
 "C"{
     #include "raylib.h"
 }
-extern "C" {
-    // TODO: Add raylib function declarations here
-    void fn InitWindow: i32 width, i32 height, ->i8 title
-    i8 fn WindowShouldClose: 
-    void fn CloseWindow:
-    void fn SetTargetFPS: i32 fps
-
-    void fn BeginDrawing:
-    void fn EndDrawing:
-    void fn ClearBackground: Color
-    
-    void fn DrawRectangle: i32 posX, i32 posY, i32 width, i32 height, Color color
-}
 
 strun Color{
     u8 r,
