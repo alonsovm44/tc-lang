@@ -1527,11 +1527,31 @@ static void scan_fat_types_in_stmts(StmtVec *body, Str *out, DeclVec *program, c
 
 
 
-char *emit_program(DeclVec program, const char *stdlib_path) {
+char *emit_program(DeclVec program, const char *stdlib_path, bool freestanding) {
 
     Str out = {0};
 
-    str_add(&out, "#include <stdint.h>\n#include <stddef.h>\n#include <stdio.h>\n#include <stdlib.h>\n#include <string.h>\n#include <math.h>\n#include <setjmp.h>\n");
+    if (freestanding) {
+        // Minimal type definitions for freestanding mode
+        str_add(&out, "// Minimal type definitions for freestanding mode\n");
+        str_add(&out, "typedef __INT8_TYPE__ int8_t;\n");
+        str_add(&out, "typedef __INT16_TYPE__ int16_t;\n");
+        str_add(&out, "typedef __INT32_TYPE__ int32_t;\n");
+        str_add(&out, "typedef __INT64_TYPE__ int64_t;\n");
+        str_add(&out, "typedef __UINT8_TYPE__ uint8_t;\n");
+        str_add(&out, "typedef __UINT16_TYPE__ uint16_t;\n");
+        str_add(&out, "typedef __UINT32_TYPE__ uint32_t;\n");
+        str_add(&out, "typedef __UINT64_TYPE__ uint64_t;\n");
+        str_add(&out, "typedef __INTPTR_TYPE__ intptr_t;\n");
+        str_add(&out, "typedef __UINTPTR_TYPE__ uintptr_t;\n");
+        str_add(&out, "typedef __SIZE_TYPE__ size_t;\n");
+        str_add(&out, "typedef __PTRDIFF_TYPE__ ptrdiff_t;\n");
+        str_add(&out, "#define NULL ((void*)0)\n");
+        str_add(&out, "#define volatile __volatile__\n");
+        str_add(&out, "\n");
+    } else {
+        str_add(&out, "#include <stdint.h>\n#include <stddef.h>\n#include <stdio.h>\n#include <stdlib.h>\n#include <string.h>\n#include <math.h>\n#include <setjmp.h>\n");
+    }
 
     str_add(&out, "#define TC_ALLOC(type, count) ((type *)calloc((count), sizeof(type)))\n");
 

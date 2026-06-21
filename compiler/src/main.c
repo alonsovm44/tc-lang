@@ -328,9 +328,14 @@ static void string_push(StringVec *v, const char *s) {
     v->items[v->count++] = xstrdup(s);
 }
 
-static void build_gcc_command(char *cmd_buf, size_t buf_size, const char *cc, const char *c_file, const char *output, StringVec *extra_flags, const char *base_flags) {
+static void build_gcc_command(char *cmd_buf, size_t buf_size, const char *cc, const char *c_file, const char *output, StringVec *extra_flags, const char *base_flags, bool freestanding) {
     Str cmd = {0};
     str_printf(&cmd, "%s \"%s\" -std=c11", cc, c_file);
+    
+    // Add freestanding flag if requested
+    if (freestanding) {
+        str_printf(&cmd, " -ffreestanding");
+    }
     
     // Add base flags (e.g., -shared, -fPIC, -lm, etc.)
     if (base_flags) {
@@ -364,6 +369,7 @@ int main(int argc, char **argv) {
     bool debug_ast = false;
     bool debug_c = false;
     bool collecting_c_flags = false;
+    bool freestanding = false;
     for (int i = 1; i < argc; i++) {
         if (!strcmp(argv[i], "--help") || !strcmp(argv[i], "-h")) {
             puts("Tight-C compiler v1.3.2\n"
@@ -379,6 +385,7 @@ int main(int argc, char **argv) {
                  "  --debug ast            Output AST for debugging\n"
                  "  --debug c              Output generated C code without compiling\n"
                  "  --stdlib-path <path>   Set stdlib path (default: ./stdlib or relative to exe)\n"
+                 "  --freestanding         Compile with no libc (for kernel development)\n"
                  "  -h, --help             Show this help message\n"
                  "  -v, --version          Show version\n"
                  "  --error <code>         Explain an error code (e.g. --error E000)\n"
@@ -433,6 +440,8 @@ int main(int argc, char **argv) {
         } else if (!strcmp(argv[i], "--stdlib-path")) {
             if (++i >= argc) die("missing path after --stdlib-path");
             stdlib_path = argv[i];
+        } else if (!strcmp(argv[i], "--freestanding")) {
+            freestanding = true;
         } else if (!strcmp(argv[i], "--")) {
             // Start collecting C compiler flags
             collecting_c_flags = true;
@@ -668,10 +677,10 @@ int main(int argc, char **argv) {
             char versioned_dll[256];
 #ifdef _WIN32
             snprintf(versioned_dll, sizeof(versioned_dll), "%s_%d.dll", hot_lib, version);
-            build_gcc_command(hot_cmd, sizeof(hot_cmd), cc, hot_c_path, versioned_dll, &c_flags, "-shared");
+            build_gcc_command(hot_cmd, sizeof(hot_cmd), cc, hot_c_path, versioned_dll, &c_flags, "-shared", freestanding);
 #else
             snprintf(versioned_dll, sizeof(versioned_dll), "%s_%d.so", hot_lib, version);
-            build_gcc_command(hot_cmd, sizeof(hot_cmd), cc, hot_c_path, versioned_dll, &c_flags, "-shared -fPIC");
+            build_gcc_command(hot_cmd, sizeof(hot_cmd), cc, hot_c_path, versioned_dll, &c_flags, "-shared -fPIC", freestanding);
 #endif
             printf("  %s\n", hot_cmd);
             int hot_ret = system(hot_cmd);
@@ -683,7 +692,7 @@ int main(int argc, char **argv) {
         }
         c_code = emit_hot_split(program, hot_lib, &hot_c, stdlib_path);
     } else {
-        c_code = emit_program(program, stdlib_path);
+        c_code = emit_program(program, stdlib_path, freestanding);
     }
     
     // Debug: Output C code
@@ -718,10 +727,10 @@ int main(int argc, char **argv) {
             char hot_output[256];
 #ifdef _WIN32
             snprintf(hot_output, sizeof(hot_output), "%s_1.dll", hot_lib);
-            build_gcc_command(hot_cmd, sizeof(hot_cmd), cc, hot_c_path, hot_output, &c_flags, "-shared");
+            build_gcc_command(hot_cmd, sizeof(hot_cmd), cc, hot_c_path, hot_output, &c_flags, "-shared", freestanding);
 #else
             snprintf(hot_output, sizeof(hot_output), "%s_1.so", hot_lib);
-            build_gcc_command(hot_cmd, sizeof(hot_cmd), cc, hot_c_path, hot_output, &c_flags, "-shared -fPIC");
+            build_gcc_command(hot_cmd, sizeof(hot_cmd), cc, hot_c_path, hot_output, &c_flags, "-shared -fPIC", freestanding);
 #endif
             printf("  %s\n", hot_cmd);
             int hot_ret = system(hot_cmd);
@@ -732,10 +741,10 @@ int main(int argc, char **argv) {
             char host_link_flags[256];
 #ifdef _WIN32
             snprintf(host_link_flags, sizeof(host_link_flags), "-lm -L. -l%s_1", hot_lib);
-            build_gcc_command(host_cmd, sizeof(host_cmd), cc, host_c, compile_out, &c_flags, host_link_flags);
+            build_gcc_command(host_cmd, sizeof(host_cmd), cc, host_c, compile_out, &c_flags, host_link_flags, freestanding);
 #else
             snprintf(host_link_flags, sizeof(host_link_flags), "-lm -lpthread -L. -l%s_1", hot_lib);
-            build_gcc_command(host_cmd, sizeof(host_cmd), cc, host_c, compile_out, &c_flags, host_link_flags);
+            build_gcc_command(host_cmd, sizeof(host_cmd), cc, host_c, compile_out, &c_flags, host_link_flags, freestanding);
 #endif
             printf("  %s\n", host_cmd);
             int host_ret = system(host_cmd);
@@ -762,9 +771,9 @@ int main(int argc, char **argv) {
 
             char cmd[1024];
             if (needs_runtime) {
-                build_gcc_command(cmd, sizeof(cmd), cc, tmp_c, compile_out, &c_flags, "-lm \"compiler/src/runtime.o\"");
+                build_gcc_command(cmd, sizeof(cmd), cc, tmp_c, compile_out, &c_flags, "-lm \"compiler/src/runtime.o\"", freestanding);
             } else {
-                build_gcc_command(cmd, sizeof(cmd), cc, tmp_c, compile_out, &c_flags, "-lm");
+                build_gcc_command(cmd, sizeof(cmd), cc, tmp_c, compile_out, &c_flags, "-lm", freestanding);
             }
             printf("  %s\n", cmd);
             int ret = system(cmd);

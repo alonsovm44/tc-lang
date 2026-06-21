@@ -379,3 +379,7 @@ I added the whole picture to the 1.3.3 spec document. I deferred it to 1.3.3 bec
 **On Maker**
 I for the last 3 days i've been writing Maker, i managed to make a working lexer and I've been struggling to make the parser work. Everything that will be written in Tig will be handwritten since AI codegen sucks at writing Tig code. 
 At most i can ask for pseudocode and translate it to Tig, but that's it. I think that is good because this restriction has taught me coding more than ever. 
+
+
+### Free standing
+I am adding a free standing mode/flag 

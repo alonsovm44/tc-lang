@@ -2,6 +2,9 @@
 
 Added:
 
+- Modified to skip libc includes and provide minimal type definitions when freestanding is true
+- added freestanding parameter to emmiter
+- added freestanding flag parsing
 - added C compiler flags using --
 - added multiple error detection to tig
 - added linking to Tig, now we can compile multiple files

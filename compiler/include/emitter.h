@@ -54,6 +54,7 @@
  * Args:
  *   program: The validated AST (DeclVec) from the checker phase
  *   stdlib_path: Path to the stdlib directory for resolving @use includes
+ *   freestanding: If true, skip libc includes and provide minimal type definitions
  *
  * Returns:
  *   A dynamically allocated string containing the generated C code.
@@ -71,14 +72,19 @@
  *   - Only includes async runtime if needed (zero overhead for sync)
  *   - Generates thread pool and task management code
  *
+ * Freestanding Mode:
+ *   - When freestanding is true, skips stdio, stdlib, math, and setjmp includes
+ *   - Provides minimal type definitions (int8_t, int16_t, etc.)
+ *   - Useful for kernel development and bare-metal programming
+ *
  * Example:
  *   DeclVec program = parse_program(tokens);
  *   check_program(&program);
- *   char *c_code = emit_program(program, "stdlib");
+ *   char *c_code = emit_program(program, "stdlib", false);
  *   // Write c_code to file or compile directly
  *   free(c_code);
  */
-char *emit_program(DeclVec program, const char *stdlib_path);
+char *emit_program(DeclVec program, const char *stdlib_path, bool freestanding);
 
 /**
  * emit_hot_split: Generate C code for hot-swapping (library reloading)
