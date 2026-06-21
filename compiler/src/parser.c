@@ -1066,8 +1066,12 @@ void collect_imported_types(Token *tokens, const char *source_file, TypeRegistry
             p.pos++;
             continue;
         }
-        // Skip inline C and macros
+        // Collect inline C blocks
         if (cur(&p)->kind == TOK_INLINE_C) {
+            Decl *d = new_decl(DC_INLINE_C);
+            d->text = xstrdup(cur(&p)->text);
+            d->source_file = xstrdup(p.source_file);
+            decl_push(&p.decls, d);
             p.pos++;
             continue;
         }

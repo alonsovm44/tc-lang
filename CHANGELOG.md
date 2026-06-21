@@ -9,6 +9,7 @@ Removed:
 
 Improved/Fixed:
 
+- fixed inline C not being emmited by the codegen
 - fixed structs not working when inlining files
 ## v1.3.0/1.3.1 2026-06-04
 
