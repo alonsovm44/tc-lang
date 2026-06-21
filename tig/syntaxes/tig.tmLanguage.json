@@ -156,11 +156,11 @@
 			"patterns": [
 				{
 					"name": "keyword.control.tig",
-					"match": "\\b(if|else|loop|break|defer|ret|match|select|continue|return|throw|try|catch|await)\\b"
+					"match": "\\b(if|else|loop|break|defer|ret|match|select|throw|try|catch|await)\\b"
 				},
 				{
 					"name": "keyword.declaration.tig",
-					"match": "\\b(fn|async|strun|struct|enum|comptime|my|use|pub|pin|extern|defer|collection)\\b"
+					"match": "\\b(fn|async|strun|volatile|freestanding|naked|interrupt|inline|enum|my|use|pub|pin|extern|)\\b"
 				},
 				{
 					"name": "constant.language.tig",

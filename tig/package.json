@@ -2,7 +2,7 @@
   "name": "tig",
   "displayName": "tig",
   "description": "A systems language",
-  "version": "1.4.0",
+  "version": "1.3.2",
   "engines": {
     "vscode": "^1.110.0"
   },
