@@ -226,6 +226,11 @@ For me `raw` is a better term than volatile.
 raw fn some_function: {
     // function that accesses memory directly
 }
+
+raw fn void write_vga: u16 offset, u8 value {
+    ->u8 vga = (->u8)0xB8000
+    vga[offset] = value
+}
 ```
 
 ### interrupt
@@ -273,6 +278,16 @@ freestanding volatile fn void write_port: u16 port, u8 value {
 - async + naked → ❌ (async needs runtime, naked has no prologue)
 
 The compiler should catch these combinations.
+
+
+## Inline assembly
+
+"ASM"{
+    // Inline assembly block
+    mov eax, 1
+    mov ebx, 2
+    add eax, ebx
+}
 
 
 ### Critical kernel development features:

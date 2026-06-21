@@ -1885,7 +1885,9 @@ char *emit_program(DeclVec program, const char *stdlib_path, bool freestanding) 
                 str_add(&out, "int32_t main(int argc, char **argv);\n");
 
             } else {
-
+                if (d->is_raw) {
+                    str_add(&out, "volatile ");
+                }
                 emit_type(&out, d->type, d->name, &program); str_add(&out, "(");
 
                 if (!d->params.count && !d->varargs) str_add(&out, "void");
@@ -2096,6 +2098,9 @@ char *emit_program(DeclVec program, const char *stdlib_path, bool freestanding) 
 
             } else {
 
+                if (d->is_raw) {
+                    str_add(&out, "volatile ");
+                }
                 str_add(&out, "\n"); emit_type(&out, d->type, d->name, &program); str_add(&out, "(");
 
                 if (!d->params.count && !d->varargs) str_add(&out, "void");

@@ -2,6 +2,11 @@
 
 Added:
 
+- added raw keyword to tig; 
+1) added raw to common.c
+2) added is_raw to the ast
+3) added raw to the parser
+4) added volatile keyword emission for the C backend
 - Modified to skip libc includes and provide minimal type definitions when freestanding is true
 - added freestanding parameter to emmiter
 - added freestanding flag parsing

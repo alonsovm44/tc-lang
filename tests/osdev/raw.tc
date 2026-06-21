@@ -5,5 +5,5 @@ raw fn void rawfn: i32 x {
 }
 
 fn void main: {
-    rawfn()
+    rawfn(5)
 }

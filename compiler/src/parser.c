@@ -1207,11 +1207,18 @@ DeclVec parse_program_with_types(Token *tokens, const char *source_file,
             is_async = true;
         }
         
+        // Check for raw fn syntax
+        bool is_raw = false;
+        if (match(&p, "raw")) {
+            is_raw = true;
+        }
+        
         if (match(&p, "fn")) {
-            // New syntax: [async] fn <type> <name>: <type> arg1, <type> arg2, ...
+            // New syntax: [async] [raw] fn <type> <name>: <type> arg1, <type> arg2, ...
             Type *ret_type = parse_type(&p);
             Decl *d = new_decl(DC_FN);
             d->is_async = is_async;
+            d->is_raw = is_raw;
             d->type = ret_type;
             d->name = expect_ident(&p);
             expect(&p, ":");
