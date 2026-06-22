@@ -14,25 +14,27 @@
 </p>
 
 ---
-> Disclaimer: For stage0, Tig uses AI codegen for the C core, for stage1 of self hosting, handwritten code only.
+> Disclaimer: For stage0, Tig can use AI codegen for the C core, for stage1 of self hosting, handwritten code only. See [contributing](CONTRIBUTING.md) for more info.
+> Note: see dogfood/ folder for some non trivial examples of Tig being used.
 
 Tig is a minimalistic systems programming language. 🦁🦁🦁
 
->Note: see dogfood/ folder for some non trivial examples of Tig being used.
-## What's New in v1.3.1 🚀
+## What's New in v1.3.2
 
-1. OS module for stdlib
-2. Multiple declarations within one line
-3. All data is public in Tig (no privacy keywords yet, `pub` eliminated) 
-4. improved async runtime
+1. Added C compiler flags using --
+2. Added freestanding parameter to enable freestanding mode
+3. Multiple file linking support
+4. Added binary and hex literals
+5. removed old function syntax
+6. removed extern blocks
 And more... check Changelog for full change reports.
 
 ## Project Goals
-> Make the first usable systems language from Mexico.
-> Explore the bare minimum of what a systems language must have to be usable, modern and ergonomic
-> Learn C and master Tig
-> Make a useful contribution to CS and coders out there.
-> Get a job
+1. Make the first usable systems language from Mexico.
+2. Explore the bare minimum of what a systems language must have to be usable, modern and ergonomic
+3. Learn C and master Tig
+4. Make an OS with it
+5. Get a job
 
 ## Philosophy
 
@@ -49,18 +51,17 @@ And more... check Changelog for full change reports.
 
 ## Features
 
-- **17 keywords** — `if`, `loop`, `break`, `defer`, `ret`, `strun`, `fn`, `use`, `pin`, `match`, `else`, `enum`, `async`, `select`, `throw`, `try`, `catch`.
+- **18 keywords** — `if`, `loop`, `break`, `defer`, `ret`, `strun`, `fn`, `use`, `pin`, `match`, `else`, `enum`, `async`, `select`, `throw`, `try`, `catch`, `raw`.
 - **Zero-Boilerplate Async** — Automatic runtime initialization, no manual setup needed
 - **Async Functions** — Simple concurrent programming with `async fn`
 - **Concurrent Data Structures** — Built-in `queue<T>` and `stack<T>` types
 - **Ownership Transfer** — `@` operator for safe resource transfer
 - **Select Statements** — Multi-operation waiting with `select`
-- **Pin Keyword** — Keep variables alive across async boundaries
+- **Pin** — Keep variables alive across async boundaries
 - **No hidden magic** — no GC, no type inference, no shadowing, no aliasing
 - **Raw pointers** (`->`) and **fat pointers** (`=>`) with built-in slicing
 - **Manual memory** — `alloc()` / `free()` with `defer` for cleanup
 - **Packed structs** — no padding, predictable layout
-- **C FFI** — `extern "C"` for direct interop
 - **Rust-style errors** — colored diagnostics with source lines and carets
 - **One-step compile** — `tightc source.tc -c app` transpiles and compiles in one command
 - **Inline imports** — `@use "lib.tc"` inlines another `.tc` file at compile time
@@ -86,7 +87,7 @@ make # requires make
 
 ## How It Works
 
-Tig is a source-to-source compiler (transpiler) written in ~4200 lines of C. It reads `.tc` files and outputs portable C11.
+Tig is a source-to-source compiler (transpiler) written in ~4600 lines of C. It reads `.tc` files and outputs portable C11.
 
 ```
 source.tc -> [Lexer] -> [Parser] -> [AST] -> [Checker] -> [Emitter] -> output.c -> gcc/clang -> binary
@@ -110,12 +111,12 @@ source.tc -> [Lexer] -> [Parser] -> [AST] -> [Checker] -> [Emitter] -> output.c 
 ### What it is not
 I don't claim Tig to be a memory safe language, it does not have a Borrow Checker or GC, rather memory management is manunal (although I plan to add arenas in the near future too), but it does provide some safety features like fat pointers, self cleaning error functions and defer statements as first class ergonomics to help write safer code.
 
-Tig has no optimizer, no IR, no type inference pass, and no code generation beyond string concatenation of C. It can leverage LLVM flags (soon) from gcc/clang. The output is always readable, debuggable C that you can inspect with `tightc source.tc -o source.c`.
+Tig has no optimizer, no IR, no type inference pass, and no code generation beyond string concatenation of C. It can leverage LLVM flags from gcc/clang. The output is always readable, debuggable C that you can inspect with `tightc source.tc -o source.c`.
 
 ### What Tig is good for
 
 - **CLI tools** , absolute tiny or no runtime overhead. Parse args, process files, call system APIs
-- **Embedded / bare-metal** — (almost) no runtime, no allocator required, predictable memory layout with packed structs.
+- **Embedded / bare-metal** — no runtime, no allocator required, predictable memory layout with packed structs.
 - **Game engine internals** — manual memory, no GC pauses, direct pointer control
 - **Learning compilers** — small enough to read in an afternoon, real enough to produce working binaries
 - **C codebases that want better ergonomics** — fat pointers, defer, slicing, without leaving the C ecosystem
@@ -213,11 +214,11 @@ This groups `x` and `y` together, and `z` and `w` together.
 ### Pointers
 ```
 i32 x = 42
-->i32 ptr = @x          // raw pointer (address-of)
+->i32 ptr = &x          // raw pointer (address-of)
 ->ptr = 99              // dereference
 
 i32[4] arr = {1,2,3,4}
-=>i32 slice = @arr       // fat pointer from array
+=>i32 slice = &arr       // fat pointer from array
 printi(slice.len)        // built-in length
 printi(slice.ptr[0])     // access elements
 
@@ -226,10 +227,10 @@ printi(slice.ptr[0])     // access elements
 
 ### Pointer Combos
 ```
-->->i32 pp = @p          // pointer to pointer
-=>->i32 fps = @ptrs      // fat pointer of raw pointers
-->=>i32 pslice = @slice  // raw pointer to fat pointer
-=>=> sslice = @slice     // fat pointer to fat pointer
+->->i32 pp = &p          // pointer to pointer
+=>->i32 fps = &ptrs      // fat pointer of raw pointers, array of pointers
+->=>i32 pslice = &slice  // raw pointer to fat pointer
+=>=> sslice = &slice     // fat pointer to fat pointer
 ```
 ### Dereferencing
 
@@ -276,6 +277,7 @@ fn void printP: ->Point p {
 ```
 Struns can have methods inside them
 
+```
 strun Point {
     i32 x,
     i32 y
@@ -291,6 +293,7 @@ fn void main:{
     p.y = 20
     p.printPoint() // prints [10, 20]
 }
+```
 
 ### Control Flow
 ```
@@ -300,7 +303,7 @@ else { ... }
 
 loop { ... break }          // infinite loop unless break
 
-loop if (i < 10) { ... }    // conditional loop
+loop if (i < 10) { ... }    // conditional loop, alias of while
 ```
 
 ### Memory
@@ -328,8 +331,12 @@ i32 fn main: =>->i8 args {
 
 ### C FFI
 ```
-extern "C" {
-    i32 fn printf: ->i8 fmt, ... // dont use {}, only the function signature
+"C"{
+    #include "clib.h"
+}
+
+fn void wrapper:{
+    // use C functions from "clib.h" here
 }
 ```
 
@@ -392,9 +399,11 @@ fn void main: {
 ```
 
 ### Concurrent Data Structures
+Async functions are void always. Use channels (queues or stacks) to communicate between tasks.
 
 ```tig
 use "stdlib/async.tc" // for the runtime
+use "stdlib/snq.tc" // for stacks and queues types
 use "stdlib/io.tc"
 
 async fn void producer: queue<i32> q {
@@ -421,13 +430,55 @@ async fn void task2: { printi(2) }
 
 fn void main: {
     select {
-        case task1():
+        task1() => {
             printi("Task 1 completed")
-        case task2():
+        }
+        task2() => {
             printi("Task 2 completed")
+        }
     }
 }
 ```
+
+### Error system
+Errors are a built in type in Tig via `error`. Errors are function like executable units, which contain how the error is handled plus clean up code.
+
+Errors are declared with the `error` keyword, and can have parameters like functions, which carry the context of the error case. Errors are called with the `throw` keyword. 
+
+#### Try-Catch blocks
+
+Try-catch blocks are used to handle errors. They are declared with the `try` and `catch` keywords.
+Catch blocks dont contain error handling code, rather they work like `match` statements where we specify which errors to catch and what return value to use. Use the `_` wildcard to catch all errors.
+
+Example use of Tig's error system.
+```tig
+error zero_division: i32 a, i32 b{
+    printf("Error, division by zero: %d / %d", a, b)
+}
+
+fn f64 divide: i32 a, i32 b{
+    if(b == (f32)0){
+        throw zero_division(a, b)
+    }
+    return (f64)a / (f64)b
+}
+
+fn i32 main: {
+    i32 a = 10; i32 b = 0
+    try{
+        divide(a, b)
+    }catch{
+        zero_division(a, b) ret 1,
+        _ { // wildcard, catches other exception
+            printf("Unknown error")
+            ret 1
+        }
+    }
+    return 0
+}
+
+```
+> Note: the error system might be tricky to use in freestanding environments due to no longjump and no debug printf statements available. Be sure to provide your own. 
 
 ## Types
 
@@ -448,7 +499,7 @@ fn void main: {
 ## Compiler Usage
 
 ```bash
-tigc <input.tc> [-o output.c] [-c binary] [-t]
+tigc <input.tc> [-o output.c] [-c binary] [-t] -- [clang/gcc flags]
 ```
 
 | Flag | Description |
