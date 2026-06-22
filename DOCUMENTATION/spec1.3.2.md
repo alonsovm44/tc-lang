@@ -315,7 +315,8 @@ New types
 
 0x00001
 0b10101 // assignable to variables
- 
+0xFF // assignable to variables
+
 #### 3. Memory alignment
 ```tig
 // Align variables to specific boundaries

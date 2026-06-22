@@ -2,6 +2,7 @@
 
 Added:
 
+- added binary and hex literals
 - added raw keyword to tig; 
 1) added raw to common.c
 2) added is_raw to the ast

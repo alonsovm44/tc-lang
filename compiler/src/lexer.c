@@ -482,6 +482,21 @@ static TokenVec lex_source_with_depth(const char *src, int depth) {
         }
         if (isdigit((unsigned char)src[i])) {
             int start = i;
+            // Check for hex literal (0x or 0X)
+            if (src[i] == '0' && (src[i + 1] == 'x' || src[i + 1] == 'X')) {
+                i += 2; col += 2;
+                while (isxdigit((unsigned char)src[i])) { i++; col++; }
+                token_push(&out, (Token){TOK_NUMBER, xstrndup(src + start, (size_t)(i - start)), start_line, start_col});
+                continue;
+            }
+            // Check for binary literal (0b or 0B)
+            if (src[i] == '0' && (src[i + 1] == 'b' || src[i + 1] == 'B')) {
+                i += 2; col += 2;
+                while (src[i] == '0' || src[i] == '1') { i++; col++; }
+                token_push(&out, (Token){TOK_NUMBER, xstrndup(src + start, (size_t)(i - start)), start_line, start_col});
+                continue;
+            }
+            // Regular decimal number
             while (isalnum((unsigned char)src[i]) || src[i] == '.') { i++; col++; }
             token_push(&out, (Token){TOK_NUMBER, xstrndup(src + start, (size_t)(i - start)), start_line, start_col});
             continue;

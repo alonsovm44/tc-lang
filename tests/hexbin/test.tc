@@ -1,0 +1,13 @@
+use "stdlib/io.tc"
+
+fn i32 main: {
+    i32 hex = 0xFF
+    i32 binary = 0b10101
+    i32 hex2 = 0x00001
+    printi(hex)
+    print("\n")
+    printi(binary)
+    print("\n")
+    printi(hex2)
+    ret 0
+}
