@@ -23,6 +23,9 @@ volatile void kernel_main(void);
 
 volatile 
 void kernel_main(void) {
+    uint8_t *vga = (uint8_t *)0xB8000;
+    (vga[0] = 64);
+    (vga[1] = 0x07);
     while (1) {
     }
 }

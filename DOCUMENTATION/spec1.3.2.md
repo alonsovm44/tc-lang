@@ -312,7 +312,7 @@ New types
 .rodata
 
 ### 2.1 Hex and binary literals
-
+[DONE]
 0x00001
 0b10101 // assignable to variables
 0xFF // assignable to variables
@@ -328,10 +328,8 @@ align(4096) u8[8192] kernel_stack
 ```tig
 // Access memory at specific addresses
 // (a value between brackets is interpreted as a memory address)
-extern "C" {
-    u32 fn [->0xB8000] video_memory{
-        // access video memory at 0xB8000
-    }
+u32 fn [->0xB8000] video_memory{
+    // access video memory at 0xB8000
 }
 ```
 

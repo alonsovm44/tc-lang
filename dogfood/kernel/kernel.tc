@@ -1,6 +1,19 @@
 
+# MULTIBOOT_MAGIC {0x1BADB002}
+# MULTIBOOT_FLAGS {0x00000003}
+
+strun multiboot_header {
+    u32 magic
+    u32 flags
+    u32 checksum
+}
 
 raw fn void kernel_main: {
+    ->u8 vga = (->u8)0xB8000
+
+    vga[0] = 64 // '@'
+    vga[1] = 0x07 // white on black
+
     loop {
         // hang forever
     }
