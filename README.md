@@ -159,9 +159,8 @@ fn i32 add: i32 a, i32 b {
 ### Varargs
 Functions can declare variadic arguments with `...`:
 ```
-extern "C" {
-    i32 fn printf: ->i8 fmt, ... {}
-}
+i32 fn printf: ->i8 fmt, ... {}
+
 ```
 Note: `...` in function calls is implicit - you don't need to write it when calling varargs functions.
 
@@ -544,10 +543,6 @@ Tig uses a robust Host/DLL splitting architecture to avoid Windows file locking 
 ```tightc
 use "stdlib/io.tc"
 
-extern "C" {
-    i32 fn Sleep: u32 ms {}
-}
-
 fn i32 add: i32 x, i32 y {
     ret x + y + 10
 }
@@ -606,7 +601,7 @@ tc-lang/
 | `write_file(s, stream)` | Write string to file |
 | `eof(stream)` | Check if at end of file |
 
-**File I/O (via extern "C")**
+**File I/O**
 
 | Function     | Description                |
 |--------------|----------------------------|
@@ -643,8 +638,8 @@ tc-lang/
 | `sqrt64(x)`          | Square root (f64)                 |
 | `pow64(base, exp)`   | Power (f64)                       |
 | `fabs64(x)`          | Absolute value (f64)              |
-| `sin`, `cos`, `tan`  | Trig functions (extern C)         |
-| `log`, `log2`, `log10` | Logarithms (extern C)           |
+| `sin`, `cos`, `tan`  | Trig functions          |
+| `log`, `log2`, `log10` | Logarithms            |
 
 **`stdlib/mem.tc`** — Memory
 
