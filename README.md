@@ -568,7 +568,7 @@ Running this prints `17` every 2 seconds. If you edit `ret x + y + 10` to `ret x
 
 ### Proof of Concept
 
-See the `demos/HOTSWAPPING/` folder for a complete working example with documentation, including the demo output showing hot reload in action.
+See the `dogiood/HOTSWAPPING/` folder for a complete working example with documentation, including the demo output showing hot reload in action.
 
 This feature demonstrates Tig's capability for advanced systems programming patterns, using the industry-standard approach to hot reload on Windows (versioned libraries).
 
