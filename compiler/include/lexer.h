@@ -42,7 +42,8 @@ typedef enum {
     TOK_SYMBOL,     // Operators and delimiters: +, -, {, }, :, etc.
     TOK_KEYWORD,    // Keywords: if, loop, fn, ret, etc.
     TOK_INLINE_C,   // Raw C code block
-    TOK_MACRO       // Macro definition or usage
+    TOK_MACRO,      // Macro definition or usage
+    TOK_SECTION     // Memory section: .data, .bss, .multiboot, etc.
 } TokenKind;
 
 /**

@@ -1,5 +1,0 @@
-fn void main: {
-    i32 hex = 0xFF
-    i32 binary = 0b10101
-    i32 hex2 = 0x00001
-}
