@@ -1,0 +1,7 @@
+
+
+raw fn void kernel_main: {
+    loop {
+        // hang forever
+    }
+}

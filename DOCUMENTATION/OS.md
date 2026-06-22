@@ -4,7 +4,7 @@
 1) Write kernel in Tig
 ```
 // kernel.tc
-freestanding fn void kernel_main: {
+raw fn void kernel_main: {
     // Your kernel code
 }
 ```

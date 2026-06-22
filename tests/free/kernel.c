@@ -19,10 +19,10 @@ typedef __PTRDIFF_TYPE__ ptrdiff_t;
 #define TC_FAT_LENOF(x) ((x).len)
 
 
-int32_t main(void);
+volatile void kernel_main(void);
 
-
-int32_t main(void) {
-    
-    return 0;
+volatile 
+void kernel_main(void) {
+    while (1) {
+    }
 }

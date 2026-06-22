@@ -2,7 +2,7 @@
 "C"{
     # include "tests/extern/mylib.h"
 }
-use "stdlib/io.tc"
+@use "stdlib/io.tc"
 
 fn i32 sum: i32 x, i32 y {
     ret add(x, y)
