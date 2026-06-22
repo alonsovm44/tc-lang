@@ -274,30 +274,15 @@ raw fn void write_vga: u16 offset, u8 value {
 
 ## Inline assembly
 
-"ASM"{
-    // Inline assembly block
-    mov eax, 1
-    mov ebx, 2
-    add eax, ebx
+asm fn foo: i32 a, i32 b{
+    mov rax, 3
+    mov rbx, 5
+    add rax, rbx
+
+    outl %a, %b
 }
 
-raw fn void halt_cpu: {
-    "ASM"{
-        hlt
-    }
-}
-
-
-### Critical kernel development features:
-
-#### 1. Inline assembly support
-```tig
-raw fn void write_port: u16 port, u8 value {
-    asm "outb %0, %1" (value, port)
-}
-```
-
-#### 2. Memory section types
+## 2. Memory section types
 ```tig
 // Place data in specific sections
 .data u32 kernel_data = 0x1000
@@ -305,11 +290,36 @@ raw fn void write_port: u16 port, u8 value {
 .rodata u8 const_data = 42
 ```
 
-New types
+These come hardcoded into Tig
 
 .data
 .bss
 .rodata
+
+## memory section definition
+You can define custom memory section with the .NAME syntax
+
+.mysection u8 mydata = 42
+
+This transpiles to:
+```c
+__attribute__((section(".mysection"))) uint8_t mydata = 42;
+```
+
+Example uses
+
+.rodata raw fn void myrodata_function: {
+    // function that accesses memory directly
+}
+
+.mysection fn i32 add: i32 a, i32 b{
+    ret a + b
+}
+
+.rodata strun Point{
+    i32 x, i32 y
+}
+
 
 ### 2.1 Hex and binary literals
 [DONE]
