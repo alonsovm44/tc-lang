@@ -145,7 +145,7 @@ Variables are C-like and mutable by default.
 Declare constants with `pin`
 
 ```
-pin f32 PI = 3.14 // immutable in the current scope
+f32 PI = 3.14; pin PI // immutable in the current scope
 
 ```
 
