@@ -2107,6 +2107,9 @@ char *emit_program(DeclVec program, const char *stdlib_path, bool freestanding) 
 
             } else {
 
+                if (d->section) {
+                    str_printf(&out, "__attribute__((section(\"%s\"))) ", d->section);
+                }
                 if (d->is_raw) {
                     str_add(&out, "volatile ");
                 }
