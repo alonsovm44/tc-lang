@@ -4,10 +4,16 @@
 
 .rodata ->i8 kernel_name = "TigOS"
 
-strun multiboot_header {
+.multiboot strun multiboot_header {
     u32 magic
     u32 flags
     u32 checksum
+}
+
+.multiboot multiboot_header mb_header {
+    magic = MULTIBOOT_MAGIC,
+    flags = MULTIBOOT_FLAGS,
+    checksum = -(MULTIBOOT_MAGIC + MULTIBOOT_FLAGS)
 }
 
 .data raw fn void kernel_main: {

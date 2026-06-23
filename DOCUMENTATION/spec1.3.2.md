@@ -250,6 +250,22 @@ fn i32 main: {
     return 0;
 }
 ```
+## Global variables
+
+```
+i32 x = 10
+strun Point{
+    i32 x,
+    i32 y
+}
+
+.boot Point point = {10, 20}
+
+fn i32 main: {
+    // code
+}
+
+```
 
 ## OSdev keywords
 
@@ -290,13 +306,6 @@ asm fn foo: i32 a, i32 b{
 .bss u32 zero_data
 .rodata u8 const_data = 42
 ```
-
-These come hardcoded into Tig
-
-.data
-.bss
-.rodata
-
 ## memory section definition
 You can define custom memory section with the .NAME syntax
 
