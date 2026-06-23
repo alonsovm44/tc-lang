@@ -1163,16 +1163,30 @@ DeclVec parse_program_with_types(Token *tokens, const char *source_file,
             parse_macro(&p);
             continue;
         }
+        
+        // Check for memory section prefix: .NAME
+        char *current_section = NULL;
+        if (cur(&p)->kind == TOK_SECTION) {
+            current_section = cur(&p)->text;
+            p.pos++;
+        }
+        
         if (match(&p, "struct") || match(&p, "strun")) {
-            decl_push(&p.decls, parse_struct(&p, false, false));
+            Decl *d = parse_struct(&p, false, false);
+            d->section = current_section;
+            decl_push(&p.decls, d);
             continue;
         }
         if (match(&p, "enum")) {
-            decl_push(&p.decls, parse_enum(&p, false));
+            Decl *d = parse_enum(&p, false);
+            d->section = current_section;
+            decl_push(&p.decls, d);
             continue;
         }
         if (match(&p, "error")) {
-            decl_push(&p.decls, parse_error(&p, false));
+            Decl *d = parse_error(&p, false);
+            d->section = current_section;
+            decl_push(&p.decls, d);
             continue;
         }
         // Check for async fn syntax first
@@ -1193,6 +1207,7 @@ DeclVec parse_program_with_types(Token *tokens, const char *source_file,
             Decl *d = new_decl(DC_FN);
             d->is_async = is_async;
             d->is_raw = is_raw;
+            d->section = current_section;
             d->type = ret_type;
             d->name = expect_ident(&p);
             expect(&p, ":");
@@ -1222,11 +1237,13 @@ DeclVec parse_program_with_types(Token *tokens, const char *source_file,
             if (match(&p, "fn")) {
                 Decl *fn_decl = parse_fn(&p, DC_FN, false, type);
                 fn_decl->is_async = is_async;
+                fn_decl->section = current_section;
                 decl_push(&p.decls, fn_decl);
             } else {
                 Decl *d = new_decl(DC_VAR);
                 d->type = type;
                 d->name = expect_ident(&p);
+                d->section = current_section;
                 if (match(&p, "=")) d->init = parse_initializer(&p);
                 decl_push(&p.decls, d);
             }

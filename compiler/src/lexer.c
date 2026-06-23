@@ -461,6 +461,16 @@ static TokenVec lex_source_with_depth(const char *src, int depth) {
             token_push(&out, (Token){TOK_INLINE_C, c_code, start_line, start_col});
             continue;
         }
+
+          // Handle memory section prefix: .NAME
+        if (src[i] == '.' && src[i + 1] && isalpha((unsigned char)src[i + 1])) {
+            int start = i;
+            i++; col++;
+            while (isalnum((unsigned char)src[i]) || src[i] == '_') { i++; col++; }
+            token_push(&out, (Token){TOK_SECTION, xstrndup(src + start, (size_t)(i - start)), start_line, start_col});
+            continue;
+        }
+ 
         
         if (strchr("{}()[],:.;=+-*/%<>!&|^@", src[i])) {
             token_push(&out, (Token){TOK_SYMBOL, xstrndup(src + i, 1), start_line, start_col});

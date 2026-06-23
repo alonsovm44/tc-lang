@@ -43,12 +43,12 @@ typedef enum {
     TOK_KEYWORD,    // Keywords: if, loop, fn, ret, etc.
     TOK_INLINE_C,   // Raw C code block
     TOK_MACRO,      // Macro definition or usage
-    TOK_SECTION     // Memory section: .data, .bss, .multiboot, etc.
+    TOK_SECTION     // Section directive for OSdev
 } TokenKind;
 
 /**
  * Token: A single token from the source
- *
+*
  * Represents one indivisible unit of the source code (keyword, identifier,
  * literal, operator, etc.) along with its location information.
  *

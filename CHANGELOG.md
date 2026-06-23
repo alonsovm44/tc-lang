@@ -2,6 +2,7 @@
 
 Added:
 
+- added custom memory sections
 - added binary and hex literals
 - added raw keyword to tig; 
 1) added raw to common.c

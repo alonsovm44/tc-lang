@@ -1681,7 +1681,9 @@ char *emit_program(DeclVec program, const char *stdlib_path, bool freestanding) 
         Decl *d = program.items[i];
 
         if (d->kind == DC_STRUCT) {
-
+            if (d->section) {
+                str_printf(&out, "__attribute__((section(\"%s\"))) ", d->section);
+            }
             if (d->packed) {
 
                 str_printf(&out, "struct __attribute__((packed)) %s {\n", d->name);
@@ -1785,7 +1787,9 @@ char *emit_program(DeclVec program, const char *stdlib_path, bool freestanding) 
         }
 
         if (d->kind == DC_ENUM) {
-
+            if (d->section) {
+                str_printf(&out, "__attribute__((section(\"%s\"))) ", d->section);
+            }
             str_printf(&out, "typedef enum {\n");
 
             for (int j = 0; j < d->enum_members.count; j++) {
@@ -1885,6 +1889,9 @@ char *emit_program(DeclVec program, const char *stdlib_path, bool freestanding) 
                 str_add(&out, "int32_t main(int argc, char **argv);\n");
 
             } else {
+                if (d->section) {
+                    str_printf(&out, "__attribute__((section(\"%s\"))) ", d->section);
+                }
                 if (d->is_raw) {
                     str_add(&out, "volatile ");
                 }
@@ -2065,7 +2072,9 @@ char *emit_program(DeclVec program, const char *stdlib_path, bool freestanding) 
         Decl *d = program.items[i];
 
         if (d->kind == DC_VAR) {
-
+            if (d->section) {
+                str_printf(&out, "__attribute__((section(\"%s\"))) ", d->section);
+            }
             emit_type(&out, d->type, d->name, &program);
 
             if (d->init) {
