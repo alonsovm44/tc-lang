@@ -2,6 +2,7 @@
 
 Added:
 
+- added global variable definition
 - added custom memory sections
 - added binary and hex literals
 - added raw keyword to tig; 

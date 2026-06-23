@@ -1,0 +1,12 @@
+use "stdlib/io.tc"
+
+f32 PI = 3.14 // global var
+
+.rodata ->u8 str = "Hello, world!"
+
+
+fn i32 main:{
+    printf("%d", PI)
+    print(str)
+    ret 0
+}

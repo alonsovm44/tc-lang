@@ -425,6 +425,19 @@ void check_program(DeclVec *program) {
         }
     }
 
+    // Create a global scope for global variables
+    ScopeStack global_scope = {0};
+    global_scope.program = program;
+    push_scope(&global_scope);
+    
+    // Add all global variables (DC_VAR) to the global scope
+    for (int i = 0; i < program->count; i++) {
+        Decl *d = program->items[i];
+        if (d->kind == DC_VAR) {
+            declare_var(&global_scope, d->name, d->type);
+        }
+    }
+
     for (int i = 0; i < program->count; i++) {
         Decl *d = program->items[i];
         if (d->kind != DC_FN) {
@@ -437,6 +450,12 @@ void check_program(DeclVec *program) {
         s.program = program;
         s.current_fn = d;  // Set current function context
 
+        // Copy global scope to function scope
+        s.depth = global_scope.depth;
+        s.cap = global_scope.cap;
+        s.scopes = xmalloc(sizeof(Scope) * (size_t)s.cap);
+        memcpy(s.scopes, global_scope.scopes, sizeof(Scope) * (size_t)s.depth);
+
         push_scope(&s);
         // Declare function parameters in scope
         for (int j = 0; j < d->params.count; j++) {
@@ -447,4 +466,7 @@ void check_program(DeclVec *program) {
 
         if (s.scopes) free(s.scopes);
     }
+    
+    // Free global scope
+    if (global_scope.scopes) free(global_scope.scopes);
 }
