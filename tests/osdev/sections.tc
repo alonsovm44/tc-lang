@@ -1,0 +1,6 @@
+
+.rodata f64 PI = 3.14159
+
+.data raw fn void main: {
+    // Kernel entry point
+}

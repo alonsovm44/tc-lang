@@ -22,11 +22,11 @@
 
 # todo for 1.3.2
 - [x] C/LLVM flags
-    - [ ] Optimization flags
-    - [ ] Debug 
-    - [ ] Performance and Security 
-    - [ ] Platform specific (medium importance)
-    - [ ] Preprocessing and macros (can skip)
+    - [x] Optimization flags
+    - [x] Debug 
+    - [x] Performance and Security 
+    - [x] Platform specific (medium importance)
+    - [x] Preprocessing and macros (can skip)
     - [x] Linking (essential for making projects with C libs)
 - [x] Freestanding mode
     - [x] No stdlib output
@@ -34,13 +34,13 @@
     - [ ] typeof()
     - [x] lenof()
     - [ ] offsetof()
+    - [ ] align()
     
-- [ ] Extern C calls works for structs/struns and enums and variables
 - [ ] Add OS specific conditional branching
     - [ ] add _WIN comptime constant
     - [ ] add _UNIX comtpime constant ( this is necessary to emulate #IF macros)
-- [ ] Fix lexer breaking when reading extern blocks
-
+- [x] Fix lexer breaking when reading extern blocks
+- [x] Add memory sections syntax `.section_name`
 # todo for 1.3.1
 
 ## Done

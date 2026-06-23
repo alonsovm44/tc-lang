@@ -283,6 +283,7 @@ asm fn foo: i32 a, i32 b{
 }
 
 ## 2. Memory section types
+[DONE]
 ```tig
 // Place data in specific sections
 .data u32 kernel_data = 0x1000
