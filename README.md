@@ -14,25 +14,27 @@
 </p>
 
 ---
-> Disclaimer: For stage0, Tig can use AI codegen for the C core, for stage1 of self hosting, handwritten code only. See [contributing](CONTRIBUTING.md) for more info.
+> Disclaimer: For stage0, Tig can use AI codegen for the C core (but test thoroughly), for stage1 of self hosting, handwritten code only. See [contributing](CONTRIBUTING.md) for more info.
 > Note: see dogfood/ folder for some non trivial examples of Tig being used.
 
 Tig is a minimalistic systems programming language. 🦁🦁🦁
 
-## What's New in v1.3.1 
+## What's New in v1.3.2
 
-1. OS module for stdlib
-2. Multiple declarations within one line
-3. All data is public in Tig (no privacy keywords yet, `pub` eliminated) 
-4. improved async runtime
+1. Added C compiler flags using --
+2. Added freestanding parameter to enable freestanding mode
+3. Multiple file linking support
+4. Added binary and hex literals
+5. removed old function syntax
+6. removed extern blocks
 And more... check Changelog for full change reports.
 
 ## Project Goals
-> Make the first usable systems language from Mexico.
-> Explore the bare minimum of what a systems language must have to be usable, modern and ergonomic
-> Learn C and master Tig
-> Make a useful contribution to CS and coders out there.
-> Get a job
+1. Make the first usable systems language from Mexico.
+2. Explore the bare minimum of what a systems language must have to be usable, modern and ergonomic
+3. Learn C and master Tig
+4. Make an OS with it
+5. Get a job
 
 ## Philosophy
 
@@ -49,18 +51,17 @@ And more... check Changelog for full change reports.
 
 ## Features
 
-- **17 keywords** — `if`, `loop`, `break`, `defer`, `ret`, `strun`, `fn`, `use`, `pin`, `match`, `else`, `enum`, `async`, `select`, `throw`, `try`, `catch`.
+- **18 keywords** — `if`, `loop`, `break`, `defer`, `ret`, `strun`, `fn`, `use`, `pin`, `match`, `else`, `enum`, `async`, `select`, `throw`, `try`, `catch`, `raw`.
 - **Zero-Boilerplate Async** — Automatic runtime initialization, no manual setup needed
 - **Async Functions** — Simple concurrent programming with `async fn`
 - **Concurrent Data Structures** — Built-in `queue<T>` and `stack<T>` types
 - **Ownership Transfer** — `@` operator for safe resource transfer
 - **Select Statements** — Multi-operation waiting with `select`
-- **Pin Keyword** — Keep variables alive across async boundaries
+- **Pin** — Keep variables alive across async boundaries
 - **No hidden magic** — no GC, no type inference, no shadowing, no aliasing
 - **Raw pointers** (`->`) and **fat pointers** (`=>`) with built-in slicing
 - **Manual memory** — `alloc()` / `free()` with `defer` for cleanup
 - **Packed structs** — no padding, predictable layout
-- **C FFI** — `extern "C"` for direct interop
 - **Rust-style errors** — colored diagnostics with source lines and carets
 - **One-step compile** — `tightc source.tc -c app` transpiles and compiles in one command
 - **Inline imports** — `@use "lib.tc"` inlines another `.tc` file at compile time
@@ -86,7 +87,7 @@ make # requires make
 
 ## How It Works
 
-Tig is a source-to-source compiler (transpiler) written in ~4200 lines of C. It reads `.tc` files and outputs portable C11.
+Tig is a source-to-source compiler (transpiler) written in ~4600 lines of C. It reads `.tc` files and outputs portable C11.
 
 ```
 source.tc -> [Lexer] -> [Parser] -> [AST] -> [Checker] -> [Emitter] -> output.c -> gcc/clang -> binary
@@ -110,12 +111,12 @@ source.tc -> [Lexer] -> [Parser] -> [AST] -> [Checker] -> [Emitter] -> output.c 
 ### What it is not
 I don't claim Tig to be a memory safe language, it does not have a Borrow Checker or GC, rather memory management is manunal (although I plan to add arenas in the near future too), but it does provide some safety features like fat pointers, self cleaning error functions and defer statements as first class ergonomics to help write safer code.
 
-Tig has no optimizer, no IR, no type inference pass, and no code generation beyond string concatenation of C. It can leverage LLVM flags (soon) from gcc/clang. The output is always readable, debuggable C that you can inspect with `tightc source.tc -o source.c`.
+Tig has no optimizer, no IR, no type inference pass, and no code generation beyond string concatenation of C. It can leverage LLVM flags from gcc/clang. The output is always readable, debuggable C that you can inspect with `tightc source.tc -o source.c`.
 
 ### What Tig is good for
 
 - **CLI tools** , absolute tiny or no runtime overhead. Parse args, process files, call system APIs
-- **Embedded / bare-metal** — (almost) no runtime, no allocator required, predictable memory layout with packed structs.
+- **Embedded / bare-metal** — no runtime, no allocator required, predictable memory layout with packed structs.
 - **Game engine internals** — manual memory, no GC pauses, direct pointer control
 - **Learning compilers** — small enough to read in an afternoon, real enough to produce working binaries
 - **C codebases that want better ergonomics** — fat pointers, defer, slicing, without leaving the C ecosystem
@@ -144,7 +145,7 @@ Variables are C-like and mutable by default.
 Declare constants with `pin`
 
 ```
-pin f32 PI = 3.14 // immutable in the current scope
+f32 PI = 3.14; pin PI // immutable in the current scope
 
 ```
 
@@ -158,9 +159,8 @@ fn i32 add: i32 a, i32 b {
 ### Varargs
 Functions can declare variadic arguments with `...`:
 ```
-extern "C" {
-    i32 fn printf: ->i8 fmt, ... {}
-}
+i32 fn printf: ->i8 fmt, ... {}
+
 ```
 Note: `...` in function calls is implicit - you don't need to write it when calling varargs functions.
 
@@ -213,11 +213,11 @@ This groups `x` and `y` together, and `z` and `w` together.
 ### Pointers
 ```
 i32 x = 42
-->i32 ptr = @x          // raw pointer (address-of)
+->i32 ptr = &x          // raw pointer (address-of)
 ->ptr = 99              // dereference
 
 i32[4] arr = {1,2,3,4}
-=>i32 slice = @arr       // fat pointer from array
+=>i32 slice = &arr       // fat pointer from array
 printi(slice.len)        // built-in length
 printi(slice.ptr[0])     // access elements
 
@@ -226,10 +226,10 @@ printi(slice.ptr[0])     // access elements
 
 ### Pointer Combos
 ```
-->->i32 pp = @p          // pointer to pointer
-=>->i32 fps = @ptrs      // fat pointer of raw pointers
-->=>i32 pslice = @slice  // raw pointer to fat pointer
-=>=> sslice = @slice     // fat pointer to fat pointer
+->->i32 pp = &p          // pointer to pointer
+=>->i32 fps = &ptrs      // fat pointer of raw pointers, array of pointers
+->=>i32 pslice = &slice  // raw pointer to fat pointer
+=>=> sslice = &slice     // fat pointer to fat pointer
 ```
 ### Dereferencing
 
@@ -276,6 +276,7 @@ fn void printP: ->Point p {
 ```
 Struns can have methods inside them
 
+```
 strun Point {
     i32 x,
     i32 y
@@ -291,6 +292,7 @@ fn void main:{
     p.y = 20
     p.printPoint() // prints [10, 20]
 }
+```
 
 ### Control Flow
 ```
@@ -300,7 +302,7 @@ else { ... }
 
 loop { ... break }          // infinite loop unless break
 
-loop if (i < 10) { ... }    // conditional loop
+loop if (i < 10) { ... }    // conditional loop, alias of while
 ```
 
 ### Memory
@@ -328,8 +330,12 @@ i32 fn main: =>->i8 args {
 
 ### C FFI
 ```
-extern "C" {
-    i32 fn printf: ->i8 fmt, ... // dont use {}, only the function signature
+"C"{
+    #include "clib.h"
+}
+
+fn void wrapper:{
+    // use C functions from "clib.h" here
 }
 ```
 
@@ -392,9 +398,11 @@ fn void main: {
 ```
 
 ### Concurrent Data Structures
+Async functions are void always. Use channels (queues or stacks) to communicate between tasks.
 
 ```tig
 use "stdlib/async.tc" // for the runtime
+use "stdlib/snq.tc" // for stacks and queues types
 use "stdlib/io.tc"
 
 async fn void producer: queue<i32> q {
@@ -421,13 +429,55 @@ async fn void task2: { printi(2) }
 
 fn void main: {
     select {
-        case task1():
+        task1() => {
             printi("Task 1 completed")
-        case task2():
+        }
+        task2() => {
             printi("Task 2 completed")
+        }
     }
 }
 ```
+
+### Error system
+Errors are a built in type in Tig via `error`. Errors are function like executable units, which contain how the error is handled plus clean up code.
+
+Errors are declared with the `error` keyword, and can have parameters like functions, which carry the context of the error case. Errors are called with the `throw` keyword. 
+
+#### Try-Catch blocks
+
+Try-catch blocks are used to handle errors. They are declared with the `try` and `catch` keywords.
+Catch blocks dont contain error handling code, rather they work like `match` statements where we specify which errors to catch and what return value to use. Use the `_` wildcard to catch all errors.
+
+Example use of Tig's error system.
+```tig
+error zero_division: i32 a, i32 b{
+    printf("Error, division by zero: %d / %d", a, b)
+}
+
+fn f64 divide: i32 a, i32 b{
+    if(b == (f32)0){
+        throw zero_division(a, b)
+    }
+    return (f64)a / (f64)b
+}
+
+fn i32 main: {
+    i32 a = 10; i32 b = 0
+    try{
+        divide(a, b)
+    }catch{
+        zero_division(a, b) ret 1,
+        _ { // wildcard, catches other exception
+            printf("Unknown error")
+            ret 1
+        }
+    }
+    return 0
+}
+
+```
+> Note: the error system might be tricky to use in freestanding environments due to no longjump and no debug printf statements available. Be sure to provide your own. 
 
 ## Types
 
@@ -448,7 +498,7 @@ fn void main: {
 ## Compiler Usage
 
 ```bash
-tigc <input.tc> [-o output.c] [-c binary] [-t]
+tigc <input.tc> [-o output.c] [-c binary] [-t] -- [clang/gcc flags]
 ```
 
 | Flag | Description |
@@ -493,10 +543,6 @@ Tig uses a robust Host/DLL splitting architecture to avoid Windows file locking 
 ```tightc
 use "stdlib/io.tc"
 
-extern "C" {
-    i32 fn Sleep: u32 ms {}
-}
-
 fn i32 add: i32 x, i32 y {
     ret x + y + 10
 }
@@ -522,7 +568,7 @@ Running this prints `17` every 2 seconds. If you edit `ret x + y + 10` to `ret x
 
 ### Proof of Concept
 
-See the `demos/HOTSWAPPING/` folder for a complete working example with documentation, including the demo output showing hot reload in action.
+See the `dogiood/HOTSWAPPING/` folder for a complete working example with documentation, including the demo output showing hot reload in action.
 
 This feature demonstrates Tig's capability for advanced systems programming patterns, using the industry-standard approach to hot reload on Windows (versioned libraries).
 
@@ -540,81 +586,7 @@ tc-lang/
 ```
 
 ## Stdlib
-
-**`stdlib/io.tc`** — I/O
-
-| Function     | Description                |
-|--------------|----------------------------|
-| `print(s)`   | Print string + newline     |
-| `printn(s)`  | Print string, no newline   |
-| `printi(n)`  | Print i64 + newline        |
-| `printin(n)` | Print i64, no newline      |
-| `readi()`    | Read i64 from stdin        |
-| `readc()`    | Read single char from stdin|
-| `unreadc(c, stream)` | Push char back to file stream |
-| `write_file(s, stream)` | Write string to file |
-| `eof(stream)` | Check if at end of file |
-
-**File I/O (via extern "C")**
-
-| Function     | Description                |
-|--------------|----------------------------|
-| `fopen(file, mode)` | Open file |
-| `fclose(f)` | Close file |
-| `fgetc(stream)` | Read char from file |
-| `ungetc(c, stream)` | Push char back to file |
-| `fputs(s, stream)` | Write string to file |
-| `fprintf(stream, fmt, ...)` | Formatted print to file |
-| `fscanf(stream, fmt, ...)` | Formatted read from file |
-| `feof(stream)` | Check end of file |
-
-**`stdlib/str.tc`** — Strings
-
-| Function              | Description                          |
-|-----------------------|--------------------------------------|
-| `slen(s)`             | String length                        |
-| `seq(a, b)`           | String equality (returns 1 if equal) |
-| `scpy(dest, src)`     | Copy string                          |
-| `scat(dest, src)`     | Concatenate strings                  |
-| `sneq(a, b, n)`       | Compare first n bytes                |
-| `sfind(s, c)`         | Find first char occurrence           |
-| `sfindlast(s, c)`     | Find last char occurrence            |
-| `shas(haystack, needle)` | Find substring                    |
-
-**`stdlib/math.tc`** — Math
-
-| Function             | Description                       |
-|----------------------|-----------------------------------|
-| `iabs(x)`            | Absolute value (integer)          |
-| `min(a, b)`          | Minimum of two integers           |
-| `max(a, b)`          | Maximum of two integers           |
-| `clamp(x, lo, hi)`   | Clamp value to range              |
-| `sqrt64(x)`          | Square root (f64)                 |
-| `pow64(base, exp)`   | Power (f64)                       |
-| `fabs64(x)`          | Absolute value (f64)              |
-| `sin`, `cos`, `tan`  | Trig functions (extern C)         |
-| `log`, `log2`, `log10` | Logarithms (extern C)           |
-
-**`stdlib/mem.tc`** — Memory
-
-| Function              | Description                       |
-|-----------------------|-----------------------------------|
-| `zero(ptr, n)`        | Zero out n bytes                  |
-| `copy(dest, src, n)`  | Copy n bytes (overlap safe)       |
-| `memeq(a, b, n)`      | Compare n bytes (1 if equal)      |
-| `fill(ptr, val, n)`   | Fill n bytes with value           |
-
-**`stdlib/conv.tc`** — Conversions
-
-| Function              | Description                       |
-|-----------------------|-----------------------------------|
-| `stoi(s)`             | String to i64                     |
-| `stoib(s, base)`      | String to i64 with base           |
-| `stof(s)`             | String to f64                     |
-| `itos(n, buf, size)`  | i64 to string (into buffer)       |
-| `ftos(n, buf, size)`  | f64 to string (into buffer)       |
-
----
+Tig has a simple stdlib that wraps libc and runtimes for stacks/queues and async functions.
 
 <p align="center">
   <sub>Built by <a href="https://github.com/alonsovm44">@alonsovm44</a></sub>
