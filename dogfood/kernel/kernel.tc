@@ -10,13 +10,36 @@
     u32 checksum
 }
 
-.multiboot multiboot_header mb_header = multiboot_header(MULTIBOOT_MAGIC, MULTIBOOT_FLAGS, -(MULTIBOOT_MAGIC + MULTIBOOT_FLAGS))
+// Use inline C to place the multiboot header in .multiboot section
+"C"{
+    struct multiboot_header {
+        unsigned int magic;
+        unsigned int flags;
+        unsigned int checksum;
+    } __attribute__((section(".multiboot"))) mb_header = {
+        .magic = 0x1BADB002,
+        .flags = 0x00000003,
+        .checksum = -(0x1BADB002 + 0x00000003)
+    };
+}
+
+// tig 1.3.2 does not have global var decl or C like struct init in global scope
 
 .data raw fn void kernel_main: {
     ->u8 vga = (->u8)0xB8000
 
-    vga[0] = 64 // '@'
+    vga[0] = kernel_name[0]
     vga[1] = 0x07 // white on black
+    vga[2] = kernel_name[1]
+    vga[3] = 0x07 // white on black
+    vga[4] = kernel_name[2]
+    vga[5] = 0x07 // white on black
+    vga[6] = kernel_name[3]
+    vga[7] = 0x07 // white on black
+    vga[8] = kernel_name[4]
+    vga[9] = 0x07 // white on black
+    vga[10] = kernel_name[5]
+    vga[11] = 0x07 // white on black
 
     loop {
         // hang forever
