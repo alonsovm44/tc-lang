@@ -1,11 +1,17 @@
 use "stdlib/io.tc"
 
-strun Test {
-    i32 x
+strun Point {
+    i32 x,
+    i32 y
 }
 
+fn void init: ->Point p, i32 a, i32 b {
+    p.>x = a
+    p.>y = b
+}
 fn i32 main: {
-    Test t
-    t.x = 10
+    Point p
+    init(&p, 10, 20)
+    printf("[%d, %d]\n", p.x, p.y)
     ret 0
 }

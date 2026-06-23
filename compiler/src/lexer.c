@@ -461,14 +461,20 @@ static TokenVec lex_source_with_depth(const char *src, int depth) {
             token_push(&out, (Token){TOK_INLINE_C, c_code, start_line, start_col});
             continue;
         }
-
-          // Handle memory section prefix: .NAME
+        
+        // Handle memory section prefix: .NAME (only at start of line or after whitespace)
         if (src[i] == '.' && src[i + 1] && isalpha((unsigned char)src[i + 1])) {
-            int start = i;
-            i++; col++;
-            while (isalnum((unsigned char)src[i]) || src[i] == '_') { i++; col++; }
-            token_push(&out, (Token){TOK_SECTION, xstrndup(src + start, (size_t)(i - start)), start_line, start_col});
-            continue;
+            // Check if we're at the start of a line or if the previous character is whitespace
+            bool is_start_of_line = (col == 1);
+            bool prev_is_whitespace = (i > 0 && (src[i - 1] == ' ' || src[i - 1] == '\t' || src[i - 1] == '\n'));
+            
+            if (is_start_of_line || prev_is_whitespace) {
+                int start = i;
+                i++; col++;
+                while (isalnum((unsigned char)src[i]) || src[i] == '_') { i++; col++; }
+                token_push(&out, (Token){TOK_SECTION, xstrndup(src + start, (size_t)(i - start)), start_line, start_col});
+                continue;
+            }
         }
  
         

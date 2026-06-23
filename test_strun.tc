@@ -1,0 +1,9 @@
+strun Test {
+    i32 x
+}
+
+fn i32 main: {
+    Test t
+    t.x = 10
+    ret 0
+}

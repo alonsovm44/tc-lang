@@ -22,6 +22,7 @@ Removed:
 - removed extern keyword
 Improved/Fixed:
 
+- Fixed lexer getting confused with . syntax thinking it was a memory section
 - fixed and improved the stdlib
 - fixed inline C not being emmited by the codegen
 - fixed structs not working when inlining files
