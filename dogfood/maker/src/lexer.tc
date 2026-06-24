@@ -1,0 +1,118 @@
+/// helper functions (not needed right now)
+/*
+
+fn i8 isAlpha: i32 c {
+    if(c >= 65 || c <= 90 || c >= 97 || c <= 122) //a z, A Z in ascii code
+    {
+@@ -23,46 +22,105 @@ fn i8 isAlphaNum: i32 c {
+    }
+    ret 0
+}
+*/
+
+// ===== FIXED: stringify_file =====
+fn ->i8 stringify_file: ->FILE f {
+    i32 size = getFileSize(f)
+    // Allocate memory for content + null terminator
+    ->i8 fcontent = alloc(i8, size + 1)
+    if (!fcontent) {
+        ret ""
+    }
+    
+    i32 c
+    i32 i = 0
+    loop {
+        c = filegetc(f)
+        if (c == -1) {
+            break
+        }
+
+
+        fcontent[i] = c
+        i++
+    }
+    
+    fcontent[i] = 0  // Null terminate
+    
+    ret fcontent
+}
+
+fn queue<->i8> tokenize: ->i8 str {
+
+
+
+
+    queue<->i8> tokensq
+    i32 len = slen(str)
+    
+    ->i8 word = alloc(i8, 256)
+    i32 wordlen = 0
+    defer free(word)
+    
+    i32 i = 0
+    loop if (i < len) {
+        i8 c = str[i]
+        
+        // === SPECIAL CHARACTERS ===
+        if (c == 58 || c == 59 || c == 61 || c == 123 || c == 125 || 
+            c == 60 || c == 62 || c == 64 || c == 35 || c == 44 || 
+            c == 46 || c == 42 || c == 47 || c == 92) {
+            
+            // Save current word if any
+            if (wordlen > 0) {
+                word[wordlen] = 0
+                ->i8 token = sclone(word)
+                tokensq.push(token)
+                wordlen = 0
+            }
+            
+            // Save special character
+            ->i8 special = alloc(i8, 2)
+            special[0] = c
+            special[1] = 0
+            tokensq.push(special)
+            
+            i++  // Only increment HERE
+            
+        // === WHITESPACE ===
+        } else if (c == 32 || c == 9 || c == 10 || c == 13) {
+            
+            // Save current word if any
+            if (wordlen > 0) {
+                word[wordlen] = 0
+                ->i8 token = sclone(word)
+                tokensq.push(token)
+                wordlen = 0
+            }
+            
+            i++  // Only increment HERE
+            
+        // === REGULAR CHARACTER ===
+        } else {
+            
+            word[wordlen] = c
+            wordlen++
+            
+            // Prevent buffer overflow
+            if (wordlen >= 255) {
+                word[wordlen] = 0
+                ->i8 token = sclone(word)
+                tokensq.push(token)
+                wordlen = 0
+            }
+            
+            i++  // Only increment HERE
+        }
+        // END OF IF-ELSE CHAIN
+        // Only one branch executes!
+    }
+    
+    // Save last word
+    if (wordlen > 0) {
+        word[wordlen] = 0
+        ->i8 token = sclone(word)
+        tokensq.push(token)
+    }
+    
+    ret tokensq
+}

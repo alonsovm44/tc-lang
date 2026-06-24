@@ -12,17 +12,19 @@ parser converts tokens to Makerfile structure
 executor runs the build targets
 */
 fn void printTokens: queue<->i8> tokens{
+    print("Token count: ")
     printi(tokens.size())
-    print("Tokens: \n")
+    print("\nTokens: \n")
     /// now lets print tokens // IT WORKS
     ->i8 token = ""
     i32 qlen = tokens.size()
     i32 i = 0
     loop if(i < qlen) {
         token = tokens.pop()
-        printf("%s\n", token)
+        printf(",%s", token)
         i++
     }
+    print("\n")
 }
 fn i32 main: =>->i8 args { 
     
@@ -30,6 +32,13 @@ fn i32 main: =>->i8 args {
         checkMF()
     }catch{
         NoMakerfile() ret 1
+    }
+
+    if(args.len < 2){
+        print("No arguments provided")
+        print("Usage: maker <command> <flags>")
+        print("Available flags: --lex, --parse")
+        ret 1
     }
 
     ->i8 first_arg = args.ptr[1]
@@ -44,7 +53,7 @@ fn i32 main: =>->i8 args {
     if(strcmp(first_arg, "--lex") == 0){
         printTokens(tokens)
         ret 1
-    }
+    } // this works here
 
     ParsedResult parsed = parse(tokens)
     
