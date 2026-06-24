@@ -1,6 +1,58 @@
 # 1.3.2 spec
 CLI and Freestanding update
 
+## Passing arrays to functions
+[SOLVED]
+Arrays can be passed to functions as params
+
+```tig
+fn void print_array: i32[] arr { ??
+    // arr is a pointer to the first element
+    // we can access elements using arr[index]
+    // we can't get the length of the array
+    sizeof(arr) // this gives 8 bytes (pointer size)
+}
+// or this
+
+fn void print_array2: =>i32 arr {
+    //arr is a pointer to the first element of the array
+    // since it is a fat pointer it has length
+}
+
+fn void print_array3: ->i32 arr {
+    // arr is a pointer to the first element of the array
+    // no length metadata
+}
+```
+is the fn name: i32[] arr {} syntax redundant because we have =>i32 arr?
+### The model
+T[] name // this is know at comptime and fixed in size
+=>T name = arr[0:10] // this is dynamic and can be resized
+
+// Fixed array
+i32[5] fixed = {1, 2, 3, 4, 5}
+
+// Raw pointer (no length)
+fn void print_raw: ->i32 data, i32 len {
+    i32 i = 0
+    loop if (i < len) {
+        printi(data[i])
+        i = i + 1
+    }
+}
+print_raw(fixed, 5)
+
+// Fat pointer / Slice (with length)
+fn void print_slice: =>i32 data {
+    i32 i = 0
+    loop if (i < lenof(data)) {
+        printi(data[i])
+        i = i + 1
+    }
+}
+=>i32 slice = fixed[0:5]
+print_slice(slice)
+
 ## New scheme for extern functions
 [DONE]
 Previously we used `extern "C"` for C interop. But it broke and became difficult to maintain. It also became redundant.

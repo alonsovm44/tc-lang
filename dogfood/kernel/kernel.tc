@@ -4,12 +4,6 @@
 
 .rodata ->i8 kernel_name = "TigOS"
 
-.multiboot strun multiboot_header {
-    u32 magic
-    u32 flags
-    u32 checksum
-}
-
 // Use inline C to place the multiboot header in .multiboot section
 "C"{
     struct multiboot_header {
