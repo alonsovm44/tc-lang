@@ -2,6 +2,7 @@
 
 Added:
 
+- added separate error system runtime via error.h
 - added global variable definition
 - added custom memory sections
 - added binary and hex literals
@@ -23,6 +24,7 @@ Removed:
 - removed extern keyword
 Improved/Fixed:
 
+- moved impl of async runtime to stdlib
 - Fixed lexer getting confused with . syntax thinking it was a memory section
 - fixed and improved the stdlib
 - fixed inline C not being emmited by the codegen
