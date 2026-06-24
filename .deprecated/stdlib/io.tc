@@ -1,0 +1,97 @@
+extern "C" {
+    i32 fn printf: ->i8 fmt, ... {}
+    i32 fn scanf: ->i8 fmt, ... {}
+    i32 fn putchar: i32 c {}
+    i32 fn getchar: {}
+    // new additions
+    ->FILE fn fopen: ->i8 file, ->i8 mode {}
+    i32 fn fclose: ->FILE f {}
+    i32 fn fgetc: ->FILE stream {}
+    i32 fn ungetc: i32 c, ->FILE stream {}
+    i32 fn fputs: ->i8 s, ->FILE stream {} 
+    // fn T and T fn are the same, i am just trolling by switching lol
+    i32 fn fprintf: ->FILE stream, ->i8 fmt, ... {}
+    i32 fn feof: ->FILE stream {}
+    i32 fn fputc: i32 c, ->FILE stream {}
+}
+
+// write a string to file
+i32 fn writef: ->i8 s, ->FILE stream {
+    ret fputs(s, stream)
+}
+
+i32 fn fputc: i32 c, ->FILE stream {
+    ret fputc(c, stream)
+}
+->FILE fn openf: ->i8 file, ->i8 mode {
+    ret fopen(file, mode)
+}
+
+i32 fn closef: ->FILE f {
+    ret fclose(f)
+}
+
+i32 fn fgetc: ->FILE stream { // this one is broken, it causes hangs and the OS kills the process
+    ret fgetc(stream) 
+}
+
+// fprintpf
+i32 fn fprintpf: ->FILE stream, ->i8 fmt, ... {
+    ret fprintf(stream, fmt, ...)
+}
+
+// print a string with newline
+void fn print: ->i8 s {
+    printf(s)
+    putchar(10)
+    ret
+}
+
+// print a float with newline
+void fn printflt: f64 n {
+    printf("%f", n)
+    putchar(10)
+    ret
+}
+
+// print a string without newline
+void fn printn: ->i8 s {
+    printf(s)
+    ret
+}
+
+// print an integer with newline
+void fn printi: i64 n {
+    printf("%lld\n", n)
+    ret
+}
+
+// print an integer without newline
+void fn printin: i64 n {
+    printf("%lld", n)
+    ret
+}
+
+// read an integer from stdin
+/*
+i64 fn readi: { 
+    i64 n
+    scanf("%lld", &n)
+    ret n
+}
+*/
+// read a single character from stdin
+i32 fn readc: {
+    ret getchar()
+}
+
+// push a character back to file stream
+i32 fn unreadc: i32 c, ->FILE stream {
+    ret ungetc(c, stream)
+}
+
+
+// check if at end of file
+i32 fn eof: ->FILE stream {
+    ret feof(stream)
+}

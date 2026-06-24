@@ -1,0 +1,6 @@
+use "stdlib/io.tc"
+
+fn i32 main: {
+    print("Works")
+    ret 0
+}

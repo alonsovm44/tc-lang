@@ -1,0 +1,31 @@
+extern "C" {
+    i64 fn time: ->void t {}
+    ->void fn localtime: i64 t {}
+    ->void fn gmtime: i64 t {}
+    i32 fn clock: {}
+}
+
+// get current time in seconds since epoch
+i64 fn now: {
+    ret time(cast(0, ->void))
+}
+
+// get processor time used by program (in clock ticks)
+i32 fn clock: {
+    ret clock()
+}
+
+// convert seconds to milliseconds
+i64 fn sec_to_ms: i64 sec {
+    ret sec * 1000
+}
+
+// convert seconds to microseconds
+i64 fn sec_to_us: i64 sec {
+    ret sec * 1000000
+}
+
+// convert milliseconds to seconds
+f64 fn ms_to_sec: i64 ms {
+    ret cast(ms, f64) / 1000.0
+}
