@@ -428,4 +428,21 @@ Tig now correctly calls the stdlib and links it properly. It can now be used any
 
 I want to design something intuitive for the PM. I thought of this directory arch:
 
+
+
 I hate having to download the same deps everytime and having a toml file. Tig will have a global dependency cache so you only have to download each dep once
+
+## 24 June
+I had an idea that could help debugging, i am writing tpm and there is a function that is returning a silent error
+i thought of adding this feature, a pattern marching to debug errors, you prefix the function call with a "!" indicating that it might fail
+
+fn void main:{
+
+  !fn_that_mayfail(param, &param2){
+      // pattern matching for error returns   
+  }
+}
+
+tpm is now working and managed to implement init. But to make a full blown PM i need the website to host the packages. I dont have money or users anyway so i will focus on other things for now.
+
+I need to implement a web lib in the stdlib to manage http requests and responses. Also a json module in the stdlib.

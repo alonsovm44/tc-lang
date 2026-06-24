@@ -9,9 +9,13 @@ fn void init: ->Point p, i32 a, i32 b {
     p.>x = a
     p.>y = b
 }
+
+Point q = {12, 13}
+
 fn i32 main: {
     Point p
     init(&p, 10, 20)
     printf("[%d, %d]\n", p.x, p.y)
+    printf("[%d, %d]\n", q.x, q.y)
     ret 0
 }

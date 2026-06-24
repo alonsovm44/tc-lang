@@ -31,7 +31,7 @@
 - [x] Freestanding mode
     - [x] No stdlib output
 - [ ] More built ins:
-    - [ ] typeof()
+    - [x] typeof()
     - [x] lenof()
     - [ ] offsetof()
     - [ ] align()

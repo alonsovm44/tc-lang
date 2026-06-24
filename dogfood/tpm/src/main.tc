@@ -9,30 +9,53 @@ error E001: {
     print("\n")
 }
 
-
 fn i32 init: {
     // create projectname/ pn/src/ and pn/Makefile
     // we need a buffer for names
-    ->i8 pnameBuff = alloc(i8, 255)
-    ->i8 buildsystemBuff = alloc(i8, 255)
-    defer free(pnameBuff); free(buildsystemBuff)
-
+    i8[256] pname = {}
+    i8[256] buildsystem = {}
+    
     printf("Project name: ")
-    scan("%s", pnameBuff) // wrapper for scanf()
-    if(pnameBuff[0] == 0){
+    scanf("%s", pname)
+    if (pname[0] == 0) {
         printf("Project name cannot be empty\n")
         ret 1
     }
+    
     printf("Build system (make/cmake): ")
-    scan("%s", buildsystemBuff)
-    if(buildsystemBuff[0] == 0){
+    scanf("%s", buildsystem)
+    if (buildsystem[0] == 0) {
         printf("Build system cannot be empty\n")
         ret 1
     }
+    
+    i8[512] cmd = {}
+    
+    // Create main directory
+    sprintf(cmd, "mkdir %s", pname)
+    os(cmd)
+    
+    // Create src directory
+    sprintf(cmd, "mkdir %s\\src", pname)
+    os(cmd)
+    
+    // Create bin directory
+    sprintf(cmd, "mkdir %s\\bin", pname)
+    os(cmd)
 
-    ->i8 mkdircmd = "mkdir "
-    scat(mkdircmd, pnameBuff)
-    printf(mkdircmd)
+    //Now make a Makefile and main.tc in src/
+    if(strcmp(buildsystem, "make") || strcmp(buildsystem, "Make") || strcmp(buildsystem, "MAKE")) {
+        sprintf(cmd, "echo #Makefile > %s\\Makefile", pname)
+        os(cmd)
+    } else if(strcmp(buildsystem, "cmake") || strcmp(buildsystem, "CMake") || strcmp(buildsystem, "CMake") || strcmp(buildsystem, "CMAKE")) {
+        sprintf(cmd, "echo #CMakeLists.txt > %s\\CMakeLists.txt", pname)
+        os(cmd)
+    }
+
+    sprintf(cmd, "echo // main.tc > %s\\src\\main.tc", pname)
+    os(cmd)
+    
+    printf("Project '%s' created with %s build system\n", pname, buildsystem)
     ret 0
 
 }

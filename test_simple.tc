@@ -1,9 +1,0 @@
-strun Test {
-    i32 x
-}
-
-fn i32 main: {
-    Test t
-    i32 y = t.x
-    ret 0
-}

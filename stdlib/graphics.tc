@@ -4,38 +4,46 @@
     #include "raylib.h"
 }
 
-strun Color{
-    u8 r,
-    u8 g,
-    u8 b,
-    u8 a
-}
+// No Color struct needed - raylib provides it
+
+// Color constants - use raylib's
+// These are available from raylib.h
+
+Color Raywhite = {245, 245, 245, 255}
+Color Black = {0,0,0,255}
 
 fn void targetFPS: i32 fps {
-    SetTargetFPS(fps);
+    SetTargetFPS(fps)
 }
 
-fn i8 windowShouldClose() {
-    return WindowShouldClose();
+fn i8 windowShouldClose: {
+    ret WindowShouldClose()
 }
 
-fn void makeWindow: i32 width, i32 height, ->i8 title 
-{
-    InitWindow(width, height, title);
-}
-    // TODO: Implement window creation using raylib
-
-fn void clearScreen(Color color) {
-    // TODO: Implement screen clearing using raylib
-    ClearBackground(color);
+fn void makeWindow: i32 width, i32 height, ->i8 title {
+    InitWindow(width, height, title)
 }
 
-fn void drawPixel(i32 x, i32 y, Color color) {
-    // TODO: Implement pixel drawing using raylib
-    DrawRectangle(x, y, 1, 1, color);
+fn void clearbg: Color color {
+    ClearBackground(color)
 }
-use "math.tc" // for abs()
 
-fn void drawLine(i32 x1, i32 y1, i32 x2, i32 y2, Color color) {
- 
+fn void drawPixel: i32 x, i32 y, Color color {
+    DrawRectangle(x, y, 1, 1, color)
 }
+
+fn void drawText: ->i8 text, i32 x, i32 y, i32 fontSize, Color color {
+    DrawText(text, x, y, fontSize, color)
+}
+
+fn void drawCircle: i32 x, i32 y, f32 radius, Color color {
+    DrawCircle(x, y, radius, color)
+}
+
+fn void drawRect: i32 x, i32 y, i32 w, i32 h, Color color {
+    DrawRectangle(x, y, w, h, color)
+}
+
+fn void drawLine: i32 x1, i32 y1, i32 x2, i32 y2, Color color{
+    DrawLine(x1, y1, x2, y2, color)
+} 

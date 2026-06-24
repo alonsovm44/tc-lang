@@ -20,6 +20,17 @@ OS=
 after that it downloads the latest version of tigc for the OS and arch and stores it in C:\tig\ or ~/tig/
 after that it downloads the latest version of tpm for the OS and arch and stores it in C:\tig\ or ~/tig/
 
+### Commands of tigins
+```bash
+tigins init
+# initializes the tig environment
+tigins update
+# updates tigc and tpm
+tigins uninstall
+# uninstalls tig completely
+
+```
+
 ## tpm (Tig Package Manager)
 tpm is a package manager for tig. It allows you to install, update, and remove packages.
 The core idea for the UX is this: Install once, use everywhere.

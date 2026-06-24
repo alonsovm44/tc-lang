@@ -10,24 +10,24 @@ To be added:
 - Fixed size stacks and queues
 ```
 // example
-stack<i32> s[10] = {}
-queue<f32> q[5] = {} // a queue of 5  
+stack<i32>[10] s = {}
+queue<f32>[10] q = {} // a queue of 10  
 
 // multiple types
-stack<i32, f32, char> s2[10] = {} // this stack accepts integers, floats and characters only
+stack<i32, f32, char>[10] s2 = {} // this stack accepts integers, floats and characters only
 
 // wildcard
 
-stack<*> s3[10] = {} // this stack accepts any type
+stack<*>[10] s3 = {} // this stack accepts any type
 
 // stack of stacks
-stack<stack<i32>> s4[5] = {} // this stack accepts stacks of integers only
+stack<stack<i32>>[5] s4 = {} // this stack accepts stacks of integers only
 
 Same applies to queues.
 ```
 
 Bad:
-    stack<*, i32> s = {} // this is not allowed, since * already includes i32
+    stack<*, i32>[10] s = {} // this is not allowed, since * already includes i32
 
 This is very, `non-explicit` and not following Tig's historic philosophy. But is pragmatic, and my goal is to be pragmatic 
 

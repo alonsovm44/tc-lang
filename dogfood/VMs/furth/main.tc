@@ -86,10 +86,6 @@ fn i8 isPrintStmt: u8 chr{ // no boolean type, use i8, later going to add it to 
     }
 }
 
-extern "C" {
-    i32 fn printf: ->i8 fmt, ... {}
-}
-
 fn i32 main: =>->i8 args {
 stack<f64> globalStack = {}
 
