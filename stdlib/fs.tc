@@ -26,7 +26,7 @@ fn i8 fileExists: ->i8 path {
     ret 1
 }
 
-fn i32 get_len: ->FILE f {
+fn i32 getFileSize: ->FILE f {
     i32 i = 0
     i32 c = 0
     i32 start_pos = tellf(f)

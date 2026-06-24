@@ -23,7 +23,7 @@ int32_t seekf(FILE *file, int64_t offset, int32_t whence);
 int64_t tellf(FILE *file);
 int32_t errorf(FILE *file);
 char fileExists(char *path);
-int32_t get_len(FILE *f);
+int32_t getFileSize(FILE *f);
 
 
 FILE *openf(char *file, char *mode) {
@@ -93,7 +93,7 @@ char fileExists(char *path) {
     return 1;
 }
 
-int32_t get_len(FILE *f) {
+int32_t getFileSize(FILE *f) {
     int32_t i = 0;
     int32_t c = 0;
     int32_t start_pos = tellf(f);

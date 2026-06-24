@@ -41,6 +41,10 @@
     - [ ] add _UNIX comtpime constant ( this is necessary to emulate #IF macros)
 - [x] Fix lexer breaking when reading extern blocks
 - [x] Add memory sections syntax `.section_name`
+
+- [ ] Put async runtime all in async.h 
+- [ ] Remove runtime.c from compiler and move it to stdlib
+- [ ]
 # todo for 1.3.1
 
 ## Done

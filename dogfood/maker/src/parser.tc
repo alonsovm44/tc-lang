@@ -84,7 +84,7 @@ fn Variable parse_variable: queue<->i8> q, ->i32 line_ptr  {
         q.pop() // consume the "
     }else{
         // the value is a number
-        i32 numericValue = q.pop() // get the var value
+        //i32 numericValue = q.pop() // get the var value
     }
     ->i8 varValue = q.pop() // get the string value
     if(q.peek() == "\""){

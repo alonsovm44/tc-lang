@@ -767,7 +767,7 @@ int main(int argc, char **argv) {
 
             char cmd[1024];
             if (needs_runtime) {
-                build_gcc_command(cmd, sizeof(cmd), cc, tmp_c, compile_out, &c_flags, "-lm \"compiler/src/runtime.o\"", freestanding);
+                build_gcc_command(cmd, sizeof(cmd), cc, tmp_c, compile_out, &c_flags, "-lm", freestanding);
             } else {
                 build_gcc_command(cmd, sizeof(cmd), cc, tmp_c, compile_out, &c_flags, "-lm", freestanding);
             }
