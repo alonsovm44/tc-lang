@@ -1,0 +1,53 @@
+// tig package manager tpm
+use "stdlib/io.tc"
+use "stdlib/fs.tc"
+use "stdlib/os.tc"
+use "stdlib/str.tc"
+
+error E001: {
+    print("Error while creating project: ")
+    print("\n")
+}
+
+
+fn i32 init: {
+    // create projectname/ pn/src/ and pn/Makefile
+    // we need a buffer for names
+    ->i8 pnameBuff = alloc(i8, 255)
+    ->i8 buildsystemBuff = alloc(i8, 255)
+    defer free(pnameBuff); free(buildsystemBuff)
+
+    printf("Project name: ")
+    scan("%s", pnameBuff) // wrapper for scanf()
+    if(pnameBuff[0] == 0){
+        printf("Project name cannot be empty\n")
+        ret 1
+    }
+    printf("Build system (make/cmake): ")
+    scan("%s", buildsystemBuff)
+    if(buildsystemBuff[0] == 0){
+        printf("Build system cannot be empty\n")
+        ret 1
+    }
+
+    ->i8 mkdircmd = "mkdir "
+    scat(mkdircmd, pnameBuff)
+    printf(mkdircmd)
+    ret 0
+
+}
+
+fn i32 main: =>->i8 args {
+
+    if (args.len < 2){
+        printf("Usage: tpm <command>\n")
+        ret 1
+    }
+
+    ->i8 cmd = args.ptr[1]
+    if(strcmp(cmd, "init") == 0){
+        init()  
+        ret 0
+    }
+    ret 0
+}

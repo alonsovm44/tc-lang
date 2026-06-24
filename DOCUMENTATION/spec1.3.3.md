@@ -60,7 +60,7 @@ fn void main: {
     free(buffer) // but we still have to remember to free it.
 }
 
-## Edge case: Internal allocations
+### Edge case: Internal allocations
 fn void internal_alloc: {
     ->i8 buffer
     alloc(buffer)  // Internal allocation, no need to free
@@ -185,6 +185,8 @@ function mods:
     ret ptr
 }
 
+// example use
+
 error myerror: {
     // this is a custom error type
 }
@@ -257,6 +259,27 @@ my async !fn void myRiskyFn: {
     }
 }
 ```
+### Calling a normal function as risky
+
+!fn i32 foo: { // the use of a risky function inside makes the whole function risky
+    ->i8 wordBuffer = alloc(i8, 255)
+    printf("Enter a word: ")
+    !scanf("%s", wordBuffer){ // because scanf is a stdlib function, Tig errors should be defined inside of the wrapper for error function pattern matching to work
+        1 = {
+            // code
+        }
+        2 = {
+            // code
+        }
+        0 = {
+            printf("Success")
+        }
+        _ = {
+            printf("Unknown error while scanning)
+        }
+    }
+    
+}
 
 # priorities
 

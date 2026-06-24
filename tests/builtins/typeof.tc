@@ -1,0 +1,7 @@
+use "stdlib/io.tc"
+
+fn i32 main: {
+    i32 x = 5
+    print(typeof(x))
+    ret 0
+}

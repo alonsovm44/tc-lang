@@ -16,6 +16,8 @@ void printi(int64_t n);
 void printn(char *s);
 int32_t readc(void);
 int32_t putchr(int32_t c);
+int32_t scan(char *fmt, ...);
+int32_t fprints(char *str, char *fmt, ...);
 
 
 void print(char *s) {
@@ -39,4 +41,14 @@ int32_t readc(void) {
 int32_t putchr(int32_t c) {
     
     return putchar(c);
+}
+
+int32_t scan(char *fmt, ...) {
+    
+    return scanf(fmt);
+}
+
+int32_t fprints(char *str, char *fmt, ...) {
+    
+    return sprintf(str, fmt);
 }

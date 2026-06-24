@@ -13,3 +13,10 @@ fn void printn: ->i8 s {
 fn i32 readc: { ret getchar() }
 fn i32 putchr: i32 c { ret putchar(c) } 
 // no file functions
+fn i32 scan: ->i8 fmt, ... {
+    ret scanf(fmt, ...)
+}
+
+fn i32 fprints: ->i8 str, ->i8 fmt, ... {
+    ret sprintf(str, fmt, ...)
+}

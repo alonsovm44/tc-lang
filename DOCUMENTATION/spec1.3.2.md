@@ -394,6 +394,12 @@ Example uses
 // Align variables to specific boundaries
 align(16) u32[1024] page_table
 align(4096) u8[8192] kernel_stack
+align(alignof(i32)) u32 my_aligned_var
+align(1024) u8 my_custom_section[1024]
+```
+this is equivalent to:
+```c
+__attribute__((aligned(1024))) uint8_t my_custom_section[1024];
 ```
 
 #### 4. Direct memory access

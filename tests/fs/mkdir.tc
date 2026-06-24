@@ -1,0 +1,5 @@
+use "stdlib/os.tc"
+
+fn void main: {
+    os("mkdir test")
+}
