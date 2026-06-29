@@ -6,7 +6,7 @@ Look at the repo root to see how to compile Tig
 
 Compile with
 ```bash
-./tigc /demos/bf/main.tc -c bf 
+./tigc /demos/bf/main2.tc -c bf 
 ```
 Add `-o` to look at the C source
 ```bash
